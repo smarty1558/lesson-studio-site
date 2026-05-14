@@ -1,0 +1,15 @@
+name = "osum-music-academy"
+compatibility_date = "2026-05-14"
+pages_build_output_dir = "dist"
+
+[[r2_buckets]]
+binding = "PORTFOLIO_BUCKET"
+bucket_name = "osum-portfolio"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "osum-portfolio-db"
+database_id = "replace-with-cloudflare-d1-database-id"
+
+[vars]
+R2_PUBLIC_URL = "https://static.osum.kr"
