@@ -12,4 +12,4 @@ database_name = "osum-portfolio-db"
 database_id = "6e267712-cf31-4455-aba7-d0fc47f5bcff"
 
 [vars]
-R2_PUBLIC_URL = "https://static.osum.kr"
+R2_PUBLIC_URL = "https://pub-da3c2c9b5797479eb03e88e4a6084539.r2.dev"
