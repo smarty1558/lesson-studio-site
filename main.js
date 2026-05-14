@@ -779,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const items = (payload.items || []).map(normalizeApiPortfolioItem);
 
         const filtered = items.filter((item) => itemMatchesTarget(item, type, key));
-        return filtered.length ? filtered : items;
+        return filtered;
     };
 
     const renderPortfolioAdmin = async (editId = '') => {
