@@ -451,6 +451,11 @@ const renderUnifiedAdminPage = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
+        renderD1Admin();
+        return;
+    }
+
     if (false && (window.location.pathname === '/admin' || window.location.pathname === '/admin/')) {
         renderUnifiedAdminPage();
         return;
@@ -746,14 +751,20 @@ document.addEventListener('DOMContentLoaded', () => {
         img: item.imageUrl || '',
         imageUrl: item.imageUrl || '',
         audioUrl: item.audioUrl || '',
+        youtubeUrl: item.youtubeUrl || item.metadata?.youtubeUrl || '',
         externalUrl: item.externalLink || '',
         externalLink: item.externalLink || '',
         visible: item.visible !== false,
         sortOrder: Number(item.sortOrder || 0),
-        mediaType: item.audioUrl ? 'Audio' : 'Project',
-        format: item.category || 'Portfolio Preview',
-        detail: item.description || '',
-        points: ['D1 portfolio data', 'R2 media URL', 'Admin managed item'],
+        mediaType: item.mediaType || item.metadata?.mediaType || (item.audioUrl ? 'Audio' : item.youtubeUrl ? 'Video' : 'Project'),
+        format: item.format || item.metadata?.format || item.category || 'Portfolio Preview',
+        detail: item.detail || item.metadata?.detail || item.description || '',
+        points: item.points || item.metadata?.points || ['D1 portfolio data', 'R2 media URL', 'Admin managed item'],
+        teacherKeys: item.teacherKeys || item.metadata?.teacherKeys || [],
+        courseKeys: item.courseKeys || item.targetKeys || item.metadata?.targetKeys || [],
+        targetKeys: item.targetKeys || item.metadata?.targetKeys || [],
+        teacherNames: item.teacherNames || item.metadata?.teacherNames || [],
+        targetLabels: item.targetLabels || item.metadata?.targetLabels || [],
         cta: 'Portfolio consultation'
     });
 
@@ -767,12 +778,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const items = (payload.items || []).map(normalizeApiPortfolioItem);
 
-        if (type === 'course') {
-            const filtered = items.filter((item) => item.category === key);
-            return filtered.length ? filtered : items;
-        }
-
-        return items;
+        const filtered = items.filter((item) => itemMatchesTarget(item, type, key));
+        return filtered.length ? filtered : items;
     };
 
     const renderPortfolioAdmin = async (editId = '') => {
@@ -1125,11 +1132,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     };
-
-    if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
-        renderD1Admin();
-        return;
-    }
 
     const openModal = async (key, type = 'course') => {
         const isTeacher = type === 'teacher';

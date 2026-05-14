@@ -71,7 +71,12 @@ test('admin create inserts normalized portfolio data', async () => {
                 title: '  Midnight Concerto  ',
                 visible: false,
                 sortOrder: 3,
-                imageUrl: 'https://static.osum.kr/image.webp'
+                imageUrl: 'https://static.osum.kr/image.webp',
+                metadata: {
+                    youtubeUrl: 'https://youtube.com/watch?v=abcdefghijk',
+                    teacherKeys: ['kim'],
+                    targetKeys: ['anime']
+                }
             })
         }),
         env: {
@@ -88,4 +93,5 @@ test('admin create inserts normalized portfolio data', async () => {
     assert.equal(queries[1][1], 'Midnight Concerto');
     assert.equal(queries[1][8], 0);
     assert.equal(queries[1][9], 3);
+    assert.match(queries[1][10], /youtube/);
 });

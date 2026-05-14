@@ -51,8 +51,8 @@ export const onRequestPost = async ({ request, env }) => {
         await env.DB.prepare(`
             INSERT INTO portfolio_items (
                 id, title, description, category, date, image_url, audio_url,
-                external_link, visible, sort_order, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                external_link, visible, sort_order, metadata, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
             id,
             payload.title,
@@ -64,6 +64,7 @@ export const onRequestPost = async ({ request, env }) => {
             payload.externalLink,
             payload.visible ? 1 : 0,
             payload.sortOrder,
+            JSON.stringify(payload.metadata || {}),
             now,
             now
         ).run();

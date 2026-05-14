@@ -2225,6 +2225,23 @@ select:focus {
     font-weight: 800;
 }
 
+.admin-status.admin-upload-success,
+.admin-form-status.admin-upload-success {
+    color: #15803d;
+}
+
+.admin-status.admin-upload-error,
+.admin-form-status.admin-upload-error {
+    color: #b91c1c;
+}
+
+.admin-help {
+    margin-top: 12px;
+    color: #64748b;
+    font-size: 0.84rem;
+    line-height: 1.6;
+}
+
 .admin-portfolio-row {
     align-items: flex-start;
 }
@@ -2252,6 +2269,15 @@ select:focus {
 .admin-portfolio-body {
     flex: 1;
     min-width: 0;
+}
+
+.admin-portfolio-body a {
+    display: inline-flex;
+    margin-top: 8px;
+    color: #2563eb;
+    font-size: 0.84rem;
+    font-weight: 900;
+    text-decoration: none;
 }
 
 .admin-portfolio-body audio,

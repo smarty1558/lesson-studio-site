@@ -4,17 +4,36 @@ import {
     success
 } from './upload-utils.js';
 
+const parseMetadata = (value) => {
+    if (!value) return {};
+    if (typeof value === 'object') return value;
+
+    try {
+        const parsed = JSON.parse(value);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+        return {};
+    }
+};
+
 export const toPublicPortfolioItem = (row = {}) => ({
     id: row.id,
     title: row.title,
     description: row.description || '',
+    desc: row.description || '',
     category: row.category || '',
+    mediaType: parseMetadata(row.metadata).mediaType || row.category || '',
+    format: parseMetadata(row.metadata).format || '',
     date: row.date || '',
     imageUrl: row.image_url || '',
+    img: row.image_url || '',
     audioUrl: row.audio_url || '',
     externalLink: row.external_link || '',
+    externalUrl: row.external_link || '',
     visible: row.visible === 1 || row.visible === true,
-    sortOrder: Number(row.sort_order || 0)
+    sortOrder: Number(row.sort_order || 0),
+    metadata: parseMetadata(row.metadata),
+    ...parseMetadata(row.metadata)
 });
 
 export const toAdminPortfolioItem = (row = {}) => ({
@@ -32,7 +51,8 @@ export const normalizePortfolioPayload = (payload = {}) => ({
     audioUrl: String(payload.audioUrl || '').trim(),
     externalLink: String(payload.externalLink || '').trim(),
     visible: payload.visible !== false,
-    sortOrder: Number.isFinite(Number(payload.sortOrder)) ? Number(payload.sortOrder) : 0
+    sortOrder: Number.isFinite(Number(payload.sortOrder)) ? Number(payload.sortOrder) : 0,
+    metadata: parseMetadata(payload.metadata)
 });
 
 export const requireAdmin = (request, env) => {
@@ -64,14 +84,14 @@ export const readJson = async (request) => {
 };
 
 export const publicListSql = `
-    SELECT id, title, description, category, date, image_url, audio_url, external_link, visible, sort_order
+    SELECT id, title, description, category, date, image_url, audio_url, external_link, visible, sort_order, metadata
     FROM portfolio_items
     WHERE visible = 1
     ORDER BY sort_order ASC, created_at DESC
 `;
 
 export const adminListSql = `
-    SELECT id, title, description, category, date, image_url, audio_url, external_link, visible, sort_order, created_at, updated_at
+    SELECT id, title, description, category, date, image_url, audio_url, external_link, visible, sort_order, metadata, created_at, updated_at
     FROM portfolio_items
     ORDER BY sort_order ASC, created_at DESC
 `;

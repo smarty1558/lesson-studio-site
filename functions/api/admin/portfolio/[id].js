@@ -42,6 +42,7 @@ export const onRequestPatch = async ({ request, env, params }) => {
                 external_link = ?,
                 visible = ?,
                 sort_order = ?,
+                metadata = ?,
                 updated_at = ?
             WHERE id = ?
         `).bind(
@@ -54,6 +55,7 @@ export const onRequestPatch = async ({ request, env, params }) => {
             payload.externalLink,
             payload.visible ? 1 : 0,
             payload.sortOrder,
+            JSON.stringify(payload.metadata || {}),
             now,
             id
         ).run();
