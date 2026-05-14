@@ -9,7 +9,7 @@ bucket_name = "osum-portfolio"
 [[d1_databases]]
 binding = "DB"
 database_name = "osum-portfolio-db"
-database_id = "replace-with-cloudflare-d1-database-id"
+database_id = "6e267712-cf31-4455-aba7-d0fc47f5bcff"
 
 [vars]
 R2_PUBLIC_URL = "https://static.osum.kr"
