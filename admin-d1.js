@@ -65,6 +65,12 @@ const uploadFile = async ({ file, type, password }) => {
     return data.url;
 };
 
+const fetchR2Files = async ({ type, password, cursor = '' }) => {
+    const params = new URLSearchParams({ type });
+    if (cursor) params.set('cursor', cursor);
+    return apiJson(`/api/admin/files?${params.toString()}`, { password });
+};
+
 const emptyItem = {
     id: '',
     title: '',
@@ -146,6 +152,13 @@ const truncate = (value = '', length = 72) => {
     return text.length > length ? `${text.slice(0, length)}...` : text;
 };
 
+const formatFileSize = (size = 0) => {
+    const value = Number(size || 0);
+    if (value >= 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} MB`;
+    if (value >= 1024) return `${Math.round(value / 1024)} KB`;
+    return `${value} B`;
+};
+
 const readFormItem = (form) => {
     const formData = new FormData(form);
     const points = String(formData.get('points') || '')
@@ -203,6 +216,78 @@ export const renderD1Admin = () => {
         if (!target) return;
         target.textContent = message;
         target.className = className || target.className;
+    };
+
+    const closeFilePicker = () => {
+        document.querySelector('.admin-file-picker-backdrop')?.remove();
+    };
+
+    const renderFilePicker = ({ type, targetName, files = [], cursor = '', truncated = false, loading = false, error = '' }) => {
+        const title = type === 'image' ? 'R2 image files' : 'R2 audio files';
+        const rows = files.length
+            ? files.map((file) => `
+                <button type="button" class="admin-file-row" data-select-file-url="${escapeHtml(file.url)}" data-target-input="${escapeHtml(targetName)}">
+                    <span class="admin-file-preview">
+                        ${type === 'image' ? `<img src="${escapeHtml(file.url)}" alt="">` : '<span>Audio</span>'}
+                    </span>
+                    <span class="admin-file-info">
+                        <strong title="${escapeHtml(file.key)}">${escapeHtml(file.key.replace(/^portfolio\/(images|audio)\//, ''))}</strong>
+                        <small>${escapeHtml(formatFileSize(file.size))}${file.uploaded ? ` - ${escapeHtml(file.uploaded.slice(0, 10))}` : ''}</small>
+                    </span>
+                </button>
+            `).join('')
+            : `<p class="admin-table-empty">${loading ? 'R2 files loading...' : 'No files in this R2 folder.'}</p>`;
+
+        closeFilePicker();
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="admin-file-picker-backdrop" role="dialog" aria-modal="true">
+                <section class="admin-panel admin-file-picker">
+                    <div class="admin-editor-head">
+                        <div>
+                            <span>R2 Library</span>
+                            <h2>${title}</h2>
+                        </div>
+                        <button type="button" class="admin-link" data-close-file-picker>Close</button>
+                    </div>
+                    ${error ? `<p class="admin-upload-error">${escapeHtml(error)}</p>` : ''}
+                    <div class="admin-file-list">${rows}</div>
+                    ${truncated ? `<button type="button" class="admin-secondary" data-load-more-files data-file-type="${escapeHtml(type)}" data-target-input="${escapeHtml(targetName)}" data-cursor="${escapeHtml(cursor)}">Load more</button>` : ''}
+                </section>
+            </div>
+        `);
+
+        document.querySelector('[data-close-file-picker]')?.addEventListener('click', closeFilePicker);
+        document.querySelectorAll('[data-select-file-url]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const input = document.querySelector(`[name="${button.dataset.targetInput}"]`);
+                if (input) input.value = button.dataset.selectFileUrl || '';
+                closeFilePicker();
+            });
+        });
+        document.querySelector('[data-load-more-files]')?.addEventListener('click', (event) => {
+            openFilePicker({
+                type: event.currentTarget.dataset.fileType,
+                targetName: event.currentTarget.dataset.targetInput,
+                cursor: event.currentTarget.dataset.cursor
+            });
+        });
+    };
+
+    const openFilePicker = async ({ type, targetName, cursor = '' }) => {
+        renderFilePicker({ type, targetName, loading: true });
+
+        try {
+            const data = await fetchR2Files({ type, password: adminPassword, cursor });
+            renderFilePicker({
+                type,
+                targetName,
+                files: data.files || [],
+                cursor: data.cursor || '',
+                truncated: Boolean(data.truncated)
+            });
+        } catch (error) {
+            renderFilePicker({ type, targetName, error: error.message });
+        }
     };
 
     const renderLogin = () => {
@@ -355,10 +440,16 @@ export const renderD1Admin = () => {
                             <input type="file" name="audioFile" accept="audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/wav,audio/wave,audio/x-wav,.mp3,.m4a,.wav">
                         </label>
                         <label>이미지 URL
-                            <input name="imageUrlManual" value="${escapeHtml(meta.imageUrlManual || item.imageUrl)}" placeholder="./image.png 또는 R2 URL">
+                            <span class="admin-input-action">
+                                <input name="imageUrlManual" value="${escapeHtml(meta.imageUrlManual || item.imageUrl)}" placeholder="./image.png 또는 R2 URL">
+                                <button type="button" class="admin-secondary" data-open-file-picker="image" data-target-input="imageUrlManual">R2</button>
+                            </span>
                         </label>
                         <label>Audio URL
-                            <input name="audioUrlManual" value="${escapeHtml(meta.audioUrlManual || item.audioUrl)}" placeholder="https://.../demo.mp3">
+                            <span class="admin-input-action">
+                                <input name="audioUrlManual" value="${escapeHtml(meta.audioUrlManual || item.audioUrl)}" placeholder="https://.../demo.mp3">
+                                <button type="button" class="admin-secondary" data-open-file-picker="audio" data-target-input="audioUrlManual">R2</button>
+                            </span>
                         </label>
                         <label>동영상 / YouTube URL
                             <input name="youtubeUrl" value="${escapeHtml(meta.youtubeUrl)}" placeholder="https://youtube.com/...">
@@ -528,6 +619,15 @@ export const renderD1Admin = () => {
         document.querySelector('[data-cancel-edit]')?.addEventListener('click', () => {
             editingItem = null;
             draw();
+        });
+
+        document.querySelectorAll('[data-open-file-picker]').forEach((button) => {
+            button.addEventListener('click', () => {
+                openFilePicker({
+                    type: button.dataset.openFilePicker,
+                    targetName: button.dataset.targetInput
+                });
+            });
         });
 
         document.getElementById('d1-portfolio-form')?.addEventListener('submit', async (event) => {
