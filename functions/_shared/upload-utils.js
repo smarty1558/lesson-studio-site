@@ -48,6 +48,20 @@ export const getOriginalExtension = (fileName = '') => {
     return /^[a-z0-9]+$/.test(extension) ? extension : '';
 };
 
+export const getSafeOriginalName = (fileName = '') => {
+    const rawName = String(fileName || '').split(/[\\/]/).pop() || 'file';
+    const withoutExtension = rawName.replace(/\.[^.]+$/, '');
+    const safeName = withoutExtension
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9가-힣._-]+/g, '-')
+        .replace(/[-_.]{2,}/g, '-')
+        .replace(/^[-_.]+|[-_.]+$/g, '')
+        .slice(0, 80);
+
+    return safeName || 'file';
+};
+
 export const validateUploadInput = ({ file, type }) => {
     const normalizedType = String(type || '').trim().toLowerCase();
     const rules = uploadRules[normalizedType];
@@ -92,6 +106,17 @@ export const validateUploadInput = ({ file, type }) => {
 export const createObjectKey = ({ prefix, extension, randomUUID = () => crypto.randomUUID() }) => {
     const id = randomUUID().replace(/[^a-f0-9-]/gi, '');
     return `${prefix}${id}.${extension}`;
+};
+
+export const createReadableObjectKey = ({
+    prefix,
+    extension,
+    originalName,
+    randomUUID = () => crypto.randomUUID()
+}) => {
+    const id = randomUUID().replace(/[^a-f0-9-]/gi, '');
+    const safeName = getSafeOriginalName(originalName);
+    return `${prefix}${id}-${safeName}.${extension}`;
 };
 
 export const getAdminPasswordFromRequest = (request) => {

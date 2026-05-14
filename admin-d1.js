@@ -71,6 +71,11 @@ const fetchR2Files = async ({ type, password, cursor = '' }) => {
     return apiJson(`/api/admin/files?${params.toString()}`, { password });
 };
 
+const deleteR2File = async ({ key, password }) => apiJson(`/api/admin/files?key=${encodeURIComponent(key)}`, {
+    password,
+    method: 'DELETE'
+});
+
 const emptyItem = {
     id: '',
     title: '',
@@ -159,6 +164,10 @@ const formatFileSize = (size = 0) => {
     return `${value} B`;
 };
 
+const readableFileName = (key = '') => String(key)
+    .replace(/^portfolio\/(images|audio)\//, '')
+    .replace(/^[a-f0-9-]{36}-/i, '');
+
 const readFormItem = (form) => {
     const formData = new FormData(form);
     const points = String(formData.get('points') || '')
@@ -223,20 +232,25 @@ export const renderD1Admin = () => {
     };
 
     const renderFilePicker = ({ type, targetName, files = [], cursor = '', truncated = false, loading = false, error = '' }) => {
-        const title = type === 'image' ? 'R2 image files' : 'R2 audio files';
+        const title = type === 'image' ? 'R2 이미지 파일' : 'R2 오디오 파일';
+        const folder = type === 'image' ? 'portfolio/images/' : 'portfolio/audio/';
         const rows = files.length
             ? files.map((file) => `
-                <button type="button" class="admin-file-row" data-select-file-url="${escapeHtml(file.url)}" data-target-input="${escapeHtml(targetName)}">
-                    <span class="admin-file-preview">
+                <article class="admin-file-card">
+                    <button type="button" class="admin-file-thumb" data-select-file-url="${escapeHtml(file.url)}" data-target-input="${escapeHtml(targetName)}">
                         ${type === 'image' ? `<img src="${escapeHtml(file.url)}" alt="">` : '<span>Audio</span>'}
-                    </span>
-                    <span class="admin-file-info">
-                        <strong title="${escapeHtml(file.key)}">${escapeHtml(file.key.replace(/^portfolio\/(images|audio)\//, ''))}</strong>
-                        <small>${escapeHtml(formatFileSize(file.size))}${file.uploaded ? ` - ${escapeHtml(file.uploaded.slice(0, 10))}` : ''}</small>
-                    </span>
-                </button>
+                    </button>
+                    <div class="admin-file-info">
+                        <strong title="${escapeHtml(file.key)}">${escapeHtml(readableFileName(file.key))}</strong>
+                        <small title="${escapeHtml(file.key)}">${escapeHtml(formatFileSize(file.size))}${file.uploaded ? ` - ${escapeHtml(file.uploaded.slice(0, 10))}` : ''}</small>
+                    </div>
+                    <div class="admin-file-card-actions">
+                        <button type="button" class="admin-secondary" data-select-file-url="${escapeHtml(file.url)}" data-target-input="${escapeHtml(targetName)}">선택</button>
+                        <button type="button" class="admin-danger-button" data-delete-file-key="${escapeHtml(file.key)}" data-file-type="${escapeHtml(type)}" data-target-input="${escapeHtml(targetName)}">삭제</button>
+                    </div>
+                </article>
             `).join('')
-            : `<p class="admin-table-empty">${loading ? 'R2 files loading...' : 'No files in this R2 folder.'}</p>`;
+            : `<p class="admin-table-empty">${loading ? 'R2 파일을 불러오는 중...' : '이 R2 폴더에 파일이 없습니다.'}</p>`;
 
         closeFilePicker();
         document.body.insertAdjacentHTML('beforeend', `
@@ -247,11 +261,12 @@ export const renderD1Admin = () => {
                             <span>R2 Library</span>
                             <h2>${title}</h2>
                         </div>
-                        <button type="button" class="admin-link" data-close-file-picker>Close</button>
+                        <button type="button" class="admin-link" data-close-file-picker>닫기</button>
                     </div>
+                    <p class="admin-help">폴더: ${escapeHtml(folder)} · 이미 업로드한 파일을 선택하거나 필요 없는 파일을 삭제할 수 있습니다.</p>
                     ${error ? `<p class="admin-upload-error">${escapeHtml(error)}</p>` : ''}
                     <div class="admin-file-list">${rows}</div>
-                    ${truncated ? `<button type="button" class="admin-secondary" data-load-more-files data-file-type="${escapeHtml(type)}" data-target-input="${escapeHtml(targetName)}" data-cursor="${escapeHtml(cursor)}">Load more</button>` : ''}
+                    ${truncated ? `<button type="button" class="admin-secondary" data-load-more-files data-file-type="${escapeHtml(type)}" data-target-input="${escapeHtml(targetName)}" data-cursor="${escapeHtml(cursor)}">더 보기</button>` : ''}
                 </section>
             </div>
         `);
@@ -262,6 +277,31 @@ export const renderD1Admin = () => {
                 const input = document.querySelector(`[name="${button.dataset.targetInput}"]`);
                 if (input) input.value = button.dataset.selectFileUrl || '';
                 closeFilePicker();
+            });
+        });
+        document.querySelectorAll('[data-delete-file-key]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const fileName = readableFileName(button.dataset.deleteFileKey);
+                if (!confirm(`${fileName} 파일을 R2에서 삭제할까요? 이미 포트폴리오 항목에서 사용 중이면 링크가 깨질 수 있습니다.`)) return;
+
+                try {
+                    button.disabled = true;
+                    button.textContent = '삭제 중';
+                    await deleteR2File({
+                        key: button.dataset.deleteFileKey,
+                        password: adminPassword
+                    });
+                    await openFilePicker({
+                        type: button.dataset.fileType,
+                        targetName: button.dataset.targetInput
+                    });
+                } catch (error) {
+                    renderFilePicker({
+                        type: button.dataset.fileType,
+                        targetName: button.dataset.targetInput,
+                        error: error.message
+                    });
+                }
             });
         });
         document.querySelector('[data-load-more-files]')?.addEventListener('click', (event) => {

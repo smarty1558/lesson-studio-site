@@ -2503,51 +2503,49 @@ select:focus {
 }
 
 .admin-file-picker {
-    width: min(760px, 100%);
+    width: min(980px, 100%);
     max-height: calc(100vh - 68px);
     overflow: auto;
 }
 
 .admin-file-list {
     display: grid;
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
 }
 
-.admin-file-row {
-    width: 100%;
-    min-height: 68px;
+.admin-file-card {
     display: grid;
-    grid-template-columns: 72px minmax(0, 1fr);
-    align-items: center;
-    gap: 12px;
-    padding: 8px;
+    gap: 8px;
+    padding: 10px;
     border: 1px solid rgba(37, 99, 235, 0.16);
     border-radius: 8px;
     background: #ffffff;
     color: #1e293b;
-    text-align: left;
-    cursor: pointer;
 }
 
-.admin-file-row:hover {
+.admin-file-card:hover {
     border-color: rgba(37, 99, 235, 0.48);
     background: #f8fbff;
 }
 
-.admin-file-preview {
-    width: 72px;
-    height: 52px;
+.admin-file-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 10;
     display: grid;
     place-items: center;
     overflow: hidden;
+    padding: 0;
+    border: 0;
     border-radius: 6px;
     background: #e0e7ff;
     color: #2563eb;
     font-size: 0.72rem;
     font-weight: 900;
+    cursor: pointer;
 }
 
-.admin-file-preview img {
+.admin-file-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -2568,6 +2566,33 @@ select:focus {
 
 .admin-file-info small {
     color: #64748b;
+}
+
+.admin-file-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.admin-file-card-actions .admin-secondary,
+.admin-danger-button {
+    width: 100%;
+    min-height: 34px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.admin-danger-button {
+    border: 1px solid rgba(220, 38, 38, 0.22);
+    background: #fff1f2;
+    color: #be123c;
+    cursor: pointer;
+}
+
+.admin-danger-button:hover {
+    background: #ffe4e6;
 }
 
 .admin-input-action {

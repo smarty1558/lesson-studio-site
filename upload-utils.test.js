@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {
     buildPublicUrl,
     createObjectKey,
+    createReadableObjectKey,
+    getSafeOriginalName,
     validateUploadInput
 } from './functions/_shared/upload-utils.js';
 
@@ -57,4 +59,17 @@ test('builds public URL without duplicate slashes', () => {
         buildPublicUrl('https://static.osum.kr/', 'portfolio/audio/demo.mp3'),
         'https://static.osum.kr/portfolio/audio/demo.mp3'
     );
+});
+
+test('creates readable R2 keys without trusting the original file name alone', () => {
+    assert.equal(getSafeOriginalName('../My Demo Track!!.mp3'), 'My-Demo-Track');
+
+    const key = createReadableObjectKey({
+        prefix: 'portfolio/audio/',
+        extension: 'mp3',
+        originalName: '../My Demo Track!!.mp3',
+        randomUUID: () => '123e4567-e89b-12d3-a456-426614174000'
+    });
+
+    assert.equal(key, 'portfolio/audio/123e4567-e89b-12d3-a456-426614174000-My-Demo-Track.mp3');
 });

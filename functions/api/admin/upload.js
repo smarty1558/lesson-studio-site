@@ -1,6 +1,6 @@
 import {
     buildPublicUrl,
-    createObjectKey,
+    createReadableObjectKey,
     failure,
     getAdminPasswordFromRequest,
     success,
@@ -44,9 +44,10 @@ export const onRequestPost = async ({ request, env }) => {
             return failure(validation.error, validation.status);
         }
 
-        const key = createObjectKey({
+        const key = createReadableObjectKey({
             prefix: validation.prefix,
-            extension: validation.extension
+            extension: validation.extension,
+            originalName: file.name
         });
 
         await env.PORTFOLIO_BUCKET.put(key, file.stream(), {
