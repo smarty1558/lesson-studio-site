@@ -1,4 +1,5 @@
 :root {
+    --hidden-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1' viewBox='0 0 1 1'%3E%3C/svg%3E") 0 0, none;
     --primary: #a78bfa;
     --primary-dark: #7c3aed;
     --primary-light: #ddd6fe;
@@ -745,9 +746,11 @@ body.site-ready .site-shell {
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
+html.has-view-cursor,
+html.has-view-cursor *,
 body.has-view-cursor,
 body.has-view-cursor * {
-    cursor: none !important;
+    cursor: var(--hidden-cursor) !important;
 }
 
 .view-cursor-dot,
@@ -825,12 +828,7 @@ body.view-cursor-active .view-cursor-dot {
     opacity: 0;
 }
 
-@media (hover: none), (pointer: coarse) {
-    body.has-view-cursor,
-    body.has-view-cursor * {
-        cursor: auto !important;
-    }
-
+@media (pointer: coarse) {
     .view-cursor-dot,
     .view-cursor-pill {
         display: none;

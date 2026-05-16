@@ -561,6 +561,7 @@ const initSite = () => {
         cursorPill.setAttribute('aria-hidden', 'true');
         document.body.append(cursorDot, cursorPill);
         document.body.classList.add('has-view-cursor');
+        document.documentElement.classList.add('has-view-cursor');
 
         const setStatCursorClip = () => {
             if (activeCursorTarget) {
@@ -1438,7 +1439,7 @@ const initSite = () => {
                     </dl>
                     <ul>${points}</ul>
                     <button type="button" class="portfolio-back">목록으로 돌아가기</button>
-                    <a href="#contact" class="portfolio-detail-cta">${enriched.cta}</a>
+                    <a href="#contact" class="portfolio-detail-cta">이런 스타일 배우기</a>
                 </div>
             `;
 
