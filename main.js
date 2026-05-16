@@ -1,4 +1,8 @@
 import { renderD1Admin } from './admin-d1.js';
+import {
+    clearPortfolioInterest,
+    createPortfolioInterest
+} from './portfolio-interest.js';
 
 const uploadTesterMarkup = '';
 
@@ -514,6 +518,62 @@ const initSite = () => {
     window.addEventListener('scroll', updateNav, { passive: true });
 
     const contactForm = document.getElementById('contact-form');
+    const contactSection = document.getElementById('contact');
+    const contactCard = document.querySelector('.cta-card');
+    const portfolioInterestSlot = document.querySelector('[data-portfolio-interest]');
+    let activePortfolioInterest = null;
+
+    const renderPortfolioInterest = (interest) => {
+        if (!portfolioInterestSlot || !contactCard) return;
+
+        activePortfolioInterest = interest;
+        contactCard.classList.remove('is-learning', 'is-clearing');
+
+        if (!interest) {
+            const activeChip = portfolioInterestSlot.querySelector('.portfolio-interest-chip');
+            if (!activeChip) {
+                portfolioInterestSlot.classList.remove('has-interest');
+                portfolioInterestSlot.innerHTML = '';
+                return;
+            }
+
+            activeChip.classList.add('is-removing');
+            contactCard.classList.add('is-clearing');
+            window.setTimeout(() => {
+                portfolioInterestSlot.classList.remove('has-interest');
+                portfolioInterestSlot.innerHTML = '';
+                contactCard.classList.remove('is-clearing');
+            }, 300);
+            return;
+        }
+
+        portfolioInterestSlot.innerHTML = `
+            <div class="portfolio-interest-chip">
+                <span>${interest.text}</span>
+                <button type="button" class="portfolio-interest-remove" aria-label="선택한 포트폴리오 지우기">삭제</button>
+            </div>
+        `;
+        portfolioInterestSlot.classList.add('has-interest');
+
+        window.requestAnimationFrame(() => {
+            contactCard.classList.add('is-learning');
+        });
+    };
+
+    const moveToContactWithPortfolioInterest = (item) => {
+        const interest = createPortfolioInterest(item);
+        if (!interest || !contactSection) return;
+
+        closeModal();
+
+        window.setTimeout(() => {
+            contactSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 220);
+
+        window.setTimeout(() => {
+            renderPortfolioInterest(interest);
+        }, 760);
+    };
 
     if (contactForm) {
         contactForm.addEventListener('submit', (event) => {
@@ -533,6 +593,12 @@ const initSite = () => {
             }, 900);
         });
     }
+
+    portfolioInterestSlot?.addEventListener('click', (event) => {
+        if (!event.target.closest('.portfolio-interest-remove')) return;
+        event.preventDefault();
+        renderPortfolioInterest(clearPortfolioInterest());
+    });
 
     document.querySelectorAll('.course-card, .artist-card').forEach((card) => {
         card.addEventListener('mousemove', (event) => {
@@ -1407,6 +1473,7 @@ const initSite = () => {
             const enriched = enrichPortfolioItem(item, index);
             const points = enriched.points.map((point) => `<li class="decode-text">${point}</li>`).join('');
             const isAlreadyOpen = expandedPanel.classList.contains('is-open');
+            expandedPanel.dataset.portfolioInterestTitle = enriched.title;
             const contextLabel = `${title} 결과물`;
 
             if (detailKicker) {
@@ -1505,6 +1572,15 @@ const initSite = () => {
         });
 
         expandedPanel.addEventListener('click', (event) => {
+            const interestCta = event.target.closest('.portfolio-detail-cta');
+            if (interestCta) {
+                event.preventDefault();
+                moveToContactWithPortfolioInterest({
+                    title: expandedPanel.dataset.portfolioInterestTitle || ''
+                });
+                return;
+            }
+
             if (event.target.closest('.portfolio-back')) {
                 expandedPanel.classList.remove('is-arriving');
                 expandedPanel.classList.add('is-closing');
