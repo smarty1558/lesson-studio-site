@@ -3,6 +3,11 @@ import {
     clearPortfolioInterest,
     createPortfolioInterest
 } from './portfolio-interest.js';
+import {
+    getTeacherProfile,
+    getTeacherProfileViewState
+} from './teacher-profiles.js';
+import { getPortfolioItemsForTarget } from './portfolio-data.js';
 
 const uploadTesterMarkup = '';
 
@@ -24,6 +29,7 @@ const renderStandaloneAdminPage = () => {
         course: {
             game: '게임 · 영화 OST',
             anime: '애니메이션 BGM',
+            jpop: 'J-POP',
             sound: 'Sound Design'
         },
         teacher: {
@@ -717,13 +723,24 @@ const initSite = () => {
     const modal = document.getElementById('portfolio-modal');
     const modalContent = modal?.querySelector('.modal-content');
     const gallery = document.getElementById('portfolio-gallery');
+    const modalHeader = modal?.querySelector('.modal-header');
     const modalTitle = document.getElementById('modal-title');
     const closeBtn = document.querySelector('.modal-close');
     const overlay = document.querySelector('.modal-overlay');
     let isModalClosing = false;
+    const restoreTeacherModalLayout = () => {
+        const stage = modalContent?.querySelector('.teacher-modal-stage');
+        if (stage && gallery && modalContent) {
+            modalContent.appendChild(gallery);
+            stage.remove();
+        }
+
+        modalContent?.classList.remove('teacher-mode', 'teacher-works-active');
+    };
     const titleMap = {
         game: '게임 · 영화 OST',
         anime: '애니메이션 BGM',
+        jpop: 'J-POP',
         sound: 'Sound Design'
     };
     const teacherTitleMap = {
@@ -731,6 +748,37 @@ const initSite = () => {
         lee: '이서윤 포트폴리오',
         han: '한유나 포트폴리오',
         cho: '조은오 포트폴리오'
+    };
+
+    const renderTeacherProfileMarkup = (profile) => `
+        <section class="teacher-profile-card">
+            <div class="teacher-profile-visual" style="background-image: url('${profile.image}')"></div>
+            <div class="teacher-profile-copy">
+                <span class="section-kicker">${profile.role}</span>
+                <h3>${profile.name}</h3>
+                <p>${profile.summary}</p>
+                <div class="teacher-specialties">
+                    ${profile.specialties.map((specialty) => `<span>${specialty}</span>`).join('')}
+                </div>
+                <dl class="teacher-profile-facts">
+                    <div>
+                        <dt>대표 방향</dt>
+                        <dd>${profile.note}</dd>
+                    </div>
+                    <div>
+                        <dt>대표 작업</dt>
+                        <dd>${profile.works.join(' · ')}</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+    `;
+
+    const setTeacherModalMode = (mode) => {
+        const state = getTeacherProfileViewState(mode);
+        modalContent?.classList.toggle('teacher-works-active', state.isWorks);
+        modalContent?.querySelector('[data-teacher-panel="detail"]')?.setAttribute('aria-pressed', state.isWorks ? 'false' : 'true');
+        modalContent?.querySelector('[data-teacher-panel="works"]')?.setAttribute('aria-pressed', state.isWorks ? 'true' : 'false');
     };
 
     const enrichPortfolioItem = (item, index) => ({
@@ -747,6 +795,7 @@ const initSite = () => {
         course: {
             game: '게임 · 영화 OST',
             anime: '애니메이션 BGM',
+            jpop: 'J-POP',
             sound: 'Sound Design'
         },
         teacher: {
@@ -761,6 +810,7 @@ const initSite = () => {
         course: {
             game: '게임 · 영화 OST',
             anime: '애니메이션 BGM',
+            jpop: 'J-POP',
             sound: 'Sound Design'
         },
         teacher: {
@@ -870,7 +920,8 @@ const initSite = () => {
     const itemMatchesTarget = (item, type, key) => {
         const courseGenres = {
             game: ['gameBgm', 'filmOst'],
-            anime: ['anime', 'jpop'],
+            anime: ['anime'],
+            jpop: ['jpop'],
             sound: ['soundDesign']
         };
 
@@ -926,17 +977,21 @@ const initSite = () => {
     });
 
     const loadPortfolioItems = async (type, key) => {
-        const response = await fetch('/api/portfolio', { cache: 'no-store' });
-        const payload = await response.json();
+        try {
+            const response = await fetch('/api/portfolio', { cache: 'no-store' });
+            const payload = await response.json();
 
-        if (!response.ok || !payload.success) {
+            if (!response.ok || !payload.success) {
             throw new Error(payload.error || '포트폴리오 데이터를 불러오지 못했습니다.');
+            }
+
+            const items = (payload.items || []).map(normalizeApiPortfolioItem);
+
+            const filtered = items.filter((item) => itemMatchesTarget(item, type, key));
+            return filtered;
+        } catch {
+            return getPortfolioItemsForTarget(type, key);
         }
-
-        const items = (payload.items || []).map(normalizeApiPortfolioItem);
-
-        const filtered = items.filter((item) => itemMatchesTarget(item, type, key));
-        return filtered;
     };
 
     const renderPortfolioAdmin = async (editId = '') => {
@@ -1292,6 +1347,7 @@ const initSite = () => {
 
     const openModal = async (key, type = 'course') => {
         const isTeacher = type === 'teacher';
+        restoreTeacherModalLayout();
         const title = isTeacher
             ? (teacherTitleMap[key] || '강사진 포트폴리오')
             : (titleMap[key] || '수강생');
@@ -1342,6 +1398,43 @@ const initSite = () => {
             </article>
         `;
         }).join('') : '<p class="portfolio-empty">No visible portfolio items yet.</p>';
+
+        if (isTeacher && modalContent && gallery) {
+            const profile = getTeacherProfile(key);
+            const state = getTeacherProfileViewState('detail');
+            const stage = document.createElement('div');
+            stage.className = 'teacher-modal-stage';
+            stage.innerHTML = `
+                <button type="button" class="teacher-tab teacher-tab-works" data-teacher-panel="works" aria-label="${state.worksLabel}">
+                    <span>${state.worksLabel}</span>
+                </button>
+                <button type="button" class="teacher-tab teacher-tab-detail" data-teacher-panel="detail" aria-label="${state.detailLabel}">
+                    <span>${state.detailLabel}</span>
+                </button>
+                <div class="teacher-panel-track">
+                    <section class="teacher-panel teacher-detail-panel">
+                        ${renderTeacherProfileMarkup(profile)}
+                    </section>
+                    <section class="teacher-panel teacher-works-panel">
+                        <div class="teacher-works-heading">
+                            <span class="section-kicker">Representative Works</span>
+                            <h3>${profile.name} 대표작품</h3>
+                        </div>
+                        <div class="teacher-portfolio-panel"></div>
+                    </section>
+                </div>
+            `;
+            modalContent.insertBefore(stage, modalHeader || gallery);
+            stage.querySelector('.teacher-portfolio-panel')?.appendChild(gallery);
+            modalContent.classList.add('teacher-mode');
+            setTeacherModalMode('detail');
+
+            stage.addEventListener('click', (event) => {
+                const panelButton = event.target.closest('[data-teacher-panel]');
+                if (!panelButton) return;
+                setTeacherModalMode(panelButton.dataset.teacherPanel);
+            });
+        }
 
         gallery.insertAdjacentHTML('beforebegin', '<div id="portfolio-detail-kicker" class="portfolio-detail-kicker" aria-hidden="true"></div>');
         gallery.insertAdjacentHTML('afterend', '<div id="portfolio-expanded-panel" class="portfolio-expanded-panel" aria-live="polite"></div>');
@@ -1621,6 +1714,7 @@ const initSite = () => {
             modal.classList.remove('active', 'detail-active', 'is-dismissing');
             modal.setAttribute('aria-hidden', 'true');
             modalContent?.classList.remove('detail-mode', 'is-restoring', 'is-collapsing', 'is-reopening', 'is-shutting-down');
+            restoreTeacherModalLayout();
             gallery?.classList.remove('is-returning');
             document.getElementById('portfolio-detail-kicker')?.remove();
             document.body.style.overflow = '';

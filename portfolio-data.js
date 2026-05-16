@@ -3,7 +3,7 @@ export const portfolioItems = [
         id: 'joygo-anime-opening',
         title: 'Sugar Rush Opening',
         description: 'Anime OP / J-pop vocal production demo',
-        category: 'anime',
+        category: 'jpop',
         date: '2026-05-14',
         imageUrl: './joygo_jpop_vocal_3.png',
         audioUrl: '',
@@ -11,6 +11,7 @@ export const portfolioItems = [
         visible: true,
         sortOrder: 1,
         teacherKeys: ['kim', 'lee'],
+        courseKeys: ['jpop'],
         format: 'J-pop Vocal Preview',
         detail: 'Character-tone vocal direction, bright top-line writing, and polished anime opening arrangement.',
         points: ['Vocal tone guide', 'Opening-size chorus', 'Student portfolio direction']

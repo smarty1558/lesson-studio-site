@@ -14,6 +14,7 @@ const teacherOptions = [
 const targetOptions = [
     ['game', '게임 · 영화 OST'],
     ['anime', '애니메이션 BGM'],
+    ['jpop', 'J-POP'],
     ['sound', 'Sound Design']
 ];
 

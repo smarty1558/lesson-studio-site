@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    getPortfolioItemsForTarget,
     getVisibleSortedPortfolioItems,
     normalizePortfolioItem
 } from './portfolio-data.js';
@@ -34,4 +35,22 @@ test('normalizes required portfolio fields without creating broken media URLs', 
     assert.equal(item.img, '');
     assert.equal(item.audioUrl, '');
     assert.equal(item.externalLink, '');
+});
+
+test('matches J-POP course independently from anime course keys', () => {
+    const items = [
+        { id: 'anime-only', title: 'Anime', category: 'anime', courseKeys: ['anime'], visible: true },
+        { id: 'jpop-only', title: 'J-POP', category: 'jpop', courseKeys: ['jpop'], visible: true }
+    ];
+
+    assert.deepEqual(
+        getVisibleSortedPortfolioItems(items)
+            .filter((item) => item.courseKeys.includes('jpop') || item.category === 'jpop')
+            .map((item) => item.id),
+        ['jpop-only']
+    );
+});
+
+test('default portfolio data exposes a J-POP course target', () => {
+    assert.ok(getPortfolioItemsForTarget('course', 'jpop').length > 0);
 });
