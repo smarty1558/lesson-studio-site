@@ -210,6 +210,30 @@ body.site-ready .site-shell {
     50% { height: 42px; transform: translateY(-4px); }
 }
 
+@keyframes studentWorksFlow {
+    0% {
+        background-position: 8% 42%, 86% 18%, 32% 88%;
+        transform: translate3d(-1%, -0.5%, 0) scale(1.02);
+    }
+    50% {
+        background-position: 58% 36%, 36% 72%, 72% 42%;
+        transform: translate3d(1%, 0.5%, 0) scale(1.04);
+    }
+    100% {
+        background-position: 96% 66%, 12% 28%, 24% 20%;
+        transform: translate3d(0.5%, -1%, 0) scale(1.03);
+    }
+}
+
+@keyframes studentWorksShimmer {
+    from {
+        transform: translate3d(-4%, 0, 0) skewX(-6deg);
+    }
+    to {
+        transform: translate3d(4%, 0, 0) skewX(6deg);
+    }
+}
+
 .navbar {
     position: fixed;
     top: 14px;
@@ -355,49 +379,56 @@ body.site-ready .site-shell {
     position: relative;
     display: flex;
     align-items: center;
-    min-height: 100dvh;
-    padding: 124px 0 80px;
+    min-height: 84dvh;
+    padding: 108px 0 64px;
     overflow: hidden;
 }
 
 .hero-slider-wrapper {
     position: absolute;
     inset: 0;
+    background-image: url('./joygo_jpop_hero.png');
+    background-size: cover;
+    background-position: 68% center;
 }
 
-.hero-slider,
-.slide {
-    width: 100%;
-    height: 100%;
-}
-
-.slide {
+.hero-slider-wrapper::after {
+    content: '';
     position: absolute;
     inset: 0;
-    background-size: cover;
-    background-position: 74% center;
-    opacity: 0;
-    transform: scale(1.04);
-    transition: opacity 1.2s ease, transform 4.5s ease;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.3;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.52) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(96, 165, 250, 0.1), rgba(250, 204, 21, 0.08));
+    background-size: 5px 5px, 5px 5px, 100% 100%;
+    mix-blend-mode: soft-light;
 }
 
-.slide.active {
-    opacity: 1;
-    transform: scale(1);
+.hero-video {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    object-position: 68% center;
 }
 
 .hero-mask {
     position: absolute;
     inset: 0;
+    z-index: 2;
     background:
-        linear-gradient(90deg, rgba(253, 250, 255, 0.97) 0%, rgba(253, 250, 255, 0.9) 38%, rgba(253, 250, 255, 0.38) 62%, rgba(253, 250, 255, 0.08) 100%),
+        linear-gradient(90deg, rgba(253, 250, 255, 0.98) 0%, rgba(253, 250, 255, 0.94) 48%, rgba(253, 250, 255, 0.52) 74%, rgba(253, 250, 255, 0.1) 100%),
         radial-gradient(circle at 18% 78%, rgba(254, 240, 138, 0.62), transparent 26%),
         radial-gradient(circle at 44% 22%, rgba(96, 165, 250, 0.24), transparent 28%);
 }
 
 .hero-layout {
     position: relative;
-    z-index: 1;
+    z-index: 3;
 }
 
 .hero-text {
@@ -714,6 +745,98 @@ body.site-ready .site-shell {
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
+body.has-view-cursor,
+body.has-view-cursor * {
+    cursor: none !important;
+}
+
+.view-cursor-dot,
+.view-cursor-pill {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3000;
+    pointer-events: none;
+    will-change: transform;
+}
+
+.view-cursor-dot {
+    --stat-clip-top: 100%;
+    --stat-clip-right: 0px;
+    --stat-clip-bottom: 0px;
+    --stat-clip-left: 0px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #20263f;
+    box-shadow: 0 0 0 5px rgba(32, 38, 63, 0.08), 0 8px 20px rgba(32, 38, 63, 0.16);
+    transform: translate3d(-50%, -50%, 0);
+    transition: opacity 0.12s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.view-cursor-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+    clip-path: inset(var(--stat-clip-top) var(--stat-clip-right) var(--stat-clip-bottom) var(--stat-clip-left));
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.view-cursor-dot.has-stat-overlap {
+    box-shadow: 0 0 0 7px rgba(37, 99, 235, 0.11), 0 8px 22px rgba(37, 99, 235, 0.24);
+}
+
+.view-cursor-dot.has-stat-overlap::after {
+    opacity: 1;
+}
+
+.view-cursor-pill {
+    display: grid;
+    place-items: center;
+    min-width: 72px;
+    height: 34px;
+    padding: 0 16px;
+    border: 2px solid #151827;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #151827;
+    font-size: 0.78rem;
+    font-weight: 1000;
+    letter-spacing: 1.2px;
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) scale(0.72);
+    box-shadow: 0 7px 0 #d8e3ff;
+    transition: opacity 0.14s ease, box-shadow 0.16s ease;
+}
+
+.view-cursor-pill.is-visible {
+    opacity: 1;
+}
+
+.view-cursor-pill.is-pressed {
+    box-shadow: 0 3px 0 #d8e3ff;
+}
+
+body.view-cursor-active .view-cursor-dot {
+    opacity: 0;
+}
+
+@media (hover: none), (pointer: coarse) {
+    body.has-view-cursor,
+    body.has-view-cursor * {
+        cursor: auto !important;
+    }
+
+    .view-cursor-dot,
+    .view-cursor-pill {
+        display: none;
+    }
+}
+
 .course-card::before {
     content: '';
     position: absolute;
@@ -836,6 +959,8 @@ body.site-ready .site-shell {
 }
 
 .artist-card {
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -843,13 +968,35 @@ body.site-ready .site-shell {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+.artist-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 30%), rgba(96, 165, 250, 0.38), transparent 31%),
+        radial-gradient(circle at calc(var(--mouse-x, 50%) + 42px) calc(var(--mouse-y, 30%) + 28px), rgba(167, 139, 250, 0.26), transparent 24%),
+        linear-gradient(135deg, rgba(223, 243, 255, 0.16), rgba(255, 255, 255, 0));
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.artist-card:hover::before {
+    opacity: 1;
+}
+
 .artist-image {
+    position: relative;
+    z-index: 1;
     height: 290px;
     background-size: cover;
     background-position: center;
 }
 
 .artist-info {
+    position: relative;
+    z-index: 1;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -887,6 +1034,9 @@ body.site-ready .site-shell {
 }
 
 .portfolio-strip {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     margin: 0 24px;
     border-radius: 36px;
     background:
@@ -894,7 +1044,39 @@ body.site-ready .site-shell {
         linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(238, 247, 255, 0.9));
 }
 
+.portfolio-strip::before,
+.portfolio-strip::after {
+    content: '';
+    position: absolute;
+    inset: -32% -18%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.portfolio-strip::before {
+    background:
+        radial-gradient(ellipse at 18% 32%, rgba(223, 243, 255, 0.62), transparent 46%),
+        radial-gradient(ellipse at 74% 28%, rgba(254, 240, 138, 0.56), transparent 44%),
+        radial-gradient(ellipse at 58% 78%, rgba(167, 139, 250, 0.18), transparent 42%);
+    background-size: 150% 150%, 170% 170%, 145% 145%;
+    filter: blur(24px) saturate(1.08);
+    opacity: 0.78;
+    animation: studentWorksFlow 22s ease-in-out infinite alternate;
+}
+
+.portfolio-strip::after {
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.44), transparent 52%),
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    opacity: 0.34;
+    mix-blend-mode: soft-light;
+    transform: translate3d(0, 0, 0);
+    animation: studentWorksShimmer 18s ease-in-out infinite alternate;
+}
+
 .portfolio-layout {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
@@ -2772,7 +2954,7 @@ select:focus {
 
     .hero-mask {
         background:
-            linear-gradient(90deg, rgba(253, 250, 255, 0.97) 0%, rgba(253, 250, 255, 0.9) 48%, rgba(253, 250, 255, 0.45) 100%),
+            linear-gradient(90deg, rgba(253, 250, 255, 0.98) 0%, rgba(253, 250, 255, 0.94) 56%, rgba(253, 250, 255, 0.52) 100%),
             radial-gradient(circle at 18% 78%, rgba(254, 240, 138, 0.62), transparent 26%);
     }
 
@@ -2849,7 +3031,9 @@ select:focus {
         align-items: flex-end;
     }
 
-    .slide {
+    .hero-video,
+    .hero-slider-wrapper {
+        object-position: 67% center;
         background-position: 67% center;
     }
 
@@ -3015,7 +3199,9 @@ select:focus {
         bottom: auto;
     }
 
-    .slide {
+    .hero-video,
+    .hero-slider-wrapper {
+        object-position: 64% center;
         background-position: 64% center;
     }
 

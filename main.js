@@ -450,7 +450,7 @@ const renderUnifiedAdminPage = () => {
     draw();
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+const initSite = () => {
     if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
         renderD1Admin();
         return;
@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    document.querySelectorAll('.course-card').forEach((card) => {
+    document.querySelectorAll('.course-card, .artist-card').forEach((card) => {
         card.addEventListener('mousemove', (event) => {
             const rect = card.getBoundingClientRect();
             card.style.setProperty('--mouse-x', `${event.clientX - rect.left}px`);
@@ -542,19 +542,109 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const slides = document.querySelectorAll('.slide');
-    let currentSlide = 0;
+    const cursorTargets = document.querySelectorAll('.course-card, .artist-card[data-teacher]');
+    const statCursorTargets = document.querySelectorAll('.stat-item');
 
-    const nextSlide = () => {
-        if (!slides.length) return;
+    if (cursorTargets.length) {
+        const cursorDot = document.createElement('div');
+        const cursorPill = document.createElement('div');
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let pillX = mouseX;
+        let pillY = mouseY;
+        let activeCursorTarget = null;
 
-        slides[currentSlide].classList.remove('active');
-        currentSlide = (currentSlide + 1) % slides.length;
-        slides[currentSlide].classList.add('active');
-    };
+        cursorDot.className = 'view-cursor-dot';
+        cursorPill.className = 'view-cursor-pill';
+        cursorPill.textContent = 'VIEW';
+        cursorDot.setAttribute('aria-hidden', 'true');
+        cursorPill.setAttribute('aria-hidden', 'true');
+        document.body.append(cursorDot, cursorPill);
+        document.body.classList.add('has-view-cursor');
 
-    if (slides.length > 1) {
-        window.setInterval(nextSlide, 4300);
+        const setStatCursorClip = () => {
+            if (activeCursorTarget) {
+                cursorDot.classList.remove('has-stat-overlap');
+                return;
+            }
+
+            const radius = cursorDot.offsetWidth / 2 || 7;
+            const dotRect = {
+                top: mouseY - radius,
+                right: mouseX + radius,
+                bottom: mouseY + radius,
+                left: mouseX - radius
+            };
+
+            const overlapRect = Array.from(statCursorTargets).map((target) => {
+                const rect = target.getBoundingClientRect();
+                return {
+                    top: Math.max(dotRect.top, rect.top),
+                    right: Math.min(dotRect.right, rect.right),
+                    bottom: Math.min(dotRect.bottom, rect.bottom),
+                    left: Math.max(dotRect.left, rect.left)
+                };
+            }).find((rect) => rect.left < rect.right && rect.top < rect.bottom);
+
+            if (!overlapRect) {
+                cursorDot.classList.remove('has-stat-overlap');
+                cursorDot.style.setProperty('--stat-clip-top', '100%');
+                cursorDot.style.setProperty('--stat-clip-right', '0px');
+                cursorDot.style.setProperty('--stat-clip-bottom', '0px');
+                cursorDot.style.setProperty('--stat-clip-left', '0px');
+                return;
+            }
+
+            cursorDot.classList.add('has-stat-overlap');
+            cursorDot.style.setProperty('--stat-clip-top', `${Math.max(0, overlapRect.top - dotRect.top)}px`);
+            cursorDot.style.setProperty('--stat-clip-right', `${Math.max(0, dotRect.right - overlapRect.right)}px`);
+            cursorDot.style.setProperty('--stat-clip-bottom', `${Math.max(0, dotRect.bottom - overlapRect.bottom)}px`);
+            cursorDot.style.setProperty('--stat-clip-left', `${Math.max(0, overlapRect.left - dotRect.left)}px`);
+        };
+
+        const renderCursor = () => {
+            pillX += (mouseX - pillX) * 0.22;
+            pillY += (mouseY - pillY) * 0.22;
+
+            cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+            setStatCursorClip();
+            const pillScale = cursorPill.classList.contains('is-pressed')
+                ? 0.9
+                : cursorPill.classList.contains('is-visible')
+                    ? 1
+                    : 0.72;
+            cursorPill.style.transform = `translate3d(${pillX + 28}px, ${pillY + 18}px, 0) translate(-50%, -50%) scale(${pillScale})`;
+
+            window.requestAnimationFrame(renderCursor);
+        };
+
+        window.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+            activeCursorTarget = event.target.closest('.course-card, .artist-card[data-teacher]');
+
+            document.body.classList.toggle('view-cursor-active', Boolean(activeCursorTarget));
+            cursorPill.classList.toggle('is-visible', Boolean(activeCursorTarget));
+        }, { passive: true });
+
+        cursorTargets.forEach((target) => {
+            target.addEventListener('mouseenter', () => {
+                document.body.classList.add('view-cursor-active');
+                cursorPill.classList.add('is-visible');
+            });
+            target.addEventListener('mouseleave', () => {
+                document.body.classList.remove('view-cursor-active');
+                cursorPill.classList.remove('is-visible', 'is-pressed');
+            });
+            target.addEventListener('mousedown', () => {
+                cursorPill.classList.add('is-pressed');
+            });
+            target.addEventListener('mouseup', () => {
+                cursorPill.classList.remove('is-pressed');
+            });
+        });
+
+        renderCursor();
     }
 
     const modal = document.getElementById('portfolio-modal');
@@ -1485,7 +1575,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (courseCard?.dataset.course) {
             openModal(courseCard.dataset.course);
+            return;
         }
+
+        const artistCard = event.target.closest('.artist-card[data-teacher]');
+
+        if (artistCard?.dataset.teacher) {
+            openModal(artistCard.dataset.teacher, 'teacher');
+        }
+
     });
 
     closeBtn?.addEventListener('click', closeModal);
@@ -1496,4 +1594,10 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }
     });
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSite, { once: true });
+} else {
+    initSite();
+}

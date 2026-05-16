@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSUM | 서브컬쳐 · 게임 실용음악학원</title>
     <meta name="description" content="J-POP, 서브컬쳐, 게임음악, 애니메이션 BGM, Sound Design을 중심으로 작곡, 미디, 사운드 디자인을 배우고 실제 결과물까지 만드는 실용음악학원 OSUM입니다.">
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./style.css?v=20260516-soft-gradient">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -43,11 +43,9 @@
 
         <header id="top" class="hero">
             <div class="hero-slider-wrapper">
-                <div class="hero-slider">
-                    <div class="slide active" style="background-image: url('./joygo_jpop_hero.png');"></div>
-                    <div class="slide" style="background-image: url('./joygo_jpop_studio_2.png');"></div>
-                    <div class="slide" style="background-image: url('./joygo_jpop_vocal_3.png');"></div>
-                </div>
+                <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="./joygo_jpop_hero.png">
+                    <source src="./osum-hero.mp4" type="video/mp4">
+                </video>
                 <div class="hero-mask"></div>
             </div>
 
@@ -145,7 +143,7 @@
                         <p>J-POP, 게임 OST, 영화음악, 서브컬쳐 사운드를 실제 제작물로 끌고 가는 사람들입니다.</p>
                     </div>
                     <div class="artist-grid">
-                        <article class="artist-card">
+                        <article class="artist-card" data-teacher="kim">
                             <div class="artist-image" style="background-image: url('./member_kimjunghwan.png');"></div>
                             <div class="artist-info">
                                 <span class="artist-role">Anime Vocal Director</span>
@@ -154,7 +152,7 @@
                                 <button class="btn-portfolio teacher-portfolio" data-teacher="kim">포트폴리오 보기</button>
                             </div>
                         </article>
-                        <article class="artist-card">
+                        <article class="artist-card" data-teacher="lee">
                             <div class="artist-image" style="background-image: url('./joygo_jpop_studio_2.png');"></div>
                             <div class="artist-info">
                                 <span class="artist-role">Producer</span>
@@ -163,7 +161,7 @@
                                 <button class="btn-portfolio teacher-portfolio" data-teacher="lee">포트폴리오 보기</button>
                             </div>
                         </article>
-                        <article class="artist-card">
+                        <article class="artist-card" data-teacher="han">
                             <div class="artist-image" style="background-image: url('./joygo_jpop_vocal_3.png');"></div>
                             <div class="artist-info">
                                 <span class="artist-role">Game Sound Coach</span>
@@ -172,7 +170,7 @@
                                 <button class="btn-portfolio teacher-portfolio" data-teacher="han">포트폴리오 보기</button>
                             </div>
                         </article>
-                        <article class="artist-card boss">
+                        <article class="artist-card boss" data-teacher="cho">
                             <div class="artist-image" style="background-image: url('./member_joeuno.png');"></div>
                             <div class="artist-info">
                                 <span class="artist-role">Creative Director</span>
@@ -259,6 +257,6 @@
         </div>
     </div>
 
-    <script type="module" src="./main.js?v=20260514-youtube-fix"></script>
+    <script type="module" src="./main.js?v=20260516-soft-gradient"></script>
 </body>
 </html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIEW Hover Preview</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            cursor: none;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Noto Sans KR", Arial, sans-serif;
+            color: #141827;
+            background: #f7f8fc;
+        }
+
+        .shell {
+            width: min(100% - 36px, 1180px);
+            margin: 0 auto;
+            padding: 42px 0 64px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: clamp(2.4rem, 5vw, 5rem);
+            line-height: 0.95;
+            letter-spacing: 0;
+        }
+
+        .lead {
+            max-width: 720px;
+            margin: 0 0 30px;
+            color: #5d6678;
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.7;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .card {
+            position: relative;
+            min-height: 360px;
+            display: flex;
+            flex-direction: column;
+            padding: 34px;
+            overflow: hidden;
+            border: 1px solid #d9e3ff;
+            border-radius: 28px;
+            background: #ffffff;
+            box-shadow: 0 24px 54px rgba(80, 112, 180, 0.13);
+            transition:
+                transform 0.24s ease,
+                box-shadow 0.24s ease,
+                border-color 0.24s ease,
+                background-color 0.24s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-7px);
+            border-color: #9db7ff;
+            background: #fbfdff;
+            box-shadow: 0 34px 78px rgba(80, 112, 180, 0.2);
+        }
+
+        .icon {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            background: #7c8cff;
+            color: white;
+            font-size: 1.7rem;
+            font-weight: 900;
+            box-shadow: 0 14px 28px rgba(124, 140, 255, 0.22);
+        }
+
+        .card:nth-child(2) .icon {
+            background: #74b9ff;
+        }
+
+        .card:nth-child(3) .icon {
+            background: #9b8cff;
+        }
+
+        .card h2 {
+            margin: 28px 0 12px;
+            font-size: 1.5rem;
+        }
+
+        .card p {
+            margin: 0;
+            color: #697386;
+            font-weight: 700;
+            line-height: 1.65;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 24px 0 30px;
+        }
+
+        .tags span {
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #f1f4ff;
+            color: #5968d9;
+            font-size: 0.86rem;
+            font-weight: 900;
+        }
+
+        .button {
+            min-height: 48px;
+            display: grid;
+            place-items: center;
+            margin-top: auto;
+            border: 1px solid #d8e0ff;
+            border-radius: 16px;
+            background: #ffffff;
+            color: #5968d9;
+            font-weight: 900;
+        }
+
+        .cursor-dot,
+        .cursor-pill {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .cursor-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #151827;
+            transform: translate3d(-50%, -50%, 0);
+        }
+
+        .cursor-pill {
+            display: grid;
+            place-items: center;
+            min-width: 72px;
+            height: 34px;
+            padding: 0 16px;
+            border: 2px solid #151827;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #151827;
+            font-size: 0.78rem;
+            font-weight: 1000;
+            letter-spacing: 1.2px;
+            opacity: 0;
+            transform: translate3d(-50%, -50%, 0) scale(0.72);
+            box-shadow: 0 7px 0 #d8e3ff;
+            transition:
+                opacity 0.14s ease,
+                transform 0.2s cubic-bezier(0.2, 1.35, 0.35, 1),
+                box-shadow 0.16s ease;
+        }
+
+        .cursor-pill.is-visible {
+            opacity: 1;
+            transform: translate3d(-50%, -50%, 0) scale(1);
+        }
+
+        .cursor-pill.is-pressed {
+            transform: translate3d(-50%, -50%, 0) scale(0.9);
+            box-shadow: 0 3px 0 #d8e3ff;
+        }
+
+        body.cursor-active .cursor-dot {
+            opacity: 0;
+        }
+
+        @media (max-width: 840px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (hover: none), (pointer: coarse) {
+            html,
+            body {
+                cursor: auto;
+            }
+
+            .cursor-dot,
+            .cursor-pill {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <h1>VIEW Hover<br>Preview</h1>
+        <p class="lead">참고 사이트처럼 기본 포인터는 작게 따라오고, 카드 위에서만 단색 알약형 VIEW 커서로 바뀌는 프리뷰입니다.</p>
+
+        <section class="grid">
+            <article class="card" data-cursor-label="VIEW">
+                <div class="icon">♪</div>
+                <h2>게임 · 영화 OST</h2>
+                <p>장면별로 작동하는 음악을 만드는 수업 카드입니다.</p>
+                <div class="tags"><span>#BattleBGM</span><span>#LoopMusic</span></div>
+                <div class="button">포트폴리오 보기</div>
+            </article>
+
+            <article class="card" data-cursor-label="VIEW">
+                <div class="icon">▶</div>
+                <h2>애니메이션 BGM</h2>
+                <p>J-pop, 청춘물, 판타지 감성까지 담는 수업 카드입니다.</p>
+                <div class="tags"><span>#Jpop</span><span>#Opening</span></div>
+                <div class="button">포트폴리오 보기</div>
+            </article>
+
+            <article class="card" data-cursor-label="VIEW">
+                <div class="icon">★</div>
+                <h2>Sound Design</h2>
+                <p>UI 클릭, 스킬, 타격감처럼 영상에 붙는 소리를 설계합니다.</p>
+                <div class="tags"><span>#Foley</span><span>#GameAudio</span></div>
+                <div class="button">포트폴리오 보기</div>
+            </article>
+        </section>
+    </main>
+
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-pill" aria-hidden="true">VIEW</div>
+
+    <script>
+        const dot = document.querySelector('.cursor-dot');
+        const pill = document.querySelector('.cursor-pill');
+        const hoverTargets = document.querySelectorAll('[data-cursor-label]');
+
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let pillX = mouseX;
+        let pillY = mouseY;
+
+        const renderCursor = () => {
+            pillX += (mouseX - pillX) * 0.22;
+            pillY += (mouseY - pillY) * 0.22;
+
+            dot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+            pill.style.transform = `${pill.classList.contains('is-visible') ? '' : ''}translate3d(${pillX + 28}px, ${pillY + 18}px, 0) translate(-50%, -50%) ${pill.classList.contains('is-pressed') ? 'scale(0.9)' : pill.classList.contains('is-visible') ? 'scale(1)' : 'scale(0.72)'}`;
+            window.requestAnimationFrame(renderCursor);
+        };
+
+        window.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+        }, { passive: true });
+
+        hoverTargets.forEach((target) => {
+            target.addEventListener('mouseenter', () => {
+                pill.textContent = target.dataset.cursorLabel || 'VIEW';
+                document.body.classList.add('cursor-active');
+                pill.classList.add('is-visible');
+            });
+
+            target.addEventListener('mouseleave', () => {
+                document.body.classList.remove('cursor-active');
+                pill.classList.remove('is-visible', 'is-pressed');
+            });
+
+            target.addEventListener('mousedown', () => {
+                pill.classList.add('is-pressed');
+            });
+
+            target.addEventListener('mouseup', () => {
+                pill.classList.remove('is-pressed');
+            });
+        });
+
+        renderCursor();
+    </script>
+</body>
+</html>
