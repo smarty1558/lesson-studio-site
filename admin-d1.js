@@ -1,3 +1,5 @@
+import { getTeacherProfileWithOverride } from './teacher-profiles.js';
+
 const escapeHtml = (value = '') => String(value)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -169,6 +171,29 @@ const readableFileName = (key = '') => String(key)
     .replace(/^portfolio\/(images|audio)\//, '')
     .replace(/^[a-f0-9-]{36}-/i, '');
 
+const teacherListValue = (value = []) => Array.isArray(value) ? value.join(', ') : String(value || '');
+
+const teacherProfileForKey = (items, key, index = 0) => ({
+    ...getTeacherProfileWithOverride(key, items.find((item) => item.key === key)),
+    sortOrder: index
+});
+
+const readTeacherProfileForm = (form) => {
+    const formData = new FormData(form);
+
+    return {
+        key: String(formData.get('key') || '').trim(),
+        name: String(formData.get('name') || '').trim(),
+        role: String(formData.get('role') || '').trim(),
+        imageUrl: String(formData.get('imageUrl') || '').trim(),
+        summary: String(formData.get('summary') || '').trim(),
+        specialties: String(formData.get('specialties') || '').trim(),
+        works: String(formData.get('works') || '').trim(),
+        note: String(formData.get('note') || '').trim(),
+        sortOrder: Number(formData.get('sortOrder') || 0)
+    };
+};
+
 const readFormItem = (form) => {
     const formData = new FormData(form);
     const points = String(formData.get('points') || '')
@@ -219,6 +244,7 @@ export const renderD1Admin = () => {
     let adminPassword = '';
     let unlocked = false;
     let items = [];
+    let teacherItems = [];
     let editingItem = null;
 
     const setText = (selector, message, className = '') => {
@@ -276,7 +302,13 @@ export const renderD1Admin = () => {
         document.querySelectorAll('[data-select-file-url]').forEach((button) => {
             button.addEventListener('click', () => {
                 const input = document.querySelector(`[name="${button.dataset.targetInput}"]`);
-                if (input) input.value = button.dataset.selectFileUrl || '';
+                if (input) {
+                    input.value = button.dataset.selectFileUrl || '';
+                    if (input.matches('[data-teacher-image-proxy]')) {
+                        const imageInput = input.closest('[data-teacher-profile-form]')?.querySelector('[name="imageUrl"]');
+                        if (imageInput) imageInput.value = input.value;
+                    }
+                }
                 closeFilePicker();
             });
         });
@@ -357,7 +389,9 @@ export const renderD1Admin = () => {
 
             try {
                 const data = await apiJson('/api/admin/portfolio', { password: adminPassword });
+                const teacherData = await apiJson('/api/admin/teachers', { password: adminPassword }).catch(() => ({ items: [] }));
                 items = data.items || [];
+                teacherItems = teacherData.items || [];
                 unlocked = true;
                 editingItem = null;
                 draw();
@@ -410,6 +444,70 @@ export const renderD1Admin = () => {
                 </tr>
             `;
         }).join('');
+    };
+
+    const renderTeacherProfilePanel = () => {
+        const cards = teacherOptions.map(([key], index) => {
+            const profile = teacherProfileForKey(teacherItems, key, index);
+            const imageInputName = `teacherImageUrl-${key}`;
+
+            return `
+                <form class="admin-teacher-card" data-teacher-profile-form>
+                    <input type="hidden" name="key" value="${escapeHtml(key)}">
+                    <input type="hidden" name="sortOrder" value="${index}">
+                    <div class="admin-teacher-preview">
+                        <div class="admin-teacher-photo">${profile.image ? `<img src="${escapeHtml(profile.image)}" alt="">` : '<span>Image</span>'}</div>
+                        <div>
+                            <strong>${escapeHtml(profile.name)}</strong>
+                            <span>${escapeHtml(profile.role)}</span>
+                        </div>
+                    </div>
+                    <label>Name
+                        <input name="name" required value="${escapeHtml(profile.name)}">
+                    </label>
+                    <label>Role
+                        <input name="role" value="${escapeHtml(profile.role)}">
+                    </label>
+                    <label class="admin-field-wide">Teacher Image
+                        <span class="admin-input-action">
+                            <input name="imageUrl" value="${escapeHtml(profile.image)}" placeholder="./member.png or R2 URL">
+                            <button type="button" class="admin-secondary" data-open-file-picker="image" data-target-input="${escapeHtml(imageInputName)}">R2</button>
+                        </span>
+                    </label>
+                    <label>Upload Image
+                        <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp,image/avif">
+                    </label>
+                    <input type="hidden" name="${escapeHtml(imageInputName)}" value="${escapeHtml(profile.image)}" data-teacher-image-proxy>
+                    <label class="admin-field-wide">Summary
+                        <textarea name="summary" rows="3">${escapeHtml(profile.summary)}</textarea>
+                    </label>
+                    <label>Specialties
+                        <input name="specialties" value="${escapeHtml(teacherListValue(profile.specialties))}" placeholder="Anime Vocal, Topline">
+                    </label>
+                    <label>Works
+                        <input name="works" value="${escapeHtml(teacherListValue(profile.works))}" placeholder="Opening Demo, Student Work">
+                    </label>
+                    <label class="admin-field-wide">Bottom Note
+                        <textarea name="note" rows="3">${escapeHtml(profile.note)}</textarea>
+                    </label>
+                    <button type="submit" class="admin-primary">Save Teacher</button>
+                    <p class="admin-form-status" aria-live="polite"></p>
+                </form>
+            `;
+        }).join('');
+
+        return `
+            <section class="admin-panel admin-teacher-panel">
+                <div class="admin-editor-head">
+                    <div>
+                        <span>Teacher CMS</span>
+                        <h2>Teacher profile images and text</h2>
+                    </div>
+                    <button type="button" class="admin-secondary" data-refresh-teachers>Refresh Teachers</button>
+                </div>
+                <div class="admin-teacher-grid">${cards}</div>
+            </section>
+        `;
     };
 
     const renderEditor = () => {
@@ -547,6 +645,8 @@ export const renderD1Admin = () => {
                     <p class="admin-status" aria-live="polite"></p>
                 </section>
 
+                ${renderTeacherProfilePanel()}
+
                 <section class="admin-panel admin-table-panel">
                     <div class="admin-table-wrap">
                         <table class="admin-cms-table">
@@ -585,6 +685,13 @@ export const renderD1Admin = () => {
         const data = await apiJson('/api/admin/portfolio', { password: adminPassword });
         items = data.items || [];
         editingItem = editingItem ? items.find((entry) => entry.id === editingItem.id) || editingItem : null;
+        draw();
+        setText('.admin-status', message, 'admin-status admin-upload-success');
+    };
+
+    const loadTeachers = async (message = 'Teacher profiles refreshed.') => {
+        const data = await apiJson('/api/admin/teachers', { password: adminPassword });
+        teacherItems = data.items || [];
         draw();
         setText('.admin-status', message, 'admin-status admin-upload-success');
     };
@@ -641,10 +748,51 @@ export const renderD1Admin = () => {
         await loadItems('저장했습니다.');
     };
 
+    const saveTeacherProfile = async (form) => {
+        const formData = new FormData(form);
+        const imageFile = formData.get('imageFile');
+        const status = form.querySelector('.admin-form-status');
+        const nextProfile = readTeacherProfileForm(form);
+
+        if (!nextProfile.name) {
+            status.textContent = 'Teacher name is required.';
+            status.className = 'admin-form-status admin-upload-error';
+            return;
+        }
+
+        status.textContent = 'Saving teacher profile...';
+        status.className = 'admin-form-status';
+
+        const imageUrl = await uploadFile({
+            file: imageFile,
+            type: 'image',
+            password: adminPassword
+        }) || nextProfile.imageUrl;
+
+        await apiJson('/api/admin/teachers', {
+            password: adminPassword,
+            method: 'POST',
+            body: {
+                ...nextProfile,
+                imageUrl
+            }
+        });
+
+        await loadTeachers('Teacher profile saved.');
+    };
+
     const bindEvents = () => {
         document.querySelector('[data-refresh]')?.addEventListener('click', async () => {
             try {
                 await loadItems();
+            } catch (error) {
+                setText('.admin-status', error.message, 'admin-status admin-upload-error');
+            }
+        });
+
+        document.querySelector('[data-refresh-teachers]')?.addEventListener('click', async () => {
+            try {
+                await loadTeachers();
             } catch (error) {
                 setText('.admin-status', error.message, 'admin-status admin-upload-error');
             }
@@ -680,6 +828,19 @@ export const renderD1Admin = () => {
                 status.textContent = error.message;
                 status.className = 'admin-form-status admin-upload-error';
             }
+        });
+
+        document.querySelectorAll('[data-teacher-profile-form]').forEach((form) => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                try {
+                    await saveTeacherProfile(event.currentTarget);
+                } catch (error) {
+                    const status = event.currentTarget.querySelector('.admin-form-status');
+                    status.textContent = error.message;
+                    status.className = 'admin-form-status admin-upload-error';
+                }
+            });
         });
 
         document.querySelectorAll('[data-edit-id]').forEach((button) => {

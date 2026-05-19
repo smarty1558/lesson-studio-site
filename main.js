@@ -5,6 +5,7 @@ import {
 } from './portfolio-interest.js';
 import {
     getTeacherProfile,
+    getTeacherProfileWithOverride,
     getTeacherProfileViewState
 } from './teacher-profiles.js';
 import { getPortfolioItemsForTarget } from './portfolio-data.js';
@@ -750,6 +751,18 @@ const initSite = () => {
         cho: '조은오 포트폴리오'
     };
 
+    const loadTeacherProfile = async (key) => {
+        try {
+            const response = await fetch('/api/teachers', { cache: 'no-store' });
+            const payload = await response.json();
+            if (!response.ok || !payload.success) throw new Error('Teacher profile API failed');
+            const override = (payload.items || []).find((item) => item.key === key);
+            return getTeacherProfileWithOverride(key, override);
+        } catch {
+            return getTeacherProfile(key);
+        }
+    };
+
     const renderTeacherProfileMarkup = (profile) => `
         <section class="teacher-profile-card">
             <div class="teacher-profile-visual" style="background-image: url('${profile.image}')"></div>
@@ -770,6 +783,10 @@ const initSite = () => {
                         <dd>${profile.works.join(' · ')}</dd>
                     </div>
                 </dl>
+                <div class="teacher-profile-note">
+                    <strong>Class Direction</strong>
+                    <p>${profile.note}</p>
+                </div>
             </div>
         </section>
     `;
@@ -1400,7 +1417,7 @@ const initSite = () => {
         }).join('') : '<p class="portfolio-empty">No visible portfolio items yet.</p>';
 
         if (isTeacher && modalContent && gallery) {
-            const profile = getTeacherProfile(key);
+            const profile = await loadTeacherProfile(key);
             const state = getTeacherProfileViewState('detail');
             const stage = document.createElement('div');
             stage.className = 'teacher-modal-stage';

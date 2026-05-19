@@ -1,3 +1,5 @@
+import { mergeTeacherProfile } from './teacher-profile-utils.js';
+
 export const teacherProfiles = {
     kim: {
         key: 'kim',
@@ -51,6 +53,8 @@ export const getTeacherProfile = (key) => teacherProfiles[key] || {
     works: ['Student Portfolio'],
     note: '상담을 통해 맞는 수업 방향을 안내합니다.'
 };
+
+export const getTeacherProfileWithOverride = (key, override) => mergeTeacherProfile(getTeacherProfile(key), override);
 
 export const getTeacherProfileViewState = (mode = 'detail') => ({
     isWorks: mode === 'works',

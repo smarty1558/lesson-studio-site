@@ -15,3 +15,11 @@ test('teacher modal keeps its stage layout when portfolio detail mode is active'
 
     assert.match(teacherDetailRule, /display:\s*block\s*;/);
 });
+
+test('teacher page controls are large enough to read as next-page edges', () => {
+    const teacherTabRule = getRuleBody('.teacher-tab');
+    const closeRule = getRuleBody('.modal-close');
+
+    assert.match(teacherTabRule, /width:\s*clamp\(128px,\s*14vw,\s*180px\)\s*;/);
+    assert.match(closeRule, /z-index:\s*30\s*;/);
+});
