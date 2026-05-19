@@ -1350,6 +1350,7 @@ select:focus {
 
 .modal-content.teacher-mode,
 .modal-content.teacher-mode.detail-mode {
+    display: block;
     width: min(1180px, 100%);
     max-height: calc(100dvh - 24px);
     overflow: hidden;
