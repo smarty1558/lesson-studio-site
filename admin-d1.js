@@ -684,6 +684,8 @@ export const renderD1Admin = () => {
                     </div>
                 </section>
 
+                ${renderTeacherProfilePanel()}
+
                 ${renderEditor()}
             </main>
         `;

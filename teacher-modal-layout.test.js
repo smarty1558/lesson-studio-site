@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 const css = readFileSync(new URL('./style.css', import.meta.url), 'utf8');
 const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const js = readFileSync(new URL('./main.js', import.meta.url), 'utf8');
+const adminJs = readFileSync(new URL('./admin-d1.js', import.meta.url), 'utf8');
 
 const getRuleBody = (selector) => {
     const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -35,4 +36,18 @@ test('teacher details use a dedicated modal separate from the portfolio modal', 
     assert.match(js, /const openTeacherModal = async/);
     assert.doesNotMatch(js, /openModal\(portfolioButton\.dataset\.teacher,\s*'teacher'\)/);
     assert.doesNotMatch(js, /openModal\(artistCard\.dataset\.teacher,\s*'teacher'\)/);
+});
+
+test('admin renders portfolio and teacher cms as separate tabs', () => {
+    assert.match(adminJs, /let activeAdminTab = 'portfolio'/);
+    assert.match(adminJs, /data-admin-tab="portfolio"/);
+    assert.match(adminJs, /data-admin-tab="teachers"/);
+    assert.match(adminJs, /\$\{renderTeacherProfilePanel\(\)\}/);
+    assert.match(css, /\.admin-tab-portfolio \.admin-teacher-panel/);
+    assert.match(css, /\.admin-tab-teachers \.admin-toolbar/);
+});
+
+test('portfolio filtering accepts teacher assignments from cms metadata', () => {
+    assert.match(js, /normalizeKeyList\(item\.teacherKeys,\s*item\.metadata\?\.teacherKeys,\s*item\.teacherKey\)/);
+    assert.match(js, /normalizeKeyList\(item\.courseKeys,\s*item\.targetKeys,\s*item\.metadata\?\.targetKeys,\s*item\.targetKey\)/);
 });

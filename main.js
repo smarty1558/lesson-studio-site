@@ -1053,6 +1053,13 @@ const initSite = () => {
     };
 
     const itemMatchesTarget = (item, type, key) => {
+        const toKeyList = (value) => {
+            if (Array.isArray(value)) return value.filter(Boolean);
+            return String(value || '')
+                .split(',')
+                .map((entry) => entry.trim())
+                .filter(Boolean);
+        };
         const courseGenres = {
             game: ['gameBgm', 'filmOst'],
             anime: ['anime'],
@@ -1060,12 +1067,17 @@ const initSite = () => {
             sound: ['soundDesign']
         };
 
-        const teacherKeys = Array.isArray(item.teacherKeys)
-            ? item.teacherKeys
-            : [item.teacherKey].filter(Boolean);
-        const courseKeys = Array.isArray(item.courseKeys)
-            ? item.courseKeys
-            : [];
+        const teacherKeys = [
+            ...toKeyList(item.teacherKeys),
+            ...toKeyList(item.metadata?.teacherKeys),
+            ...toKeyList(item.teacherKey)
+        ];
+        const courseKeys = [
+            ...toKeyList(item.courseKeys),
+            ...toKeyList(item.targetKeys),
+            ...toKeyList(item.metadata?.targetKeys),
+            ...toKeyList(item.teacherKey ? '' : item.targetKey)
+        ];
 
         if (teacherKeys.length || courseKeys.length) {
             if (type === 'teacher') return teacherKeys.includes(key);
@@ -1077,12 +1089,21 @@ const initSite = () => {
             return (courseGenres[key] || []).includes(item.genreKey);
         }
 
-        const targetKeys = Array.isArray(item.targetKeys)
-            ? item.targetKeys
-            : [item.targetKey].filter(Boolean);
+        const targetKeys = [
+            ...toKeyList(item.targetKeys),
+            ...toKeyList(item.metadata?.targetKeys),
+            ...toKeyList(item.targetKey)
+        ];
 
         return item.type === type && targetKeys.includes(key);
     };
+    const normalizeKeyList = (...values) => values.flatMap((value) => {
+        if (Array.isArray(value)) return value.filter(Boolean);
+        return String(value || '')
+            .split(',')
+            .map((entry) => entry.trim())
+            .filter(Boolean);
+    });
 
     const normalizeApiPortfolioItem = (item = {}) => ({
         id: item.id || '',
@@ -1103,9 +1124,9 @@ const initSite = () => {
         format: item.format || item.metadata?.format || item.category || 'Portfolio Preview',
         detail: item.detail || item.metadata?.detail || item.description || '',
         points: item.points || item.metadata?.points || ['D1 portfolio data', 'R2 media URL', 'Admin managed item'],
-        teacherKeys: item.teacherKeys || item.metadata?.teacherKeys || [],
-        courseKeys: item.courseKeys || item.targetKeys || item.metadata?.targetKeys || [],
-        targetKeys: item.targetKeys || item.metadata?.targetKeys || [],
+        teacherKeys: normalizeKeyList(item.teacherKeys, item.metadata?.teacherKeys, item.teacherKey),
+        courseKeys: normalizeKeyList(item.courseKeys, item.targetKeys, item.metadata?.targetKeys, item.targetKey),
+        targetKeys: normalizeKeyList(item.targetKeys, item.metadata?.targetKeys, item.targetKey),
         teacherNames: item.teacherNames || item.metadata?.teacherNames || [],
         targetLabels: item.targetLabels || item.metadata?.targetLabels || [],
         cta: 'Portfolio consultation'
