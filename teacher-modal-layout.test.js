@@ -20,6 +20,8 @@ test('teacher page controls are large enough to read as next-page edges', () => 
     const teacherTabRule = getRuleBody('.teacher-tab');
     const closeRule = getRuleBody('.modal-close');
 
-    assert.match(teacherTabRule, /width:\s*clamp\(128px,\s*14vw,\s*180px\)\s*;/);
+    assert.match(teacherTabRule, /width:\s*clamp\(52px,\s*5vw,\s*72px\)\s*;/);
+    assert.match(teacherTabRule, /min-height:\s*calc\(100%\s*-\s*72px\)\s*;/);
+    assert.match(teacherTabRule, /writing-mode:\s*vertical-rl\s*;/);
     assert.match(closeRule, /z-index:\s*30\s*;/);
 });
