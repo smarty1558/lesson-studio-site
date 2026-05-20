@@ -1361,6 +1361,11 @@ select:focus {
     display: none;
 }
 
+.modal-content.teacher-preparing .portfolio-gallery,
+.portfolio-gallery.teacher-gallery-preparing {
+    display: none;
+}
+
 .teacher-modal-stage {
     position: relative;
     min-height: min(690px, calc(100dvh - 96px));
@@ -1406,13 +1411,16 @@ select:focus {
     grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.1fr);
     gap: clamp(24px, 4vw, 48px);
     align-items: stretch;
+    min-width: 0;
     min-height: calc(min(690px, 100dvh - 96px) - clamp(56px, 8vw, 104px));
 }
 
 .teacher-profile-visual {
-    height: clamp(360px, 46dvh, 500px);
+    width: 100%;
+    height: clamp(320px, 42dvh, 460px);
     min-height: 0;
     aspect-ratio: 3 / 4;
+    align-self: center;
     border-radius: 26px;
     background-position: center top;
     background-size: cover;
@@ -1430,14 +1438,15 @@ select:focus {
 .teacher-profile-copy h3 {
     margin-top: 18px;
     color: var(--text-main);
-    font-size: clamp(2.4rem, 5vw, 5rem);
+    font-size: clamp(2.05rem, 4vw, 4.35rem);
     line-height: 0.95;
+    overflow-wrap: anywhere;
 }
 
 .teacher-profile-copy p {
     margin-top: 22px;
     color: var(--text-muted);
-    font-size: clamp(1rem, 1.6vw, 1.18rem);
+    font-size: clamp(0.96rem, 1.25vw, 1.08rem);
     line-height: 1.75;
     font-weight: 700;
 }
@@ -1599,6 +1608,44 @@ select:focus {
 
 .modal-content.teacher-mode .portfolio-gallery {
     max-height: none;
+}
+
+.modal-content.teacher-mode.detail-mode .teacher-works-panel {
+    display: grid;
+    grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: 14px 18px;
+}
+
+.modal-content.teacher-mode.detail-mode .teacher-works-heading {
+    grid-column: 1 / -1;
+    max-height: 0;
+    margin: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.modal-content.teacher-mode.detail-mode .teacher-portfolio-panel {
+    display: contents;
+}
+
+.modal-content.teacher-mode.detail-mode .portfolio-gallery {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    max-height: min(640px, calc(100dvh - 140px));
+    gap: 10px;
+    overflow: auto;
+    padding: 2px 6px 2px 2px;
+}
+
+.modal-content.teacher-mode.detail-mode .portfolio-expanded-panel {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
 }
 
 .modal-content.is-restoring {
@@ -3417,7 +3464,8 @@ select:focus {
     }
 
     .teacher-profile-visual {
-        min-height: 340px;
+        height: clamp(300px, 40dvh, 420px);
+        min-height: 0;
     }
 
     .work-list {
@@ -3914,11 +3962,17 @@ select:focus {
 
     .teacher-profile-card {
         grid-template-columns: 1fr;
+        gap: 18px;
     }
 
     .teacher-profile-visual {
         height: 260px;
         min-height: 0;
+        max-height: 260px;
+    }
+
+    .teacher-profile-copy h3 {
+        font-size: clamp(1.9rem, 10vw, 3rem);
     }
 
     .teacher-tab {
@@ -3963,6 +4017,16 @@ select:focus {
         opacity: 1;
         pointer-events: auto;
         transform: none;
+    }
+
+    .modal-content.teacher-mode.detail-mode .teacher-works-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .modal-content.teacher-mode.detail-mode .teacher-portfolio-panel {
+        display: block;
     }
 
     .modal-content.detail-mode .portfolio-detail-kicker {
