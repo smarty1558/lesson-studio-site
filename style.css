@@ -1648,6 +1648,76 @@ select:focus {
     min-width: 0;
 }
 
+.teacher-dedicated-content {
+    display: block;
+    width: min(1180px, 100%);
+    max-height: calc(100dvh - 24px);
+    overflow: visible;
+    padding: clamp(24px, 3vw, 42px);
+}
+
+.teacher-dedicated-stage {
+    min-height: min(690px, calc(100dvh - 96px));
+}
+
+.teacher-dedicated-works-panel {
+    min-width: 0;
+}
+
+.teacher-dedicated-portfolio {
+    display: grid;
+    grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: stretch;
+    min-height: 0;
+}
+
+.teacher-dedicated-portfolio .portfolio-gallery {
+    display: flex;
+    flex-direction: column;
+    max-height: min(600px, calc(100dvh - 190px));
+    gap: 10px;
+    overflow: auto;
+    padding: 2px 6px 2px 2px;
+    transform: none;
+    opacity: 1;
+    filter: none;
+}
+
+.teacher-dedicated-portfolio .portfolio-item {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 8px;
+    border-radius: 18px;
+    transform: none;
+}
+
+.teacher-dedicated-portfolio .frame-inner {
+    width: 58px;
+    height: 58px;
+    aspect-ratio: auto;
+    border-radius: 14px;
+}
+
+.teacher-works-detail.portfolio-expanded-panel,
+.teacher-works-detail.portfolio-expanded-panel.is-open {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 22px;
+    width: 100%;
+    height: auto;
+    min-height: min(560px, calc(100dvh - 190px));
+    max-height: min(640px, calc(100dvh - 160px));
+    margin: 0;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    overflow: auto;
+}
+
 .modal-content.is-restoring {
     overflow: hidden;
 }
@@ -3927,7 +3997,8 @@ select:focus {
     }
 
     .modal-content.teacher-mode,
-    .modal-content.teacher-mode.detail-mode {
+    .modal-content.teacher-mode.detail-mode,
+    .teacher-dedicated-content {
         display: block;
         overflow: auto;
         padding: 56px 14px 14px;
@@ -4027,6 +4098,42 @@ select:focus {
 
     .modal-content.teacher-mode.detail-mode .teacher-portfolio-panel {
         display: block;
+    }
+
+    .teacher-dedicated-portfolio {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .teacher-dedicated-portfolio .portfolio-gallery {
+        flex-direction: row;
+        max-height: 88px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 4px;
+    }
+
+    .teacher-dedicated-portfolio .portfolio-item {
+        grid-template-columns: 46px minmax(0, 1fr);
+        min-width: 170px;
+        padding: 6px;
+        border-radius: 14px;
+    }
+
+    .teacher-dedicated-portfolio .frame-inner {
+        width: 46px;
+        height: 46px;
+        border-radius: 9px;
+    }
+
+    .teacher-works-detail.portfolio-expanded-panel,
+    .teacher-works-detail.portfolio-expanded-panel.is-open {
+        grid-template-columns: 1fr;
+        min-height: 520px;
+        max-height: none;
+        padding: 14px;
+        border-radius: 24px;
     }
 
     .modal-content.detail-mode .portfolio-detail-kicker {
