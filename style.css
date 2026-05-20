@@ -2630,6 +2630,64 @@ select:focus {
     gap: 20px;
 }
 
+.admin-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 20px;
+}
+
+.admin-tabs button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 58px;
+    padding: 0 18px;
+    border: 1px solid rgba(37, 99, 235, 0.16);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.82);
+    color: #1e3a8a;
+    cursor: pointer;
+    font-weight: 1000;
+    box-shadow: 0 14px 34px rgba(96, 165, 250, 0.1);
+}
+
+.admin-tabs button.is-active {
+    border-color: rgba(124, 58, 237, 0.36);
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    color: white;
+    box-shadow: 0 18px 42px rgba(59, 130, 246, 0.22);
+}
+
+.admin-tabs strong {
+    display: inline-grid;
+    place-items: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.1);
+    font-size: 0.9rem;
+}
+
+.admin-tabs button.is-active strong {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.admin-tabs .admin-status {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.admin-tab-portfolio .admin-teacher-panel,
+.admin-tab-teachers .admin-toolbar,
+.admin-tab-teachers .admin-table-panel,
+.admin-tab-teachers .admin-modal-backdrop {
+    display: none;
+}
+
 .admin-panel {
     padding: 24px;
     border: 1px solid rgba(124, 58, 237, 0.13);

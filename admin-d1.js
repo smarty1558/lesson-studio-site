@@ -246,6 +246,7 @@ export const renderD1Admin = () => {
     let items = [];
     let teacherItems = [];
     let editingItem = null;
+    let activeAdminTab = 'portfolio';
 
     const setText = (selector, message, className = '') => {
         const target = document.querySelector(selector);
@@ -625,7 +626,7 @@ export const renderD1Admin = () => {
         }
 
         document.body.innerHTML = `
-            <main class="admin-shell admin-table-shell">
+            <main class="admin-shell admin-table-shell admin-tab-${activeAdminTab}">
                 <header class="admin-topbar">
                     <div>
                         <span>OSUM CMS</span>
@@ -635,6 +636,18 @@ export const renderD1Admin = () => {
                     <a href="/" class="admin-link">사이트로 돌아가기</a>
                 </header>
 
+                <nav class="admin-tabs" aria-label="CMS sections">
+                    <button type="button" class="${activeAdminTab === 'portfolio' ? 'is-active' : ''}" data-admin-tab="portfolio">
+                        <span>포트폴리오 CMS</span>
+                        <strong>${items.length}</strong>
+                    </button>
+                    <button type="button" class="${activeAdminTab === 'teachers' ? 'is-active' : ''}" data-admin-tab="teachers">
+                        <span>강사 CMS</span>
+                        <strong>${teacherOptions.length}</strong>
+                    </button>
+                    <p class="admin-status" aria-live="polite"></p>
+                </nav>
+
                 <section class="admin-panel admin-toolbar">
                     <div>
                         <strong>${items.length}</strong>
@@ -642,10 +655,7 @@ export const renderD1Admin = () => {
                     </div>
                     <button type="button" class="admin-secondary" data-refresh>새로고침</button>
                     <button type="button" class="admin-primary" data-new-item>새 항목</button>
-                    <p class="admin-status" aria-live="polite"></p>
                 </section>
-
-                ${renderTeacherProfilePanel()}
 
                 <section class="admin-panel admin-table-panel">
                     <div class="admin-table-wrap">
@@ -782,6 +792,14 @@ export const renderD1Admin = () => {
     };
 
     const bindEvents = () => {
+        document.querySelectorAll('[data-admin-tab]').forEach((button) => {
+            button.addEventListener('click', () => {
+                activeAdminTab = button.dataset.adminTab || 'portfolio';
+                if (activeAdminTab !== 'portfolio') editingItem = null;
+                draw();
+            });
+        });
+
         document.querySelector('[data-refresh]')?.addEventListener('click', async () => {
             try {
                 await loadItems();
@@ -802,6 +820,7 @@ export const renderD1Admin = () => {
             const draft = createDraftItem();
             items = [draft, ...items];
             editingItem = null;
+            activeAdminTab = 'portfolio';
             draw();
         });
 
@@ -846,6 +865,7 @@ export const renderD1Admin = () => {
         document.querySelectorAll('[data-edit-id]').forEach((button) => {
             button.addEventListener('click', () => {
                 editingItem = items.find((entry) => entry.id === button.dataset.editId) || null;
+                activeAdminTab = 'portfolio';
                 draw();
             });
         });
