@@ -25,6 +25,117 @@ window.addEventListener('load', () => {
 });
 
 const renderStandaloneAdminPage = () => {
+    const getTeacherYouTubeEmbedUrl = (url) => {
+        if (!url) return '';
+
+        try {
+            const rawUrl = String(url).trim();
+            const idFromText = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|[?&]v=)([a-zA-Z0-9_-]{11})/)?.[1]
+                || (/^[a-zA-Z0-9_-]{11}$/.test(rawUrl) ? rawUrl : '');
+
+            if (idFromText) return `https://www.youtube-nocookie.com/embed/${idFromText}?rel=0&playsinline=1`;
+
+            const normalizedUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+            const parsed = new URL(normalizedUrl);
+            const host = parsed.hostname.replace(/^www\./, '').replace(/^m\./, '');
+            const pathParts = parsed.pathname.split('/').filter(Boolean);
+            let videoId = '';
+
+            if (host === 'youtu.be') {
+                videoId = pathParts[0] || '';
+            } else if (host.includes('youtube.com')) {
+                if (['shorts', 'embed', 'live', 'v'].includes(pathParts[0])) {
+                    videoId = pathParts[1] || '';
+                } else {
+                    videoId = parsed.searchParams.get('v') || '';
+                }
+            }
+
+            return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&playsinline=1` : '';
+        } catch {
+            return '';
+        }
+    };
+
+    const getTeacherYouTubeVideoId = (url) => getTeacherYouTubeEmbedUrl(url).match(/embed\/([a-zA-Z0-9_-]{11})/)?.[1] || '';
+
+    const getTeacherYouTubeSourceUrl = (item) => [
+        item.youtubeUrl,
+        item.videoUrl,
+        item.externalUrl,
+        item.detail,
+        item.format
+    ].find((value) => getTeacherYouTubeEmbedUrl(value));
+
+    const renderTeacherWorkMedia = (item) => {
+        const youtubeSourceUrl = getTeacherYouTubeSourceUrl(item);
+        const youtubeEmbedUrl = getTeacherYouTubeEmbedUrl(youtubeSourceUrl);
+        const youtubeVideoId = getTeacherYouTubeVideoId(youtubeSourceUrl);
+        const hasImage = Boolean(item.img);
+        const imageStyle = hasImage ? ` style="background-image: url('${item.img}')"` : '';
+        const fallbackMarkup = hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>';
+
+        if (youtubeEmbedUrl) {
+            return `
+                <div class="expanded-media-frame has-player" style="background-image: url('https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg')">
+                    <iframe
+                        src="${youtubeEmbedUrl}"
+                        title="${item.title} YouTube preview"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                    ></iframe>
+                    <div class="expanded-player-badge">YouTube Preview</div>
+                </div>
+            `;
+        }
+
+        if (item.audioUrl) {
+            return `
+                <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
+                    ${fallbackMarkup}
+                    <audio controls src="${item.audioUrl}"></audio>
+                    <div class="expanded-player-badge">Audio Preview</div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="expanded-media-frame ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
+                ${fallbackMarkup}
+                <div class="expanded-player-badge">${item.mediaType === 'Audio' ? 'Audio Preview' : item.mediaType === 'Video' ? 'Video Preview' : 'Project Preview'}</div>
+            </div>
+        `;
+    };
+
+    const renderTeacherWorkDetail = (item, index) => {
+        const enriched = enrichPortfolioItem(item, index);
+        const points = (enriched.points || []).map((point) => `<li>${point}</li>`).join('');
+
+        return `
+            <div class="expanded-media">
+                ${renderTeacherWorkMedia(enriched)}
+            </div>
+            <div class="expanded-copy">
+                <span class="media-pill">${enriched.mediaType} · ${enriched.format}</span>
+                <h3>${enriched.title}</h3>
+                <p>${enriched.detail || enriched.desc || enriched.description || ''}</p>
+                <dl>
+                    <div>
+                        <dt>분류/설명</dt>
+                        <dd>${enriched.desc || enriched.description || ''}</dd>
+                    </div>
+                    <div>
+                        <dt>강사 대표작</dt>
+                        <dd>CMS에서 연결된 강사 필터 기준으로 노출되는 작업입니다.</dd>
+                    </div>
+                </dl>
+                ${points ? `<ul>${points}</ul>` : ''}
+                <a href="#contact" class="portfolio-detail-cta">이 스타일 상담하기</a>
+            </div>
+        `;
+    };
+
     const cmsStorageKey = 'osumPortfolioCmsItems';
     const targets = {
         course: {
@@ -728,7 +839,14 @@ const initSite = () => {
     const modalTitle = document.getElementById('modal-title');
     const closeBtn = document.querySelector('.modal-close');
     const overlay = document.querySelector('.modal-overlay');
+    const teacherModal = document.getElementById('teacher-modal');
+    const teacherModalContent = teacherModal?.querySelector('.teacher-dedicated-content');
+    const teacherModalBody = document.getElementById('teacher-modal-body');
+    const teacherCloseBtn = teacherModal?.querySelector('.teacher-modal-close');
+    const teacherOverlay = teacherModal?.querySelector('.teacher-modal-overlay');
     let isModalClosing = false;
+    let modalOpenToken = 0;
+    let teacherOpenToken = 0;
     const restoreTeacherModalLayout = () => {
         const stage = modalContent?.querySelector('.teacher-modal-stage');
         if (stage && gallery && modalContent) {
@@ -1362,9 +1480,153 @@ const initSite = () => {
         });
     };
 
+    document.querySelectorAll('.teacher-portfolio').forEach((button) => {
+        button.textContent = '강사 상세 보기';
+    });
+
+    const setDedicatedTeacherMode = (mode) => {
+        const isWorks = mode === 'works';
+        teacherModalContent?.classList.toggle('teacher-works-active', isWorks);
+        teacherModalContent?.querySelector('[data-dedicated-teacher-panel="detail"]')?.setAttribute('aria-pressed', isWorks ? 'false' : 'true');
+        teacherModalContent?.querySelector('[data-dedicated-teacher-panel="works"]')?.setAttribute('aria-pressed', isWorks ? 'true' : 'false');
+    };
+
+    const closeTeacherModal = () => {
+        if (!teacherModal?.classList.contains('active')) return;
+
+        teacherOpenToken += 1;
+        teacherModal.classList.add('is-dismissing');
+        teacherModalContent?.classList.add('is-shutting-down');
+
+        window.setTimeout(() => {
+            teacherModal.classList.remove('active', 'is-dismissing');
+            teacherModal.setAttribute('aria-hidden', 'true');
+            teacherModalContent?.classList.remove('teacher-works-active', 'is-shutting-down');
+            if (teacherModalBody) teacherModalBody.innerHTML = '';
+            document.body.style.overflow = modal?.classList.contains('active') ? 'hidden' : '';
+        }, 260);
+    };
+
+    const openTeacherModal = async (key) => {
+        if (!teacherModal || !teacherModalContent || !teacherModalBody) return;
+
+        const openToken = ++teacherOpenToken;
+        teacherModalBody.innerHTML = '<p class="portfolio-empty">강사 정보를 불러오는 중입니다...</p>';
+        teacherModalContent.classList.remove('teacher-works-active', 'is-shutting-down');
+        teacherModal.classList.add('active');
+        teacherModal.classList.remove('is-dismissing');
+        teacherModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        let profile;
+        let data = [];
+
+        try {
+            [profile, data] = await Promise.all([
+                loadTeacherProfile(key),
+                loadPortfolioItems('teacher', key)
+            ]);
+        } catch (error) {
+            teacherModalBody.innerHTML = `<p class="portfolio-empty">${error.message || '강사 정보를 불러오지 못했습니다.'}</p>`;
+            return;
+        }
+
+        if (openToken !== teacherOpenToken) return;
+
+        const worksMarkup = data.length ? data.map((item, index) => {
+            const enriched = enrichPortfolioItem(item, index);
+            const hasImage = Boolean(enriched.img);
+
+            return `
+                <article class="portfolio-item ${index === 0 ? 'active' : ''}" data-teacher-work-index="${index}">
+                    <div class="frame-inner ${hasImage ? '' : 'is-missing-image'}"${hasImage ? ` style="background-image: url('${enriched.img}')"` : ''}>
+                        ${hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>'}
+                    </div>
+                    <div class="item-caption">
+                        <span class="media-pill">${enriched.category || enriched.mediaType}</span>
+                        <h4>${enriched.title}</h4>
+                        <p>${enriched.desc || enriched.description || ''}</p>
+                    </div>
+                </article>
+            `;
+        }).join('') : '<p class="portfolio-empty">CMS에 연결된 대표작이 아직 없습니다.</p>';
+
+        teacherModalBody.innerHTML = `
+            <div class="teacher-modal-stage teacher-dedicated-stage">
+                <button type="button" class="teacher-tab teacher-tab-works" data-dedicated-teacher-panel="works" aria-label="대표작 보기">
+                    <span>대표작 보기</span>
+                </button>
+                <button type="button" class="teacher-tab teacher-tab-detail" data-dedicated-teacher-panel="detail" aria-label="강사정보 보기">
+                    <span>강사정보 보기</span>
+                </button>
+                <div class="teacher-panel-track teacher-dedicated-track">
+                    <section class="teacher-panel teacher-detail-panel">
+                        ${renderTeacherProfileMarkup(profile)}
+                    </section>
+                    <section class="teacher-panel teacher-works-panel teacher-dedicated-works-panel">
+                        <div class="teacher-works-heading">
+                            <span class="section-kicker">Representative Works</span>
+                            <h3 id="teacher-modal-title">${profile.name} 대표작</h3>
+                        </div>
+                        <div class="teacher-dedicated-portfolio">
+                            <div class="portfolio-gallery teacher-works-gallery">${worksMarkup}</div>
+                            <div class="portfolio-expanded-panel teacher-works-detail is-open" aria-live="polite">
+                                ${data.length ? renderTeacherWorkDetail(data[0], 0) : '<p class="portfolio-empty">대표작을 CMS에서 추가하면 여기에 표시됩니다.</p>'}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        `;
+
+        setDedicatedTeacherMode('detail');
+
+        teacherModalBody.querySelectorAll('[data-dedicated-teacher-panel]').forEach((button) => {
+            button.addEventListener('click', () => setDedicatedTeacherMode(button.dataset.dedicatedTeacherPanel));
+        });
+
+        const worksGallery = teacherModalBody.querySelector('.teacher-works-gallery');
+        const worksDetail = teacherModalBody.querySelector('.teacher-works-detail');
+
+        worksGallery?.querySelectorAll('[data-teacher-work-index]').forEach((item) => {
+            item.addEventListener('click', (event) => {
+                if (event.target.closest('audio, .portfolio-external-link')) return;
+
+                const itemIndex = Number(item.dataset.teacherWorkIndex);
+                worksGallery.querySelectorAll('.portfolio-item.active').forEach((activeItem) => {
+                    activeItem.classList.remove('active');
+                });
+                item.classList.add('active');
+                if (worksDetail) {
+                    worksDetail.innerHTML = renderTeacherWorkDetail(data[itemIndex], itemIndex);
+                    worksDetail.classList.add('is-open');
+                }
+            });
+        });
+
+        teacherModalBody.onclick = (event) => {
+            const cta = event.target.closest('.portfolio-detail-cta');
+            if (!cta) return;
+
+            event.preventDefault();
+            const activeIndex = Number(worksGallery?.querySelector('.portfolio-item.active')?.dataset.teacherWorkIndex || 0);
+            moveToContactWithPortfolioInterest({
+                title: data[activeIndex]?.title || profile.name
+            });
+            closeTeacherModal();
+        };
+    };
+
     const openModal = async (key, type = 'course') => {
+        const openToken = ++modalOpenToken;
         const isTeacher = type === 'teacher';
         restoreTeacherModalLayout();
+        if (isTeacher) {
+            modal.classList.remove('active', 'detail-active', 'is-dismissing');
+            modal.setAttribute('aria-hidden', 'true');
+            modalContent?.classList.add('teacher-preparing');
+            gallery?.classList.add('teacher-gallery-preparing');
+        }
         const title = isTeacher
             ? (teacherTitleMap[key] || '강사진 포트폴리오')
             : (titleMap[key] || '수강생');
@@ -1373,22 +1635,31 @@ const initSite = () => {
         document.getElementById('portfolio-expanded-panel')?.remove();
 
         gallery.innerHTML = '<p class="portfolio-empty">포트폴리오를 불러오는 중입니다...</p>';
+        if (isTeacher) {
+            gallery.innerHTML = '';
+        }
 
-        modal.classList.add('active');
-        modal.classList.remove('is-dismissing');
-        modalContent?.classList.remove('is-shutting-down');
-        isModalClosing = false;
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
+        if (!isTeacher) {
+            modal.classList.add('active');
+            modal.classList.remove('is-dismissing');
+            modalContent?.classList.remove('is-shutting-down');
+            isModalClosing = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
 
         let data = [];
 
         try {
             data = await loadPortfolioItems(isTeacher ? 'teacher' : 'course', key);
         } catch (error) {
+            modalContent?.classList.remove('teacher-preparing');
+            gallery?.classList.remove('teacher-gallery-preparing');
             gallery.innerHTML = `<p class="portfolio-empty">${error.message || '포트폴리오 데이터를 불러오지 못했습니다.'}</p>`;
             return;
         }
+
+        if (openToken !== modalOpenToken) return;
 
         gallery.innerHTML = data.length ? data.map((item, index) => {
             const enriched = enrichPortfolioItem(item, index);
@@ -1418,6 +1689,7 @@ const initSite = () => {
 
         if (isTeacher && modalContent && gallery) {
             const profile = await loadTeacherProfile(key);
+            if (openToken !== modalOpenToken) return;
             const state = getTeacherProfileViewState('detail');
             const stage = document.createElement('div');
             stage.className = 'teacher-modal-stage';
@@ -1445,6 +1717,14 @@ const initSite = () => {
             stage.querySelector('.teacher-portfolio-panel')?.appendChild(gallery);
             modalContent.classList.add('teacher-mode');
             setTeacherModalMode('detail');
+            modalContent.classList.remove('teacher-preparing');
+            gallery.classList.remove('teacher-gallery-preparing');
+            modal.classList.add('active');
+            modal.classList.remove('is-dismissing');
+            modalContent.classList.remove('is-shutting-down');
+            isModalClosing = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
 
             stage.addEventListener('click', (event) => {
                 const panelButton = event.target.closest('[data-teacher-panel]');
@@ -1646,12 +1926,14 @@ const initSite = () => {
             });
         };
 
-        modal.classList.add('active');
-        modal.classList.remove('is-dismissing');
-        modalContent?.classList.remove('is-shutting-down');
-        isModalClosing = false;
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
+        if (!modal.classList.contains('active')) {
+            modal.classList.add('active');
+            modal.classList.remove('is-dismissing');
+            modalContent?.classList.remove('is-shutting-down');
+            isModalClosing = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
 
         gallery.querySelectorAll('.portfolio-item').forEach((item) => {
             item.addEventListener('click', (event) => {
@@ -1723,6 +2005,7 @@ const initSite = () => {
     const closeModal = () => {
         if (!modal?.classList.contains('active') || isModalClosing) return;
 
+        modalOpenToken += 1;
         isModalClosing = true;
         modal.classList.add('is-dismissing');
         modalContent?.classList.add('is-shutting-down');
@@ -1748,7 +2031,7 @@ const initSite = () => {
             event.stopPropagation();
 
             if (portfolioButton.dataset.teacher) {
-                openModal(portfolioButton.dataset.teacher, 'teacher');
+                openTeacherModal(portfolioButton.dataset.teacher);
                 return;
             }
 
@@ -1769,17 +2052,20 @@ const initSite = () => {
         const artistCard = event.target.closest('.artist-card[data-teacher]');
 
         if (artistCard?.dataset.teacher) {
-            openModal(artistCard.dataset.teacher, 'teacher');
+            openTeacherModal(artistCard.dataset.teacher);
         }
 
     });
 
     closeBtn?.addEventListener('click', closeModal);
     overlay?.addEventListener('click', closeModal);
+    teacherCloseBtn?.addEventListener('click', closeTeacherModal);
+    teacherOverlay?.addEventListener('click', closeTeacherModal);
 
     window.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             closeModal();
+            closeTeacherModal();
         }
     });
 };
