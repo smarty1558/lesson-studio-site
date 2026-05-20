@@ -51,3 +51,11 @@ test('portfolio filtering accepts teacher assignments from cms metadata', () => 
     assert.match(js, /normalizeKeyList\(item\.teacherKeys,\s*item\.metadata\?\.teacherKeys,\s*item\.teacherKey\)/);
     assert.match(js, /normalizeKeyList\(item\.courseKeys,\s*item\.targetKeys,\s*item\.metadata\?\.targetKeys,\s*item\.targetKey\)/);
 });
+
+test('teacher modal does not hang on slow cms APIs or string point data', () => {
+    assert.match(js, /const fetchWithTimeout = async/);
+    assert.match(js, /fetchWithTimeout\('\/api\/teachers'/);
+    assert.match(js, /fetchWithTimeout\('\/api\/portfolio'/);
+    assert.match(js, /points:\s*normalizePointList\(item\.points,\s*item\.metadata\?\.points\)/);
+    assert.match(js, /toDisplayList\(enriched\.points\)\.map/);
+});

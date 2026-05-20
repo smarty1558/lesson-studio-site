@@ -75,7 +75,8 @@ test('admin create inserts normalized portfolio data', async () => {
                 metadata: {
                     youtubeUrl: 'https://youtube.com/watch?v=abcdefghijk',
                     teacherKeys: ['kim'],
-                    targetKeys: ['anime']
+                    targetKeys: ['anime'],
+                    points: 'Mix check, Mastering'
                 }
             })
         }),
@@ -94,4 +95,6 @@ test('admin create inserts normalized portfolio data', async () => {
     assert.equal(queries[1][8], 0);
     assert.equal(queries[1][9], 3);
     assert.match(queries[1][10], /youtube/);
+    assert.match(queries[1][10], /"teacherKeys":\["kim"\]/);
+    assert.match(queries[1][10], /Mix check, Mastering/);
 });

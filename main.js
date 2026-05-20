@@ -108,9 +108,17 @@ const renderStandaloneAdminPage = () => {
         `;
     };
 
+    const toDisplayList = (...values) => values.flatMap((value) => {
+        if (Array.isArray(value)) return value.filter(Boolean);
+        return String(value || '')
+            .split(',')
+            .map((entry) => entry.trim())
+            .filter(Boolean);
+    });
+
     const renderTeacherWorkDetail = (item, index) => {
         const enriched = enrichPortfolioItem(item, index);
-        const points = (enriched.points || []).map((point) => `<li>${point}</li>`).join('');
+        const points = toDisplayList(enriched.points).map((point) => `<li>${point}</li>`).join('');
 
         return `
             <div class="expanded-media">
@@ -869,9 +877,19 @@ const initSite = () => {
         cho: '조은오 포트폴리오'
     };
 
+    const fetchWithTimeout = async (url, options = {}, timeoutMs = 4500) => {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            return await fetch(url, { ...options, signal: controller.signal });
+        } finally {
+            window.clearTimeout(timeout);
+        }
+    };
+
     const loadTeacherProfile = async (key) => {
         try {
-            const response = await fetch('/api/teachers', { cache: 'no-store' });
+            const response = await fetchWithTimeout('/api/teachers', { cache: 'no-store' });
             const payload = await response.json();
             if (!response.ok || !payload.success) throw new Error('Teacher profile API failed');
             const override = (payload.items || []).find((item) => item.key === key);
@@ -1097,13 +1115,11 @@ const initSite = () => {
 
         return item.type === type && targetKeys.includes(key);
     };
-    const normalizeKeyList = (...values) => values.flatMap((value) => {
-        if (Array.isArray(value)) return value.filter(Boolean);
-        return String(value || '')
-            .split(',')
-            .map((entry) => entry.trim())
-            .filter(Boolean);
-    });
+    const normalizeKeyList = (...values) => toDisplayList(...values);
+    const normalizePointList = (...values) => {
+        const points = toDisplayList(...values);
+        return points.length ? points : ['D1 portfolio data', 'R2 media URL', 'Admin managed item'];
+    };
 
     const normalizeApiPortfolioItem = (item = {}) => ({
         id: item.id || '',
@@ -1123,7 +1139,7 @@ const initSite = () => {
         mediaType: item.mediaType || item.metadata?.mediaType || (item.audioUrl ? 'Audio' : item.youtubeUrl ? 'Video' : 'Project'),
         format: item.format || item.metadata?.format || item.category || 'Portfolio Preview',
         detail: item.detail || item.metadata?.detail || item.description || '',
-        points: item.points || item.metadata?.points || ['D1 portfolio data', 'R2 media URL', 'Admin managed item'],
+        points: normalizePointList(item.points, item.metadata?.points),
         teacherKeys: normalizeKeyList(item.teacherKeys, item.metadata?.teacherKeys, item.teacherKey),
         courseKeys: normalizeKeyList(item.courseKeys, item.targetKeys, item.metadata?.targetKeys, item.targetKey),
         targetKeys: normalizeKeyList(item.targetKeys, item.metadata?.targetKeys, item.targetKey),
@@ -1134,7 +1150,7 @@ const initSite = () => {
 
     const loadPortfolioItems = async (type, key) => {
         try {
-            const response = await fetch('/api/portfolio', { cache: 'no-store' });
+            const response = await fetchWithTimeout('/api/portfolio', { cache: 'no-store' });
             const payload = await response.json();
 
             if (!response.ok || !payload.success) {
@@ -1882,7 +1898,7 @@ const initSite = () => {
 
         const renderExpandedPanel = (item, index) => {
             const enriched = enrichPortfolioItem(item, index);
-            const points = enriched.points.map((point) => `<li class="decode-text">${point}</li>`).join('');
+            const points = toDisplayList(enriched.points).map((point) => `<li class="decode-text">${point}</li>`).join('');
             const isAlreadyOpen = expandedPanel.classList.contains('is-open');
             expandedPanel.dataset.portfolioInterestTitle = enriched.title;
             const contextLabel = `${title} 결과물`;
