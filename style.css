@@ -1660,6 +1660,28 @@ select:focus {
     min-height: min(690px, calc(100dvh - 96px));
 }
 
+.teacher-dedicated-content .teacher-panel-track {
+    display: block;
+    width: 100%;
+    transform: none;
+}
+
+.teacher-dedicated-content .teacher-works-panel {
+    display: none;
+}
+
+.teacher-dedicated-content.teacher-works-active .teacher-detail-panel {
+    display: none;
+}
+
+.teacher-dedicated-content.teacher-works-active .teacher-works-panel {
+    display: flex;
+}
+
+.teacher-dedicated-content.teacher-works-active .teacher-panel-track {
+    transform: none;
+}
+
 .teacher-dedicated-works-panel {
     min-width: 0;
 }

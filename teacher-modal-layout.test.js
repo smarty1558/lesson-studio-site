@@ -59,3 +59,11 @@ test('teacher modal does not hang on slow cms APIs or string point data', () => 
     assert.match(js, /points:\s*normalizePointList\(item\.points,\s*item\.metadata\?\.points\)/);
     assert.match(js, /toDisplayList\(enriched\.points\)\.map/);
 });
+
+test('site preloads teacher and portfolio data before hiding intro loader', () => {
+    assert.match(js, /const preloadSiteData = \(\) =>/);
+    assert.match(js, /preloadSiteData\(\)/);
+    assert.match(js, /Promise\.all\(\[\s*pageLoadReady,\s*introMinimumReady,\s*preloadSiteData\(\)/);
+    assert.match(js, /const siteDataCache = \{/);
+    assert.match(js, /portfolioByTarget:\s*new Map\(\)/);
+});

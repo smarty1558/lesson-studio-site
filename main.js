@@ -1,4 +1,4 @@
-import { renderD1Admin } from './admin-d1.js';
+﻿import { renderD1Admin } from './admin-d1.js';
 import {
     clearPortfolioInterest,
     createPortfolioInterest
@@ -12,17 +12,152 @@ import { getPortfolioItemsForTarget } from './portfolio-data.js';
 
 const uploadTesterMarkup = '';
 
+const toDisplayList = (...values) => values.flatMap((value) => {
+    if (Array.isArray(value)) return value.filter(Boolean);
+    return String(value || '')
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+}).filter((value, index, list) => list.indexOf(value) === index);
+
+const getTeacherWorkEmbedUrl = (url) => {
+    if (!url) return '';
+
+    try {
+        const rawUrl = String(url).trim();
+        const idFromText = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|[?&]v=)([a-zA-Z0-9_-]{11})/)?.[1]
+            || (/^[a-zA-Z0-9_-]{11}$/.test(rawUrl) ? rawUrl : '');
+
+        if (idFromText) return `https://www.youtube-nocookie.com/embed/${idFromText}?rel=0&playsinline=1`;
+
+        const normalizedUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+        const parsed = new URL(normalizedUrl);
+        const host = parsed.hostname.replace(/^www\./, '').replace(/^m\./, '');
+        const pathParts = parsed.pathname.split('/').filter(Boolean);
+        let videoId = '';
+
+        if (host === 'youtu.be') {
+            videoId = pathParts[0] || '';
+        } else if (host.includes('youtube.com')) {
+            if (['shorts', 'embed', 'live', 'v'].includes(pathParts[0])) {
+                videoId = pathParts[1] || '';
+            } else {
+                videoId = parsed.searchParams.get('v') || '';
+            }
+        }
+
+        return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&playsinline=1` : '';
+    } catch {
+        return '';
+    }
+};
+
+const getTeacherWorkVideoId = (url) => getTeacherWorkEmbedUrl(url).match(/embed\/([a-zA-Z0-9_-]{11})/)?.[1] || '';
+const getTeacherWorkSourceUrl = (item) => [
+    item.youtubeUrl,
+    item.videoUrl,
+    item.externalUrl,
+    item.detail,
+    item.format
+].find((value) => getTeacherWorkEmbedUrl(value));
+
+const enrichTeacherPortfolioItem = (item, index) => ({
+    mediaType: index % 3 === 0 ? 'Audio' : index % 3 === 1 ? 'Video' : 'Project',
+    format: index % 3 === 0 ? 'Audio Preview' : index % 3 === 1 ? 'Video Preview' : 'Project Preview',
+    detail: item.description || item.desc || '',
+    points: [],
+    cta: 'Portfolio consultation',
+    ...item
+});
+
+const renderTeacherWorkMedia = (item) => {
+    const youtubeSourceUrl = getTeacherWorkSourceUrl(item);
+    const youtubeEmbedUrl = getTeacherWorkEmbedUrl(youtubeSourceUrl);
+    const youtubeVideoId = getTeacherWorkVideoId(youtubeSourceUrl);
+    const imageUrl = item.img || item.imageUrl || '';
+    const hasImage = Boolean(imageUrl);
+    const imageStyle = hasImage ? ` style="background-image: url('${imageUrl}')"` : '';
+    const fallbackMarkup = hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>';
+
+    if (youtubeEmbedUrl) {
+        return `
+            <div class="expanded-media-frame has-player" style="background-image: url('https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg')">
+                <iframe
+                    src="${youtubeEmbedUrl}"
+                    title="${item.title} YouTube preview"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen
+                ></iframe>
+                <div class="expanded-player-badge">YouTube Preview</div>
+            </div>
+        `;
+    }
+
+    if (item.audioUrl) {
+        return `
+            <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
+                ${fallbackMarkup}
+                <audio controls src="${item.audioUrl}"></audio>
+                <div class="expanded-player-badge">Audio Preview</div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="expanded-media-frame ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
+            ${fallbackMarkup}
+            <div class="expanded-player-badge">${item.mediaType === 'Audio' ? 'Audio Preview' : item.mediaType === 'Video' ? 'Video Preview' : 'Project Preview'}</div>
+        </div>
+    `;
+};
+
+const renderTeacherWorkDetail = (item, index) => {
+    const enriched = enrichTeacherPortfolioItem(item, index);
+    const points = toDisplayList(enriched.points).map((point) => `<li>${point}</li>`).join('');
+
+    return `
+        <div class="expanded-media">
+            ${renderTeacherWorkMedia(enriched)}
+        </div>
+        <div class="expanded-copy">
+            <span class="media-pill">${enriched.mediaType} · ${enriched.format}</span>
+            <h3>${enriched.title}</h3>
+            <p>${enriched.detail || enriched.desc || enriched.description || ''}</p>
+            <dl>
+                <div>
+                    <dt>작품 설명</dt>
+                    <dd>${enriched.desc || enriched.description || ''}</dd>
+                </div>
+                <div>
+                    <dt>담당 강사</dt>
+                    <dd>CMS에서 연결된 강사 대표작입니다.</dd>
+                </div>
+            </dl>
+            ${points ? `<ul>${points}</ul>` : ''}
+            <a href="#contact" class="portfolio-detail-cta">상담 신청</a>
+        </div>
+    `;
+};
+
 document.body.classList.add('is-loading');
 
-window.addEventListener('load', () => {
+const pageLoadReady = new Promise((resolve) => {
+    if (document.readyState === 'complete') {
+        resolve();
+        return;
+    }
+
+    window.addEventListener('load', resolve, { once: true });
+});
+const introMinimumReady = new Promise((resolve) => window.setTimeout(resolve, 1550));
+const finishIntroLoader = () => {
     const loader = document.querySelector('.intro-loader');
 
-    window.setTimeout(() => {
-        document.body.classList.remove('is-loading');
-        document.body.classList.add('site-ready');
-        loader?.classList.add('is-hidden');
-    }, 1550);
-});
+    document.body.classList.remove('is-loading');
+    document.body.classList.add('site-ready');
+    loader?.classList.add('is-hidden');
+};
 
 const renderStandaloneAdminPage = () => {
     const getTeacherYouTubeEmbedUrl = (url) => {
@@ -887,16 +1022,40 @@ const initSite = () => {
         }
     };
 
-    const loadTeacherProfile = async (key) => {
+    const courseDataKeys = Object.keys(titleMap);
+    const teacherDataKeys = Object.keys(teacherTitleMap);
+    const siteDataCache = {
+        teacherOverrides: null,
+        portfolioItems: undefined,
+        teacherProfiles: new Map(),
+        portfolioByTarget: new Map(),
+        preloadPromise: null
+    };
+    const getPortfolioCacheKey = (type, key) => `${type}:${key}`;
+
+    const loadTeacherOverrides = async () => {
+        if (siteDataCache.teacherOverrides) return siteDataCache.teacherOverrides;
+
         try {
             const response = await fetchWithTimeout('/api/teachers', { cache: 'no-store' });
             const payload = await response.json();
             if (!response.ok || !payload.success) throw new Error('Teacher profile API failed');
-            const override = (payload.items || []).find((item) => item.key === key);
-            return getTeacherProfileWithOverride(key, override);
+            siteDataCache.teacherOverrides = payload.items || [];
         } catch {
-            return getTeacherProfile(key);
+            siteDataCache.teacherOverrides = [];
         }
+
+        return siteDataCache.teacherOverrides;
+    };
+
+    const loadTeacherProfile = async (key) => {
+        if (siteDataCache.teacherProfiles.has(key)) return siteDataCache.teacherProfiles.get(key);
+
+        const overrides = await loadTeacherOverrides();
+        const override = overrides.find((item) => item.key === key);
+        const profile = getTeacherProfileWithOverride(key, override);
+        siteDataCache.teacherProfiles.set(key, profile);
+        return profile;
     };
 
     const renderTeacherProfileMarkup = (profile) => `
@@ -1148,7 +1307,10 @@ const initSite = () => {
         cta: 'Portfolio consultation'
     });
 
-    const loadPortfolioItems = async (type, key) => {
+    const loadAllPortfolioItems = async () => {
+        if (Array.isArray(siteDataCache.portfolioItems)) return siteDataCache.portfolioItems;
+        if (siteDataCache.portfolioItems === null) return null;
+
         try {
             const response = await fetchWithTimeout('/api/portfolio', { cache: 'no-store' });
             const payload = await response.json();
@@ -1157,12 +1319,50 @@ const initSite = () => {
             throw new Error(payload.error || '포트폴리오 데이터를 불러오지 못했습니다.');
             }
 
-            const items = (payload.items || []).map(normalizeApiPortfolioItem);
-
-            const filtered = items.filter((item) => itemMatchesTarget(item, type, key));
-            return filtered;
+            siteDataCache.portfolioItems = (payload.items || []).map(normalizeApiPortfolioItem);
+            return siteDataCache.portfolioItems;
         } catch {
-            return getPortfolioItemsForTarget(type, key);
+            siteDataCache.portfolioItems = null;
+            return null;
+        }
+    };
+
+    const loadPortfolioItems = async (type, key) => {
+        const cacheKey = getPortfolioCacheKey(type, key);
+        if (siteDataCache.portfolioByTarget.has(cacheKey)) {
+            return siteDataCache.portfolioByTarget.get(cacheKey);
+        }
+
+        const items = await loadAllPortfolioItems();
+        const filtered = items
+            ? items.filter((item) => itemMatchesTarget(item, type, key))
+            : getPortfolioItemsForTarget(type, key);
+
+        siteDataCache.portfolioByTarget.set(cacheKey, filtered);
+        return filtered;
+    };
+
+    const preloadSiteData = () => {
+        if (siteDataCache.preloadPromise) return siteDataCache.preloadPromise;
+
+        siteDataCache.preloadPromise = Promise.all([
+            ...teacherDataKeys.map((key) => loadTeacherProfile(key)),
+            ...teacherDataKeys.map((key) => loadPortfolioItems('teacher', key)),
+            ...courseDataKeys.map((key) => loadPortfolioItems('course', key))
+        ]).catch(() => {});
+
+        return siteDataCache.preloadPromise;
+    };
+
+    const waitForInitialSiteReady = async () => {
+        try {
+            await Promise.all([
+                pageLoadReady,
+                introMinimumReady,
+                preloadSiteData()
+            ]);
+        } finally {
+            finishIntroLoader();
         }
     };
 
@@ -1550,10 +1750,6 @@ const initSite = () => {
         const openToken = ++teacherOpenToken;
         teacherModalBody.innerHTML = '<p class="portfolio-empty">강사 정보를 불러오는 중입니다...</p>';
         teacherModalContent.classList.remove('teacher-works-active', 'is-shutting-down');
-        teacherModal.classList.add('active');
-        teacherModal.classList.remove('is-dismissing');
-        teacherModal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
 
         let profile;
         let data = [];
@@ -1569,6 +1765,10 @@ const initSite = () => {
         }
 
         if (openToken !== teacherOpenToken) return;
+        teacherModal.classList.add('active');
+        teacherModal.classList.remove('is-dismissing');
+        teacherModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
 
         const worksMarkup = data.length ? data.map((item, index) => {
             const enriched = enrichPortfolioItem(item, index);
@@ -1671,18 +1871,9 @@ const initSite = () => {
         modalTitle.innerHTML = `${title} <span class="text-purple">결과물</span>`;
         document.getElementById('portfolio-expanded-panel')?.remove();
 
-        gallery.innerHTML = '<p class="portfolio-empty">포트폴리오를 불러오는 중입니다...</p>';
+        gallery.innerHTML = '';
         if (isTeacher) {
             gallery.innerHTML = '';
-        }
-
-        if (!isTeacher) {
-            modal.classList.add('active');
-            modal.classList.remove('is-dismissing');
-            modalContent?.classList.remove('is-shutting-down');
-            isModalClosing = false;
-            modal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
         }
 
         let data = [];
@@ -1723,6 +1914,15 @@ const initSite = () => {
             </article>
         `;
         }).join('') : '<p class="portfolio-empty">No visible portfolio items yet.</p>';
+
+        if (!isTeacher) {
+            modal.classList.add('active');
+            modal.classList.remove('is-dismissing');
+            modalContent?.classList.remove('is-shutting-down');
+            isModalClosing = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
 
         if (isTeacher && modalContent && gallery) {
             const profile = await loadTeacherProfile(key);
@@ -2105,6 +2305,8 @@ const initSite = () => {
             closeTeacherModal();
         }
     });
+
+    waitForInitialSiteReady();
 };
 
 if (document.readyState === 'loading') {
