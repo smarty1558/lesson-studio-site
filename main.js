@@ -135,7 +135,10 @@ const renderTeacherWorkDetail = (item, index) => {
                 </div>
             </dl>
             ${points ? `<ul>${points}</ul>` : ''}
-            <a href="#contact" class="portfolio-detail-cta">상담 신청</a>
+            <div class="portfolio-detail-actions">
+                <button type="button" class="portfolio-back">목록으로</button>
+                <a href="#contact" class="portfolio-detail-cta">상담 신청</a>
+            </div>
         </div>
     `;
 };
@@ -1721,11 +1724,45 @@ const initSite = () => {
         button.textContent = '강사 상세 보기';
     });
 
-    const setDedicatedTeacherMode = (mode) => {
+    let teacherModeSwitchTimer = 0;
+    let teacherModeReadyTimer = 0;
+    const setDedicatedTeacherMode = (mode, options = {}) => {
         const isWorks = mode === 'works';
-        teacherModalContent?.classList.toggle('teacher-works-active', isWorks);
-        teacherModalContent?.querySelector('[data-dedicated-teacher-panel="detail"]')?.setAttribute('aria-pressed', isWorks ? 'false' : 'true');
-        teacherModalContent?.querySelector('[data-dedicated-teacher-panel="works"]')?.setAttribute('aria-pressed', isWorks ? 'true' : 'false');
+        const applyMode = () => {
+            teacherModalContent?.classList.toggle('teacher-works-active', isWorks);
+            teacherModalContent?.classList.remove('detail-mode', 'teacher-work-detail-mode');
+            teacherModal?.classList.remove('detail-active');
+            teacherModalContent?.querySelector('.teacher-dedicated-works-panel')?.classList.remove('teacher-work-detail-active');
+            const worksDetail = teacherModalContent?.querySelector('.teacher-works-detail');
+            if (worksDetail) {
+                worksDetail.classList.remove('is-open');
+                worksDetail.innerHTML = '';
+            }
+            teacherModalContent?.querySelectorAll('.teacher-works-gallery .portfolio-item.active, .teacher-works-gallery .portfolio-item.is-sending').forEach((activeItem) => {
+                activeItem.classList.remove('active', 'is-sending');
+            });
+            teacherModalContent?.querySelector('[data-dedicated-teacher-panel="detail"]')?.setAttribute('aria-pressed', isWorks ? 'false' : 'true');
+            teacherModalContent?.querySelector('[data-dedicated-teacher-panel="works"]')?.setAttribute('aria-pressed', isWorks ? 'true' : 'false');
+        };
+
+        window.clearTimeout(teacherModeSwitchTimer);
+        window.clearTimeout(teacherModeReadyTimer);
+
+        if (options.immediate) {
+            teacherModalContent?.classList.remove('teacher-view-switching', 'teacher-view-ready');
+            applyMode();
+            return;
+        }
+
+        teacherModalContent?.classList.add('teacher-view-switching');
+        teacherModeSwitchTimer = window.setTimeout(() => {
+            applyMode();
+            teacherModalContent?.classList.remove('teacher-view-switching');
+            teacherModalContent?.classList.add('teacher-view-ready');
+            teacherModeReadyTimer = window.setTimeout(() => {
+                teacherModalContent?.classList.remove('teacher-view-ready');
+            }, 260);
+        }, 220);
     };
 
     const closeTeacherModal = () => {
@@ -1738,7 +1775,7 @@ const initSite = () => {
         window.setTimeout(() => {
             teacherModal.classList.remove('active', 'is-dismissing');
             teacherModal.setAttribute('aria-hidden', 'true');
-            teacherModalContent?.classList.remove('teacher-works-active', 'is-shutting-down');
+            teacherModalContent?.classList.remove('teacher-works-active', 'is-shutting-down', 'teacher-view-switching', 'teacher-view-ready', 'detail-mode', 'teacher-work-detail-mode');
             if (teacherModalBody) teacherModalBody.innerHTML = '';
             document.body.style.overflow = modal?.classList.contains('active') ? 'hidden' : '';
         }, 260);
@@ -1749,7 +1786,7 @@ const initSite = () => {
 
         const openToken = ++teacherOpenToken;
         teacherModalBody.innerHTML = '<p class="portfolio-empty">강사 정보를 불러오는 중입니다...</p>';
-        teacherModalContent.classList.remove('teacher-works-active', 'is-shutting-down');
+        teacherModalContent.classList.remove('teacher-works-active', 'is-shutting-down', 'teacher-view-switching', 'teacher-view-ready', 'detail-mode', 'teacher-work-detail-mode');
 
         let profile;
         let data = [];
@@ -1775,7 +1812,7 @@ const initSite = () => {
             const hasImage = Boolean(enriched.img);
 
             return `
-                <article class="portfolio-item ${index === 0 ? 'active' : ''}" data-teacher-work-index="${index}">
+                <article class="portfolio-item" data-teacher-work-index="${index}">
                     <div class="frame-inner ${hasImage ? '' : 'is-missing-image'}"${hasImage ? ` style="background-image: url('${enriched.img}')"` : ''}>
                         ${hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>'}
                     </div>
@@ -1801,22 +1838,20 @@ const initSite = () => {
                         ${renderTeacherProfileMarkup(profile)}
                     </section>
                     <section class="teacher-panel teacher-works-panel teacher-dedicated-works-panel">
-                        <div class="teacher-works-heading">
+                        <div class="modal-header teacher-works-heading">
                             <span class="section-kicker">Representative Works</span>
                             <h3 id="teacher-modal-title">${profile.name} 대표작</h3>
                         </div>
                         <div class="teacher-dedicated-portfolio">
                             <div class="portfolio-gallery teacher-works-gallery">${worksMarkup}</div>
-                            <div class="portfolio-expanded-panel teacher-works-detail is-open" aria-live="polite">
-                                ${data.length ? renderTeacherWorkDetail(data[0], 0) : '<p class="portfolio-empty">대표작을 CMS에서 추가하면 여기에 표시됩니다.</p>'}
-                            </div>
+                            <div class="portfolio-expanded-panel teacher-works-detail" aria-live="polite"></div>
                         </div>
                     </section>
                 </div>
             </div>
         `;
 
-        setDedicatedTeacherMode('detail');
+        setDedicatedTeacherMode('detail', { immediate: true });
 
         teacherModalBody.querySelectorAll('[data-dedicated-teacher-panel]').forEach((button) => {
             button.addEventListener('click', () => setDedicatedTeacherMode(button.dataset.dedicatedTeacherPanel));
@@ -1824,24 +1859,58 @@ const initSite = () => {
 
         const worksGallery = teacherModalBody.querySelector('.teacher-works-gallery');
         const worksDetail = teacherModalBody.querySelector('.teacher-works-detail');
+        const worksPanel = teacherModalBody.querySelector('.teacher-dedicated-works-panel');
+        const closeTeacherWorkDetail = () => {
+            worksPanel?.classList.remove('teacher-work-detail-active');
+            teacherModal?.classList.remove('detail-active');
+            teacherModalContent?.classList.remove('detail-mode', 'teacher-work-detail-mode');
+            worksDetail?.classList.remove('is-open');
+            if (worksDetail) worksDetail.innerHTML = '';
+            worksGallery?.classList.add('is-returning');
+            worksGallery?.querySelectorAll('.portfolio-item.active, .portfolio-item.is-sending').forEach((activeItem) => {
+                activeItem.classList.remove('active', 'is-sending');
+            });
+            window.setTimeout(() => {
+                worksGallery?.classList.remove('is-returning');
+            }, 280);
+        };
+        const openTeacherWorkDetail = (item, itemIndex) => {
+            worksGallery?.querySelectorAll('.portfolio-item.active, .portfolio-item.is-sending').forEach((activeItem) => {
+                activeItem.classList.remove('active', 'is-sending');
+            });
+            item.classList.add('active', 'is-sending');
+            teacherModal?.classList.add('detail-active');
+            teacherModalContent?.classList.add('detail-mode', 'teacher-work-detail-mode');
+            teacherModalContent?.classList.remove('teacher-view-switching', 'teacher-view-ready');
+            worksPanel?.classList.add('teacher-work-detail-active');
+            window.setTimeout(() => {
+                if (worksDetail) {
+                    worksDetail.innerHTML = renderTeacherWorkDetail(data[itemIndex], itemIndex);
+                    worksDetail.classList.add('is-open', 'is-arriving', 'is-glitch-in');
+                    window.setTimeout(() => {
+                        worksDetail.classList.remove('is-arriving', 'is-glitch-in');
+                    }, 720);
+                }
+            }, 180);
+        };
 
         worksGallery?.querySelectorAll('[data-teacher-work-index]').forEach((item) => {
             item.addEventListener('click', (event) => {
                 if (event.target.closest('audio, .portfolio-external-link')) return;
 
                 const itemIndex = Number(item.dataset.teacherWorkIndex);
-                worksGallery.querySelectorAll('.portfolio-item.active').forEach((activeItem) => {
-                    activeItem.classList.remove('active');
-                });
-                item.classList.add('active');
-                if (worksDetail) {
-                    worksDetail.innerHTML = renderTeacherWorkDetail(data[itemIndex], itemIndex);
-                    worksDetail.classList.add('is-open');
-                }
+                openTeacherWorkDetail(item, itemIndex);
             });
         });
 
         teacherModalBody.onclick = (event) => {
+            const back = event.target.closest('.portfolio-back');
+            if (back) {
+                event.preventDefault();
+                closeTeacherWorkDetail();
+                return;
+            }
+
             const cta = event.target.closest('.portfolio-detail-cta');
             if (!cta) return;
 

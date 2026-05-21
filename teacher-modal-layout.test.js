@@ -67,3 +67,22 @@ test('site preloads teacher and portfolio data before hiding intro loader', () =
     assert.match(js, /const siteDataCache = \{/);
     assert.match(js, /portfolioByTarget:\s*new Map\(\)/);
 });
+
+test('teacher works opens as a grid before entering detail mode', () => {
+    assert.doesNotMatch(js, /teacher-works-detail is-open/);
+    assert.match(js, /teacher-work-detail-active/);
+    assert.match(js, /portfolio-back/);
+    assert.match(css, /\.teacher-dedicated-portfolio\s*\{\s*display:\s*block\s*;/);
+    assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*display:\s*grid\s*;/s);
+    assert.match(css, /\.teacher-dedicated-content\.teacher-work-detail-mode \.teacher-dedicated-portfolio\s*\{[^}]*grid-template-columns:\s*minmax\(190px,\s*240px\) minmax\(0,\s*1fr\)\s*;/s);
+});
+
+test('dedicated teacher modal animates between variable detail and works sizes', () => {
+    const contentRule = getRuleBody('.teacher-dedicated-content');
+
+    assert.doesNotMatch(contentRule, /height:\s*min\(760px/);
+    assert.match(contentRule, /transition:\s*[\s\S]*width 0\.44s/);
+    assert.match(js, /teacher-view-switching/);
+    assert.match(css, /\.teacher-dedicated-content\.teacher-view-switching #teacher-modal-body/);
+    assert.match(css, /\.teacher-dedicated-content\.teacher-view-ready #teacher-modal-body/);
+});
