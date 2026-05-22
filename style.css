@@ -1369,14 +1369,8 @@ select:focus {
 .teacher-modal-stage {
     position: relative;
     min-height: min(690px, calc(100dvh - 96px));
-    overflow: hidden;
+    overflow: visible;
     padding-right: clamp(52px, 5vw, 72px);
-    border-radius: 28px;
-    background:
-        radial-gradient(circle at 12% 8%, rgba(254, 240, 138, 0.35), transparent 28%),
-        radial-gradient(circle at 88% 92%, rgba(96, 165, 250, 0.24), transparent 32%),
-        linear-gradient(135deg, rgba(253, 250, 255, 0.96), rgba(239, 246, 255, 0.86));
-    box-shadow: inset -28px 0 46px rgba(37, 99, 235, 0.08);
 }
 
 .teacher-panel-track {
@@ -1672,7 +1666,7 @@ select:focus {
 
 .teacher-dedicated-stage {
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .teacher-dedicated-content #teacher-modal-body {
@@ -1743,8 +1737,10 @@ select:focus {
 
 .teacher-dedicated-portfolio .portfolio-gallery {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-height: 360px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-height: min(520px, calc(100dvh - 240px));
+    overflow: auto;
+    padding-right: 6px;
 }
 
 .teacher-dedicated-content.teacher-work-detail-mode .teacher-dedicated-portfolio {
@@ -1880,10 +1876,11 @@ select:focus {
 
 .portfolio-gallery {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 18px;
     transform-origin: top center;
     max-height: 360px;
+    overflow: auto;
     transition:
         opacity 0.28s ease,
         transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
@@ -4122,7 +4119,7 @@ select:focus {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
-        overflow: hidden;
+        overflow: visible;
         padding-right: 0;
     }
 

@@ -74,7 +74,14 @@ test('teacher works opens as a grid before entering detail mode', () => {
     assert.match(js, /portfolio-back/);
     assert.match(css, /\.teacher-dedicated-portfolio\s*\{\s*display:\s*block\s*;/);
     assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*display:\s*grid\s*;/s);
+    assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)\s*;/s);
+    assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*overflow:\s*auto\s*;/s);
     assert.match(css, /\.teacher-dedicated-content\.teacher-work-detail-mode \.teacher-dedicated-portfolio\s*\{[^}]*grid-template-columns:\s*minmax\(190px,\s*240px\) minmax\(0,\s*1fr\)\s*;/s);
+});
+
+test('portfolio grids show four cards per row on desktop', () => {
+    assert.match(css, /\.portfolio-gallery\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)\s*;/s);
+    assert.match(css, /\.portfolio-gallery\s*\{[^}]*overflow:\s*auto\s*;/s);
 });
 
 test('dedicated teacher modal animates between variable detail and works sizes', () => {
