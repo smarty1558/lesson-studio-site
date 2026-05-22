@@ -76,7 +76,14 @@ test('teacher works opens as a grid before entering detail mode', () => {
     assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*display:\s*grid\s*;/s);
     assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)\s*;/s);
     assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*overflow:\s*auto\s*;/s);
-    assert.match(css, /\.teacher-dedicated-content\.teacher-work-detail-mode \.teacher-dedicated-portfolio\s*\{[^}]*grid-template-columns:\s*minmax\(190px,\s*240px\) minmax\(0,\s*1fr\)\s*;/s);
+    assert.match(css, /\.teacher-dedicated-content\.teacher-work-detail-mode \.teacher-dedicated-portfolio\s*\{[^}]*grid-template-columns:\s*78px minmax\(0,\s*1fr\)\s*;/s);
+});
+
+test('portfolio detail side list stays compact and expands item on desktop hover', () => {
+    assert.match(css, /\.modal-content\.detail-mode\s*\{[^}]*grid-template-columns:\s*78px minmax\(0,\s*1fr\)\s*;/s);
+    assert.match(css, /\.modal-content\.detail-mode \.portfolio-item\s*\{[^}]*width:\s*74px\s*;/s);
+    assert.match(css, /@media \(hover:\s*hover\) and \(pointer:\s*fine\)\s*\{[^}]*\.modal-content\.detail-mode \.portfolio-item:hover/s);
+    assert.match(css, /transform:\s*translateX\(calc\(-100% \+ 74px\)\)\s*;/);
 });
 
 test('portfolio grids show four cards per row on desktop', () => {

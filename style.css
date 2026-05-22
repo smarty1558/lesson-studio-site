@@ -1338,7 +1338,7 @@ select:focus {
 
 .modal-content.detail-mode {
     display: grid;
-    grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
     align-items: stretch;
     column-gap: 18px;
@@ -1745,7 +1745,7 @@ select:focus {
 
 .teacher-dedicated-content.teacher-work-detail-mode .teacher-dedicated-portfolio {
     display: grid;
-    grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
     column-gap: 18px;
@@ -1923,19 +1923,30 @@ select:focus {
     opacity: 1;
     filter: none;
     transform: none;
-    overflow: auto;
-    padding: 2px 6px 2px 2px;
+    overflow: visible;
+    padding: 2px 0;
 }
 
 .modal-content.detail-mode .portfolio-item {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: 58px minmax(0, 1fr);
-    gap: 10px;
+    width: 74px;
+    min-height: 74px;
+    gap: 0;
     align-items: center;
     padding: 8px;
     border-radius: 18px;
     transform: none;
     box-shadow: 0 10px 22px rgba(96, 165, 250, 0.07);
+    overflow: hidden;
+    transition:
+        width 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
 }
 
 .modal-content.detail-mode .portfolio-item.active {
@@ -1946,6 +1957,24 @@ select:focus {
 
 .modal-content.detail-mode .portfolio-item:not(.active) {
     opacity: 0.72;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .modal-content.detail-mode .portfolio-gallery:hover {
+        z-index: 20;
+    }
+
+    .modal-content.detail-mode .portfolio-item:hover,
+    .modal-content.detail-mode .portfolio-item:focus-within {
+        z-index: 30;
+        width: min(260px, 34vw);
+        transform: translateX(calc(-100% + 74px));
+        gap: 10px;
+        opacity: 1;
+        overflow: visible;
+        border-color: rgba(37, 99, 235, 0.32);
+        box-shadow: 0 24px 54px rgba(37, 99, 235, 0.18);
+    }
 }
 
 .modal-content.detail-mode .frame-inner {
@@ -1967,6 +1996,10 @@ select:focus {
 .modal-content.detail-mode .item-caption {
     min-width: 0;
     padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-6px);
+    transition: opacity 0.18s ease, transform 0.22s ease;
 }
 
 .modal-content.detail-mode .media-pill {
@@ -1979,6 +2012,15 @@ select:focus {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .modal-content.detail-mode .portfolio-item:hover .item-caption,
+    .modal-content.detail-mode .portfolio-item:focus-within .item-caption {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(0);
+    }
 }
 
 .modal-content.detail-mode .item-caption p {
@@ -4316,9 +4358,20 @@ select:focus {
 
     .modal-content.detail-mode .portfolio-item {
         grid-template-columns: 46px minmax(0, 1fr);
+        width: auto;
         min-width: 170px;
+        min-height: 0;
+        gap: 8px;
         padding: 6px;
         border-radius: 14px;
+        overflow: hidden;
+        transform: none;
+    }
+
+    .modal-content.detail-mode .item-caption {
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
     }
 
     .modal-content.detail-mode .frame-inner {
