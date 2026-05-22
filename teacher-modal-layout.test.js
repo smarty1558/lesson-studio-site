@@ -19,13 +19,15 @@ test('teacher modal keeps its stage layout when portfolio detail mode is active'
     assert.match(teacherDetailRule, /display:\s*block\s*;/);
 });
 
-test('teacher page controls are large enough to read as next-page edges', () => {
-    const teacherTabRule = getRuleBody('.teacher-tab');
+test('teacher page controls live inside the active panel instead of edge tabs', () => {
+    const actionRule = getRuleBody('.teacher-panel-action');
     const closeRule = getRuleBody('.modal-close');
 
-    assert.match(teacherTabRule, /width:\s*clamp\(52px,\s*5vw,\s*72px\)\s*;/);
-    assert.match(teacherTabRule, /min-height:\s*calc\(100%\s*-\s*72px\)\s*;/);
-    assert.match(teacherTabRule, /writing-mode:\s*vertical-rl\s*;/);
+    assert.doesNotMatch(js, /class="teacher-tab/);
+    assert.match(js, /class="teacher-panel-action" data-dedicated-teacher-panel="works"/);
+    assert.match(js, /class="teacher-panel-action teacher-panel-action-secondary" data-dedicated-teacher-panel="detail"/);
+    assert.match(actionRule, /min-height:\s*46px\s*;/);
+    assert.match(actionRule, /width:\s*fit-content\s*;/);
     assert.match(closeRule, /z-index:\s*30\s*;/);
 });
 

@@ -1085,6 +1085,9 @@ const initSite = () => {
                     <strong>Class Direction</strong>
                     <p>${profile.note}</p>
                 </div>
+                <button type="button" class="teacher-panel-action" data-dedicated-teacher-panel="works" data-teacher-panel="works" aria-label="대표작 보기">
+                    대표작 보기
+                </button>
             </div>
         </section>
     `;
@@ -1827,12 +1830,6 @@ const initSite = () => {
 
         teacherModalBody.innerHTML = `
             <div class="teacher-modal-stage teacher-dedicated-stage">
-                <button type="button" class="teacher-tab teacher-tab-works" data-dedicated-teacher-panel="works" aria-label="대표작 보기">
-                    <span>대표작 보기</span>
-                </button>
-                <button type="button" class="teacher-tab teacher-tab-detail" data-dedicated-teacher-panel="detail" aria-label="강사정보 보기">
-                    <span>강사정보 보기</span>
-                </button>
                 <div class="teacher-panel-track teacher-dedicated-track">
                     <section class="teacher-panel teacher-detail-panel">
                         ${renderTeacherProfileMarkup(profile)}
@@ -1841,6 +1838,9 @@ const initSite = () => {
                         <div class="modal-header teacher-works-heading">
                             <span class="section-kicker">Representative Works</span>
                             <h3 id="teacher-modal-title">${profile.name} 대표작</h3>
+                            <button type="button" class="teacher-panel-action teacher-panel-action-secondary" data-dedicated-teacher-panel="detail" data-teacher-panel="detail" aria-label="강사 상세 정보 보기">
+                                강사 상세 정보 보기
+                            </button>
                         </div>
                         <div class="teacher-dedicated-portfolio">
                             <div class="portfolio-gallery teacher-works-gallery">${worksMarkup}</div>
@@ -2000,12 +2000,6 @@ const initSite = () => {
             const stage = document.createElement('div');
             stage.className = 'teacher-modal-stage';
             stage.innerHTML = `
-                <button type="button" class="teacher-tab teacher-tab-works" data-teacher-panel="works" aria-label="${state.worksLabel}">
-                    <span>${state.worksLabel}</span>
-                </button>
-                <button type="button" class="teacher-tab teacher-tab-detail" data-teacher-panel="detail" aria-label="${state.detailLabel}">
-                    <span>${state.detailLabel}</span>
-                </button>
                 <div class="teacher-panel-track">
                     <section class="teacher-panel teacher-detail-panel">
                         ${renderTeacherProfileMarkup(profile)}
@@ -2014,6 +2008,9 @@ const initSite = () => {
                         <div class="teacher-works-heading">
                             <span class="section-kicker">Representative Works</span>
                             <h3>${profile.name} 대표작품</h3>
+                            <button type="button" class="teacher-panel-action teacher-panel-action-secondary" data-teacher-panel="detail" aria-label="${state.detailLabel}">
+                                ${state.detailLabel}
+                            </button>
                         </div>
                         <div class="teacher-portfolio-panel"></div>
                     </section>
