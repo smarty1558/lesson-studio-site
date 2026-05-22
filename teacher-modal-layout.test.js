@@ -85,7 +85,11 @@ test('portfolio detail side list stays compact and expands item on desktop hover
     assert.match(css, /\.modal-content\.detail-mode\s*\{[^}]*grid-template-columns:\s*78px minmax\(0,\s*1fr\)\s*;/s);
     assert.match(css, /\.modal-content\.detail-mode \.portfolio-item\s*\{[^}]*width:\s*74px\s*;/s);
     assert.match(css, /@media \(hover:\s*hover\) and \(pointer:\s*fine\)\s*\{[^}]*\.modal-content\.detail-mode \.portfolio-item:hover/s);
-    assert.match(css, /transform:\s*translateX\(calc\(-100% \+ 74px\)\)\s*;/);
+    assert.match(css, /transform:\s*translateX\(-186px\)\s*;/);
+    assert.match(css, /\.modal-content\.detail-mode \.portfolio-gallery\s*\{[^}]*overflow-y:\s*auto\s*;/s);
+    assert.match(css, /\.modal-content\.detail-mode \.portfolio-gallery\s*\{[^}]*margin-left:\s*-186px\s*;/s);
+    assert.match(css, /\.modal-content\.detail-mode \.portfolio-gallery\s*\{[^}]*padding:\s*2px 0 2px 186px\s*;/s);
+    assert.match(css, /\.modal-content\.detail-mode \.portfolio-gallery\s*\{[^}]*scrollbar-width:\s*none\s*;/s);
 });
 
 test('portfolio grids show four cards per row on desktop', () => {
