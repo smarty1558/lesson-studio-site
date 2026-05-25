@@ -863,6 +863,7 @@ const initSite = () => {
                         phone: formData.get('phone'),
                         email: formData.get('email'),
                         course: formData.get('course'),
+                        lessonMode: formData.get('lessonMode'),
                         message: formData.get('message'),
                         portfolioInterest: activePortfolioInterest?.title || activePortfolioInterest?.text || ''
                     })

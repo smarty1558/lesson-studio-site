@@ -231,17 +231,27 @@
                                     <input type="email" name="email" placeholder="reply@example.com" required>
                                 </label>
                             </div>
-                            <label>
-                                <span>희망 수업</span>
-                                <select name="course" required>
-                                    <option value="">수업을 선택해주세요</option>
-                                    <option value="game">게임 / 영화 OST</option>
-                                    <option value="anime">애니메이션 BGM</option>
-                                    <option value="jpop">J-POP</option>
-                                    <option value="sound">Sound Design</option>
-                                    <option value="subculture">서브컬쳐 작곡 / 미디</option>
-                                </select>
-                            </label>
+                            <div class="form-row course-mode-row">
+                                <label>
+                                    <span>희망 수업</span>
+                                    <select name="course" required>
+                                        <option value="">수업을 선택해주세요</option>
+                                        <option value="game">게임 / 영화 OST</option>
+                                        <option value="anime">애니메이션 BGM</option>
+                                        <option value="jpop">J-POP</option>
+                                        <option value="sound">Sound Design</option>
+                                        <option value="subculture">서브컬쳐 작곡 / 미디</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    <span>수업 방식</span>
+                                    <select name="lessonMode" required>
+                                        <option value="">방식을 선택해주세요</option>
+                                        <option value="online">온라인</option>
+                                        <option value="offline">오프라인</option>
+                                    </select>
+                                </label>
+                            </div>
                             <label>
                                 <span>문의 내용</span>
                                 <textarea name="message" rows="5" placeholder="배우고 싶은 방향, 현재 고민, 가능한 시간대 등을 자유롭게 적어주세요." required></textarea>
@@ -314,6 +324,7 @@
                         phone: formData.get('phone'),
                         email: formData.get('email'),
                         course: formData.get('course'),
+                        lessonMode: formData.get('lessonMode'),
                         message: formData.get('message'),
                         portfolioInterest: document.querySelector('[data-portfolio-interest]')?.textContent?.replace('삭제', '').trim() || ''
                     })

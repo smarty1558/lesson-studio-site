@@ -12,6 +12,7 @@ const normalizeContactPayload = (payload = {}) => ({
     phone: String(payload.phone || '').trim(),
     email: String(payload.email || '').trim(),
     course: String(payload.course || '').trim(),
+    lessonMode: String(payload.lessonMode || '').trim(),
     message: String(payload.message || '').trim(),
     portfolioInterest: String(payload.portfolioInterest || '').trim()
 });
@@ -23,6 +24,7 @@ const buildContactEmailText = (payload) => [
     `연락처: ${payload.phone}`,
     `이메일: ${payload.email}`,
     `희망 수업: ${payload.course}`,
+    `수업 방식: ${payload.lessonMode}`,
     payload.portfolioInterest ? `이런 스타일 배우기: ${payload.portfolioInterest}` : '',
     '',
     '문의 내용:',
@@ -32,7 +34,7 @@ const buildContactEmailText = (payload) => [
 export const onRequestPost = async ({ request, env }) => {
     const payload = normalizeContactPayload(await readJson(request));
 
-    if (!payload.name || !payload.phone || !payload.course || !payload.message) {
+    if (!payload.name || !payload.phone || !payload.course || !payload.lessonMode || !payload.message) {
         return sendFailure('필수 상담 정보를 모두 입력해주세요.', 400);
     }
 

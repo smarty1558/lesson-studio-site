@@ -15,6 +15,7 @@ test('contact API requires a valid reply email and message detail', async () => 
             phone: '010-0000-0000',
             email: 'not-an-email',
             course: 'jpop',
+            lessonMode: '',
             message: ''
         }),
         env: {}
@@ -43,6 +44,7 @@ test('contact API sends inquiry email to the site owner by default', async () =>
                 phone: '010-0000-0000',
                 email: 'student@example.com',
                 course: 'jpop',
+                lessonMode: 'online',
                 message: 'I want to ask about vocal direction.',
                 portfolioInterest: 'Sugar Rush Opening'
             }),
@@ -63,6 +65,7 @@ test('contact API sends inquiry email to the site owner by default', async () =>
         assert.match(sentPayload.text, /연락처: 010-0000-0000/);
         assert.match(sentPayload.text, /이메일: student@example.com/);
         assert.match(sentPayload.text, /희망 수업: jpop/);
+        assert.match(sentPayload.text, /수업 방식: online/);
         assert.match(sentPayload.text, /I want to ask about vocal direction/);
         assert.match(sentPayload.text, /이런 스타일 배우기: Sugar Rush Opening/);
     } finally {
