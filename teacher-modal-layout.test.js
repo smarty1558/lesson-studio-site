@@ -49,6 +49,23 @@ test('admin renders portfolio and teacher cms as separate tabs', () => {
     assert.match(css, /\.admin-tab-teachers \.admin-toolbar/);
 });
 
+test('teacher cms profiles hydrate main teacher cards', () => {
+    assert.match(js, /const syncTeacherCardsFromProfiles = async/);
+    assert.match(js, /\.artist-card\[data-teacher\]/);
+    assert.match(js, /roleTarget\)\s*roleTarget\.textContent = profile\.role/);
+    assert.match(js, /nameTarget\)\s*nameTarget\.textContent = profile\.name/);
+    assert.match(js, /summaryTarget\)\s*summaryTarget\.textContent = profile\.summary/);
+    assert.match(js, /\.then\(syncTeacherCardsFromProfiles\)/);
+});
+
+test('admin uses saved teacher names for portfolio assignment labels', () => {
+    assert.match(adminJs, /const getTeacherChoiceOptions = \(\) => teacherOptions\.map/);
+    assert.match(adminJs, /teacherProfileForKey\(teacherItems,\s*key,\s*index\)/);
+    assert.match(adminJs, /chips\(meta\.teacherKeys,\s*teacherChoiceOptions\)/);
+    assert.match(adminJs, /renderChecks\('teacherKeys',\s*teacherChoiceOptions,\s*meta\.teacherKeys\)/);
+    assert.match(adminJs, /readFormItem\(form,\s*getTeacherChoiceOptions\(\)\)/);
+});
+
 test('portfolio filtering accepts teacher assignments from cms metadata', () => {
     assert.match(js, /normalizeKeyList\(item\.teacherKeys,\s*item\.metadata\?\.teacherKeys,\s*item\.teacherKey\)/);
     assert.match(js, /normalizeKeyList\(item\.courseKeys,\s*item\.targetKeys,\s*item\.metadata\?\.targetKeys,\s*item\.targetKey\)/);
@@ -83,6 +100,7 @@ test('teacher works opens as a grid before entering detail mode', () => {
 
 test('portfolio detail side list stays compact and expands item on desktop hover', () => {
     assert.match(css, /\.modal-content\.detail-mode\s*\{[^}]*grid-template-columns:\s*78px minmax\(0,\s*1fr\)\s*;/s);
+    assert.match(css, /\.modal-content\.detail-mode\s*\{[^}]*overflow:\s*visible\s*;/s);
     assert.match(css, /\.modal-content\.detail-mode \.portfolio-item\s*\{[^}]*width:\s*74px\s*;/s);
     assert.match(css, /@media \(hover:\s*hover\) and \(pointer:\s*fine\)\s*\{[^}]*\.modal-content\.detail-mode \.portfolio-item:hover/s);
     assert.match(css, /transform:\s*translateX\(-186px\)\s*;/);
