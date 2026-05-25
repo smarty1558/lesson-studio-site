@@ -93,6 +93,9 @@ const emptyItem = {
     metadata: {
         mediaType: 'Audio',
         format: '',
+        credits: '',
+        tags: [],
+        description: '',
         youtubeUrl: '',
         imageUrlManual: '',
         audioUrlManual: '',
@@ -100,7 +103,6 @@ const emptyItem = {
         teacherKeys: [],
         targetLabels: [],
         teacherNames: [],
-        points: [],
         detail: ''
     }
 };
@@ -116,13 +118,15 @@ const itemMetadata = (item = {}) => ({
     ...emptyItem.metadata,
     ...(item.metadata || {}),
     mediaType: item.mediaType || item.metadata?.mediaType || emptyItem.metadata.mediaType,
-    format: item.format || item.metadata?.format || '',
+    credits: item.credits || item.metadata?.credits || item.format || item.metadata?.format || '',
+    format: item.credits || item.metadata?.credits || item.format || item.metadata?.format || '',
+    tags: item.tags || item.metadata?.tags || item.category || [],
+    description: item.description || item.metadata?.description || item.metadata?.detail || '',
     youtubeUrl: item.youtubeUrl || item.metadata?.youtubeUrl || '',
     targetKeys: item.targetKeys || item.metadata?.targetKeys || [],
     teacherKeys: item.teacherKeys || item.metadata?.teacherKeys || [],
     targetLabels: item.targetLabels || item.metadata?.targetLabels || [],
     teacherNames: item.teacherNames || item.metadata?.teacherNames || [],
-    points: item.points || item.metadata?.points || [],
     detail: item.detail || item.metadata?.detail || item.description || ''
 });
 
@@ -172,6 +176,13 @@ const readableFileName = (key = '') => String(key)
     .replace(/^[a-f0-9-]{36}-/i, '');
 
 const teacherListValue = (value = []) => Array.isArray(value) ? value.join(', ') : String(value || '');
+const toListValue = (...values) => values.flatMap((value) => {
+    if (Array.isArray(value)) return value.filter(Boolean);
+    return String(value || '')
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+}).filter((value, index, list) => list.indexOf(value) === index);
 
 const teacherProfileForKey = (items, key, index = 0) => ({
     ...getTeacherProfileWithOverride(key, items.find((item) => item.key === key)),
@@ -196,13 +207,9 @@ const readTeacherProfileForm = (form) => {
 
 const readFormItem = (form, teacherOptionList = teacherOptions) => {
     const formData = new FormData(form);
-    const points = String(formData.get('points') || '')
-        .split(',')
-        .map((point) => point.trim())
-        .filter(Boolean);
-    const category = String(formData.get('category') || '').trim();
+    const credits = String(formData.get('credits') || '').trim();
+    const tags = toListValue(formData.get('tags'));
     const description = String(formData.get('description') || '').trim();
-    const detail = String(formData.get('detail') || '').trim();
     const imageUrlManual = String(formData.get('imageUrlManual') || '').trim();
     const audioUrlManual = String(formData.get('audioUrlManual') || '').trim();
     const youtubeUrl = String(formData.get('youtubeUrl') || '').trim();
@@ -215,7 +222,7 @@ const readFormItem = (form, teacherOptionList = teacherOptions) => {
         id: String(formData.get('id') || ''),
         title: String(formData.get('title') || '').trim(),
         description,
-        category,
+        category: tags.join(', '),
         date: String(formData.get('date') || '').trim(),
         imageUrl: imageUrlManual || String(formData.get('imageUrl') || '').trim(),
         audioUrl,
@@ -224,7 +231,10 @@ const readFormItem = (form, teacherOptionList = teacherOptions) => {
         sortOrder: Number(formData.get('sortOrder') || 0),
         metadata: {
             mediaType,
-            format: String(formData.get('format') || '').trim(),
+            credits,
+            format: credits,
+            tags,
+            description,
             youtubeUrl,
             imageUrlManual,
             audioUrlManual,
@@ -232,9 +242,8 @@ const readFormItem = (form, teacherOptionList = teacherOptions) => {
             teacherKeys,
             targetLabels: targetKeys.map((key) => labelFor(targetOptions, key)),
             teacherNames: teacherKeys.map((key) => labelFor(teacherOptionList, key)),
-            points,
-            detail,
-            legacyCategory: category
+            detail: description,
+            legacyCategory: tags.join(', ')
         }
     };
 };
@@ -414,7 +423,7 @@ export const renderD1Admin = () => {
         if (!items.length) {
             return `
                 <tr>
-                    <td colspan="16" class="admin-table-empty">등록된 포트폴리오가 없습니다.</td>
+                    <td colspan="14" class="admin-table-empty">등록된 포트폴리오가 없습니다.</td>
                 </tr>
             `;
         }
@@ -424,8 +433,9 @@ export const renderD1Admin = () => {
         return items.map((entry, index) => {
             const meta = itemMetadata(entry);
             const title = entry.title || 'Untitled';
-            const detail = meta.detail || entry.description || '';
-            const points = (meta.points || []).join(' · ');
+            const credits = meta.credits || '';
+            const description = meta.description || entry.description || meta.detail || '';
+            const tags = toListValue(meta.tags, entry.category).join(', ');
             const isDraft = Boolean(entry.isDraft);
 
             return `
@@ -443,12 +453,11 @@ export const renderD1Admin = () => {
                     </td>
                     <td class="admin-strong">${isDraft ? '<span class="admin-muted">새 항목</span>' : escapeHtml(truncate(title, 44))}</td>
                     <td>${isDraft ? '<span class="admin-muted">-</span>' : Number(entry.sortOrder || 0)}</td>
-                    <td>${escapeHtml(truncate(entry.description || '', 54))}</td>
-                    <td>${escapeHtml(entry.category || '-')}</td>
-                    <td>${escapeHtml(truncate(meta.format || '', 42))}</td>
+                    <td>${escapeHtml(truncate(credits, 42))}</td>
+                    <td>${escapeHtml(truncate(description, 58))}</td>
+                    <td>${escapeHtml(tags || '-')}</td>
                     <td><div class="admin-chip-list">${chips(meta.teacherKeys, teacherChoiceOptions)}</div></td>
                     <td><div class="admin-chip-list">${chips(meta.targetKeys, targetOptions)}</div></td>
-                    <td>${escapeHtml(truncate(detail, 58))}</td>
                     <td>${escapeHtml(entry.date || '-')}</td>
                     <td>${entry.audioUrl ? '<span class="admin-cell-ok">Audio</span>' : '<span class="admin-muted">-</span>'}</td>
                     <td>${meta.youtubeUrl ? `<a href="${escapeHtml(meta.youtubeUrl)}" target="_blank" rel="noopener noreferrer">YouTube</a>` : entry.externalLink ? `<a href="${escapeHtml(entry.externalLink)}" target="_blank" rel="noopener noreferrer">Link</a>` : '<span class="admin-muted">-</span>'}</td>
@@ -545,11 +554,8 @@ export const renderD1Admin = () => {
                     <input type="hidden" name="audioUrl" value="${escapeHtml(item.audioUrl)}">
 
                     <div class="admin-grid">
-                        <label>프로젝트 이름
+                        <label>제목
                             <input name="title" required value="${escapeHtml(item.title)}" placeholder="예: 조이고">
-                        </label>
-                        <label>카테고리
-                            <input name="category" value="${escapeHtml(item.category)}" placeholder="예: Game BGM, Anime, J-POP">
                         </label>
                         <label>완료일
                             <input type="date" name="date" value="${escapeHtml(item.date)}">
@@ -567,11 +573,11 @@ export const renderD1Admin = () => {
                             <div class="admin-checks">${renderChecks('targetKeys', targetOptions, meta.targetKeys)}</div>
                         </div>
 
-                        <label>간략 설명
-                            <input name="description" value="${escapeHtml(item.description)}" placeholder="작곡 / 편곡 / BGM">
+                        <label>크레딧
+                            <input name="credits" value="${escapeHtml(meta.credits)}" placeholder="예: 작곡 / 편곡 / 믹스">
                         </label>
-                        <label>간략 크레딧
-                            <input name="format" value="${escapeHtml(meta.format)}" placeholder="예: 작곡 / 편곡 / 믹스">
+                        <label>태그
+                            <input name="tags" value="${escapeHtml(toListValue(meta.tags, item.category).join(', '))}" placeholder="예: jpop, indie">
                         </label>
                         <label>공개 상태
                             <select name="visible">
@@ -603,8 +609,8 @@ export const renderD1Admin = () => {
                         <label>외부 링크
                             <input name="externalLink" value="${escapeHtml(item.externalLink)}" placeholder="SoundCloud, Drive, 음원 링크">
                         </label>
-                        <label class="admin-field-wide">상세 프로젝트 설명
-                            <textarea name="detail" rows="5" placeholder="상세 설명, 크레딧, 작업 포인트">${escapeHtml(meta.detail || item.description)}</textarea>
+                        <label class="admin-field-wide">설명
+                            <textarea name="description" rows="5" placeholder="작품 설명을 적어주세요.">${escapeHtml(meta.description || item.description || meta.detail)}</textarea>
                         </label>
                     </div>
 
@@ -668,15 +674,14 @@ export const renderD1Admin = () => {
                                     <th>#</th>
                                     <th>관리</th>
                                     <th>상태</th>
-                                    <th>프로젝트 이미지</th>
-                                    <th>프로젝트 이름</th>
+                                    <th>이미지</th>
+                                    <th>제목</th>
                                     <th>등급</th>
-                                    <th>간략 설명</th>
-                                    <th>카테고리</th>
-                                    <th>간략 크레딧</th>
+                                    <th>크레딧</th>
+                                    <th>설명</th>
+                                    <th>태그</th>
                                     <th>참여 강사</th>
                                     <th>표시 조건</th>
-                                    <th>상세 프로젝트 설명</th>
                                     <th>완료일</th>
                                     <th>오디오</th>
                                     <th>동영상/링크</th>
@@ -719,7 +724,7 @@ export const renderD1Admin = () => {
         const nextItem = readFormItem(form, getTeacherChoiceOptions());
 
         if (!nextItem.title) {
-            status.textContent = '프로젝트 이름은 필수입니다.';
+            status.textContent = '제목은 필수입니다.';
             status.className = 'admin-form-status admin-upload-error';
             return;
         }

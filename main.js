@@ -20,6 +20,9 @@ const toDisplayList = (...values) => values.flatMap((value) => {
         .filter(Boolean);
 }).filter((value, index, list) => list.indexOf(value) === index);
 
+const normalizeTagList = (...values) => toDisplayList(...values);
+const formatTags = (...values) => normalizeTagList(...values).join(', ');
+
 const renderMediaPill = (item) => {
     const mediaType = String(item.mediaType || '').trim();
     const format = String(item.format || '').trim();
@@ -69,14 +72,27 @@ const getTeacherWorkSourceUrl = (item) => [
     item.format
 ].find((value) => getTeacherWorkEmbedUrl(value));
 
-const enrichTeacherPortfolioItem = (item, index) => ({
-    mediaType: index % 3 === 0 ? 'Audio' : index % 3 === 1 ? 'Video' : 'Project',
-    format: index % 3 === 0 ? '음원 데모' : index % 3 === 1 ? '영상' : '프로젝트',
-    detail: item.description || item.desc || '',
-    points: [],
-    cta: 'Portfolio consultation',
-    ...item
-});
+const enrichTeacherPortfolioItem = (item, index) => {
+    const fallbackCredits = index % 3 === 0 ? '음원 데모' : index % 3 === 1 ? '영상' : '프로젝트';
+    const credits = item.credits || item.metadata?.credits || item.format || item.metadata?.format || fallbackCredits;
+    const description = item.description || item.metadata?.description || item.metadata?.detail || item.desc || '';
+    const tags = normalizeTagList(item.tags, item.metadata?.tags, item.category);
+
+    return {
+        mediaType: index % 3 === 0 ? 'Audio' : index % 3 === 1 ? 'Video' : 'Project',
+        format: credits,
+        detail: description,
+        description,
+        tags,
+        cta: 'Portfolio consultation',
+        ...item,
+        format: credits,
+        detail: description,
+        description,
+        credits,
+        tags
+    };
+};
 
 const renderTeacherWorkMedia = (item) => {
     const youtubeSourceUrl = getTeacherWorkSourceUrl(item);
@@ -119,23 +135,28 @@ const renderTeacherWorkMedia = (item) => {
 
 const renderTeacherWorkDetail = (item, index) => {
     const enriched = enrichTeacherPortfolioItem(item, index);
-    const points = toDisplayList(enriched.points).map((point) => `<li>${point}</li>`).join('');
+    const tags = formatTags(enriched.tags, enriched.category);
 
     return `
         <div class="expanded-media">
             ${renderTeacherWorkMedia(enriched)}
         </div>
         <div class="expanded-copy">
-            <span class="media-pill">${renderMediaPill(enriched)}</span>
             <h3>${enriched.title}</h3>
-            <p>${enriched.detail || enriched.desc || enriched.description || ''}</p>
             <dl>
                 <div>
-                    <dt>간략 설명</dt>
-                    <dd>${enriched.desc || enriched.description || ''}</dd>
+                    <dt>크레딧</dt>
+                    <dd>${enriched.credits || '-'}</dd>
+                </div>
+                <div>
+                    <dt>설명</dt>
+                    <dd>${enriched.description || enriched.detail || enriched.desc || '-'}</dd>
+                </div>
+                <div>
+                    <dt>태그</dt>
+                    <dd>${tags || '-'}</dd>
                 </div>
             </dl>
-            ${points ? `<ul>${points}</ul>` : ''}
             <div class="portfolio-detail-actions">
                 <button type="button" class="portfolio-back">목록으로</button>
                 <a href="#contact" class="portfolio-detail-cta">상담 신청</a>
@@ -254,23 +275,28 @@ const renderStandaloneAdminPage = () => {
 
     const renderTeacherWorkDetail = (item, index) => {
         const enriched = enrichPortfolioItem(item, index);
-        const points = toDisplayList(enriched.points).map((point) => `<li>${point}</li>`).join('');
+        const tags = formatTags(enriched.tags, enriched.category);
 
         return `
             <div class="expanded-media">
                 ${renderTeacherWorkMedia(enriched)}
             </div>
             <div class="expanded-copy">
-                <span class="media-pill">${renderMediaPill(enriched)}</span>
                 <h3>${enriched.title}</h3>
-                <p>${enriched.detail || enriched.desc || enriched.description || ''}</p>
                 <dl>
                     <div>
-                        <dt>간략 설명</dt>
-                        <dd>${enriched.desc || enriched.description || ''}</dd>
+                        <dt>크레딧</dt>
+                        <dd>${enriched.credits || '-'}</dd>
+                    </div>
+                    <div>
+                        <dt>설명</dt>
+                        <dd>${enriched.description || enriched.detail || enriched.desc || '-'}</dd>
+                    </div>
+                    <div>
+                        <dt>태그</dt>
+                        <dd>${tags || '-'}</dd>
                     </div>
                 </dl>
-                ${points ? `<ul>${points}</ul>` : ''}
                 <a href="#contact" class="portfolio-detail-cta">이 스타일 상담하기</a>
             </div>
         `;
@@ -345,7 +371,7 @@ const renderStandaloneAdminPage = () => {
                     <div>
                         <span>오타쿠 뮤직 스튜디오 CMS</span>
                         <h1>포트폴리오 모달 관리</h1>
-                        <p>아이템 하나에 여러 카테고리를 달면, 해당 카테고리를 쓰는 클래스/강사 모달에 자동으로 노출됩니다.</p>
+                        <p>아이템 하나에 여러 분류를 달면, 해당 분류를 쓰는 클래스/강사 모달에 자동으로 노출됩니다.</p>
                     </div>
                     <a href="/" class="admin-link">사이트 보기</a>
                 </header>
@@ -368,7 +394,7 @@ const renderStandaloneAdminPage = () => {
                                 </select>
                             </label>
                             <div class="admin-field admin-field-wide">
-                                <span>노출 카테고리</span>
+                                <span>노출 분류</span>
                                 <div class="admin-checks" data-target-checks>${renderChecks('course')}</div>
                             </div>
                             <label>제목
@@ -393,11 +419,11 @@ const renderStandaloneAdminPage = () => {
                                 <input name="externalUrl" placeholder="SoundCloud, Drive 등">
                             </label>
                         </div>
-                        <label>상세 프로젝트 설명
-                            <textarea name="detail" rows="5" placeholder="결과물의 방향, 작업 과정, 수업 포인트를 적어주세요."></textarea>
+                        <label>설명
+                            <textarea name="detail" rows="5" placeholder="결과물의 방향과 작업 과정을 적어주세요."></textarea>
                         </label>
-                        <label>포인트
-                            <input name="points" placeholder="장면 분석, 사운드 설계, 완성 피드백">
+                        <label>태그
+                            <input name="points" placeholder="jpop, indie, game">
                         </label>
                         <button type="submit" class="admin-primary">CMS 아이템 등록</button>
                     </form>
@@ -473,7 +499,7 @@ const renderStandaloneAdminPage = () => {
             const targetKeys = Array.from(form.querySelectorAll('[name="targetKeys"]:checked')).map((input) => input.value);
 
             if (!targetKeys.length) {
-                alert('노출 카테고리를 하나 이상 선택해주세요.');
+                alert('노출 분류를 하나 이상 선택해주세요.');
                 return;
             }
 
@@ -605,11 +631,11 @@ const renderUnifiedAdminPage = () => {
                                 <input name="externalUrl" placeholder="SoundCloud, Drive 등">
                             </label>
                         </div>
-                        <label>상세 프로젝트 설명
-                            <textarea name="detail" rows="5" placeholder="작업 방향, 수업 과정, 결과물 포인트를 적어주세요."></textarea>
+                        <label>설명
+                            <textarea name="detail" rows="5" placeholder="작업 방향과 수업 과정을 적어주세요."></textarea>
                         </label>
-                        <label>포인트
-                            <input name="points" placeholder="장면 분석, 사운드 설계, 완성 피드백">
+                        <label>태그
+                            <input name="points" placeholder="jpop, indie, game">
                         </label>
                         <button type="submit" class="admin-primary">CMS 아이템 등록</button>
                     </form>
@@ -1142,14 +1168,30 @@ const initSite = () => {
         modalContent?.querySelector('[data-teacher-panel="works"]')?.setAttribute('aria-pressed', state.isWorks ? 'true' : 'false');
     };
 
-    const enrichPortfolioItem = (item, index) => ({
-        mediaType: index % 3 === 0 ? 'Audio' : index % 3 === 1 ? 'Video' : 'Project',
-        format: index % 3 === 0 ? '음원 데모' : index % 3 === 1 ? '영상 싱크' : '제작 패키지',
-        detail: '수업 안에서 만든 결과물의 방향, 장면 해석, 사운드 선택 이유를 함께 정리한 포트폴리오입니다.',
-        points: ['장면/캐릭터 분석', '사운드 레퍼런스 설계', '완성본 피드백'],
-        cta: '이런 결과물 상담하기',
-        ...item
-    });
+    const enrichPortfolioItem = (item, index) => {
+        const fallbackCredits = index % 3 === 0 ? '음원 데모' : index % 3 === 1 ? '영상 싱크' : '제작 패키지';
+        const credits = item.credits || item.metadata?.credits || item.format || item.metadata?.format || fallbackCredits;
+        const description = item.description || item.metadata?.description || item.detail || item.metadata?.detail || item.desc || '';
+        const tags = normalizeTagList(item.tags, item.metadata?.tags, item.category);
+
+        return {
+            mediaType: index % 3 === 0 ? 'Audio' : index % 3 === 1 ? 'Video' : 'Project',
+            format: credits,
+            detail: description,
+            desc: description,
+            description,
+            credits,
+            tags,
+            cta: '이런 결과물 상담하기',
+            ...item,
+            format: credits,
+            detail: description,
+            desc: description,
+            description,
+            credits,
+            tags
+        };
+    };
 
     const cmsStorageKey = 'osumPortfolioCmsItems';
     const cmsTargets = {
@@ -1324,16 +1366,12 @@ const initSite = () => {
         return item.type === type && targetKeys.includes(key);
     };
     const normalizeKeyList = (...values) => toDisplayList(...values);
-    const normalizePointList = (...values) => {
-        const points = toDisplayList(...values);
-        return points.length ? points : ['D1 portfolio data', 'R2 media URL', 'Admin managed item'];
-    };
 
     const normalizeApiPortfolioItem = (item = {}) => ({
         id: item.id || '',
         title: item.title || 'Untitled',
-        desc: item.description || '',
-        description: item.description || '',
+        desc: item.description || item.metadata?.description || item.metadata?.detail || '',
+        description: item.description || item.metadata?.description || item.metadata?.detail || '',
         category: item.category || '',
         date: item.date || '',
         img: item.imageUrl || '',
@@ -1345,9 +1383,10 @@ const initSite = () => {
         visible: item.visible !== false,
         sortOrder: Number(item.sortOrder || 0),
         mediaType: item.mediaType || item.metadata?.mediaType || (item.audioUrl ? 'Audio' : item.youtubeUrl ? 'Video' : 'Project'),
-        format: item.format || item.metadata?.format || item.category || '포트폴리오',
-        detail: item.detail || item.metadata?.detail || item.description || '',
-        points: normalizePointList(item.points, item.metadata?.points),
+        credits: item.credits || item.metadata?.credits || item.format || item.metadata?.format || '',
+        format: item.credits || item.metadata?.credits || item.format || item.metadata?.format || '',
+        detail: item.detail || item.metadata?.detail || item.description || item.metadata?.description || '',
+        tags: normalizeTagList(item.tags, item.metadata?.tags, item.category),
         teacherKeys: normalizeKeyList(item.teacherKeys, item.metadata?.teacherKeys, item.teacherKey),
         courseKeys: normalizeKeyList(item.courseKeys, item.targetKeys, item.metadata?.targetKeys, item.targetKey),
         targetKeys: normalizeKeyList(item.targetKeys, item.metadata?.targetKeys, item.targetKey),
@@ -1518,7 +1557,7 @@ const initSite = () => {
                             <label>Audio URL<input name="audioUrl" value="${editingItem?.audioUrl || ''}" placeholder="https://.../demo.mp3"></label>
                             <label>외부 링크<input name="externalUrl" value="${editingItem?.externalUrl || ''}" placeholder="SoundCloud, Drive, 음원 링크"></label>
                         </div>
-                        <label>상세 프로젝트 설명<textarea name="detail" rows="5" placeholder="작업 의도, 담당 파트, 수업에서 보여주고 싶은 포인트를 적어주세요.">${editingItem?.detail || ''}</textarea></label>
+                        <label>설명<textarea name="detail" rows="5" placeholder="작업 의도와 담당 파트를 적어주세요.">${editingItem?.detail || ''}</textarea></label>
                         <button type="submit" class="admin-primary">${editingItem ? '수정 저장' : '포트폴리오 등록'}</button>
                         ${editingItem ? '<button type="button" class="admin-link" data-cancel-edit>새 작품 등록으로 돌아가기</button>' : ''}
                     </form>
@@ -1683,7 +1722,7 @@ const initSite = () => {
                     <div>
                         <span>오타쿠 뮤직 스튜디오 CMS</span>
                         <h1>포트폴리오 모달 관리</h1>
-                        <p>강사는 강사별, 클래스는 장르/카테고리별로 포트폴리오 항목을 추가합니다.</p>
+                        <p>강사는 강사별, 클래스는 장르/분류별로 포트폴리오 항목을 추가합니다.</p>
                     </div>
                     <a href="/" class="admin-link">사이트 보기</a>
                 </header>
@@ -1692,7 +1731,7 @@ const initSite = () => {
                         <h2>모달 항목 추가</h2>
                         <div class="admin-grid">
                             <div class="admin-field admin-field-wide">
-                                <span>노출 카테고리</span>
+                                <span>노출 분류</span>
                                 <div class="admin-checks" data-target-checks>${targetCheckboxes('course')}</div>
                             </div>
                             <label>구분<select name="type"><option value="course">클래스 CMS</option><option value="teacher">강사 CMS</option></select></label>
@@ -1706,8 +1745,8 @@ const initSite = () => {
                             <label>Audio URL<input name="audioUrl" placeholder="https://.../demo.mp3"></label>
                             <label>외부 링크<input name="externalUrl" placeholder="SoundCloud, Melon, Drive 등"></label>
                         </div>
-                        <label>상세 프로젝트 설명<textarea name="detail" rows="5" placeholder="결과물의 방향, 작업 과정, 수업 포인트를 적어주세요."></textarea></label>
-                        <label>포인트 3개<input name="points" placeholder="장면 분석, 사운드 설계, 완성 피드백"></label>
+                        <label>설명<textarea name="detail" rows="5" placeholder="결과물의 방향과 작업 과정을 적어주세요."></textarea></label>
+                        <label>태그<input name="points" placeholder="jpop, indie, game"></label>
                         <button type="submit" class="admin-primary">포트폴리오 모달 추가</button>
                     </form>
                     <aside class="admin-panel">
@@ -1858,9 +1897,8 @@ const initSite = () => {
                         ${hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>'}
                     </div>
                     <div class="item-caption">
-                        <span class="media-pill">${enriched.category || enriched.mediaType}</span>
                         <h4>${enriched.title}</h4>
-                        <p>${enriched.desc || enriched.description || ''}</p>
+                        <p>${enriched.credits}</p>
                     </div>
                 </article>
             `;
@@ -2009,14 +2047,8 @@ const initSite = () => {
                     </div>
                 </div>
                 <div class="item-caption">
-                    <span class="media-pill">${enriched.category || enriched.mediaType}</span>
                     <h4>${enriched.title}</h4>
-                    <p>${enriched.desc}</p>
-                    <div class="portfolio-card-meta">
-                        ${enriched.date ? `<span>${enriched.date}</span>` : ''}
-                    </div>
-                    ${enriched.audioUrl ? `<audio class="portfolio-card-audio" controls src="${enriched.audioUrl}"></audio>` : ''}
-                    ${enriched.externalUrl ? `<a class="portfolio-external-link" href="${enriched.externalUrl}" target="_blank" rel="noopener noreferrer">External Link</a>` : ''}
+                    <p>${enriched.credits}</p>
                 </div>
             </article>
         `;
@@ -2199,7 +2231,7 @@ const initSite = () => {
 
         const renderExpandedPanel = (item, index) => {
             const enriched = enrichPortfolioItem(item, index);
-            const points = toDisplayList(enriched.points).map((point) => `<li class="decode-text">${point}</li>`).join('');
+            const tags = formatTags(enriched.tags, enriched.category);
             const isAlreadyOpen = expandedPanel.classList.contains('is-open');
             expandedPanel.dataset.portfolioInterestTitle = enriched.title;
             const contextLabel = `${title} 결과물`;
@@ -2219,20 +2251,21 @@ const initSite = () => {
                     ${renderExpandedMedia(enriched)}
                 </div>
                 <div class="expanded-copy">
-                    <span class="media-pill">${renderMediaPill(enriched)}</span>
                     <h3 class="decode-text">${enriched.title}</h3>
-                    <p class="decode-text">${enriched.detail}</p>
                     <dl>
                         <div>
-                            <dt>장르/형식</dt>
-                            <dd class="decode-text">${enriched.desc}</dd>
+                            <dt>크레딧</dt>
+                            <dd class="decode-text">${enriched.credits || '-'}</dd>
                         </div>
                         <div>
-                            <dt>간략 설명</dt>
-                            <dd class="decode-text">${enriched.desc}</dd>
+                            <dt>설명</dt>
+                            <dd class="decode-text">${enriched.description || enriched.detail || enriched.desc || '-'}</dd>
+                        </div>
+                        <div>
+                            <dt>태그</dt>
+                            <dd class="decode-text">${tags || '-'}</dd>
                         </div>
                     </dl>
-                    <ul>${points}</ul>
                     <button type="button" class="portfolio-back">목록으로 돌아가기</button>
                     <a href="#contact" class="portfolio-detail-cta">이런 스타일 배우기</a>
                 </div>

@@ -67,18 +67,27 @@ test('admin uses saved teacher names for portfolio assignment labels', () => {
     assert.match(adminJs, /await loadTeachers\('Teacher profile saved\.'\)/);
 });
 
-test('portfolio cms labels match public detail fields without preview wording', () => {
-    assert.match(adminJs, />간략 설명</);
-    assert.match(adminJs, />상세 프로젝트 설명/);
+test('portfolio cms labels match the unified public portfolio fields', () => {
+    assert.match(adminJs, />제목</);
+    assert.match(adminJs, />크레딧</);
+    assert.match(adminJs, />설명/);
+    assert.match(adminJs, />태그</);
     assert.match(adminJs, />참여 강사</);
-    assert.doesNotMatch(adminJs, /태그 \/ 참여자|<th>태그<\/th>|프리뷰 종류|YouTube Preview|Audio Preview|Project Preview/);
-    assert.doesNotMatch(js, /프리뷰 종류|YouTube Preview|Audio Preview|Project Preview/);
+    assert.doesNotMatch(adminJs, /간략 설명|상세 프로젝트 설명|간략 크레딧|카테고리|제작 포인트|포인트|태그 \/ 참여자|프리뷰 종류|YouTube Preview|Audio Preview|Project Preview/);
+    assert.doesNotMatch(js, /간략 설명|상세 프로젝트 설명|제작 포인트|포인트|프리뷰 종류|YouTube Preview|Audio Preview|Project Preview/);
 });
 
-test('portfolio detail views use cms field names and omit redundant fields', () => {
-    assert.match(js, /<dt>간략 설명<\/dt>/);
+test('portfolio detail views use title, credits, description, and tags', () => {
+    assert.match(js, /<dt>크레딧<\/dt>/);
+    assert.match(js, /<dt>설명<\/dt>/);
+    assert.match(js, /<dt>태그<\/dt>/);
     assert.doesNotMatch(js, /<dt>담당 강사<\/dt>/);
     assert.doesNotMatch(js, /<dt>제작 포인트<\/dt>/);
+});
+
+test('portfolio side list shows title and credits only', () => {
+    assert.match(js, /<h4>\$\{enriched\.title\}<\/h4>\s*<p>\$\{enriched\.credits\}<\/p>/);
+    assert.doesNotMatch(js, /<span class="media-pill">\$\{enriched\.category \|\| enriched\.mediaType\}<\/span>\s*<h4>\$\{enriched\.title\}<\/h4>\s*<p>\$\{enriched\.desc/);
 });
 
 test('portfolio filtering accepts teacher assignments from cms metadata', () => {
@@ -90,8 +99,7 @@ test('teacher modal does not hang on slow cms APIs or string point data', () => 
     assert.match(js, /const fetchWithTimeout = async/);
     assert.match(js, /fetchWithTimeout\('\/api\/teachers'/);
     assert.match(js, /fetchWithTimeout\('\/api\/portfolio'/);
-    assert.match(js, /points:\s*normalizePointList\(item\.points,\s*item\.metadata\?\.points\)/);
-    assert.match(js, /toDisplayList\(enriched\.points\)\.map/);
+    assert.match(js, /tags:\s*normalizeTagList\(item\.tags,\s*item\.metadata\?\.tags,\s*item\.category\)/);
 });
 
 test('site preloads teacher and portfolio data before hiding intro loader', () => {
