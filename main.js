@@ -842,21 +842,46 @@ const initSite = () => {
     };
 
     if (contactForm) {
-        contactForm.addEventListener('submit', (event) => {
+        contactForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
+            const formData = new FormData(contactForm);
             const button = contactForm.querySelector('button');
             const originalText = button.textContent;
 
             button.textContent = '상담 신청 접수 중...';
             button.disabled = true;
 
-            window.setTimeout(() => {
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: formData.get('name'),
+                        phone: formData.get('phone'),
+                        email: formData.get('email'),
+                        course: formData.get('course'),
+                        message: formData.get('message'),
+                        portfolioInterest: activePortfolioInterest?.title || activePortfolioInterest?.text || ''
+                    })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || '상담 신청을 보내지 못했습니다.');
+                }
+
                 alert('상담 신청이 접수되었습니다. OSUM에서 곧 연락드릴게요.');
+                contactForm.reset();
+                renderPortfolioInterest(clearPortfolioInterest());
+            } catch (error) {
+                alert(error.message || '상담 신청을 보내지 못했습니다.');
+            } finally {
                 button.textContent = originalText;
                 button.disabled = false;
-                contactForm.reset();
-            }, 900);
+            }
         });
     }
 
