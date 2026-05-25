@@ -5,6 +5,7 @@ import {
 } from '../_shared/portfolio-utils.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const defaultContactEmail = 'smarty1558@gmail.com';
 
 const normalizeContactPayload = (payload = {}) => ({
     name: String(payload.name || '').trim(),
@@ -22,7 +23,7 @@ const buildContactEmailText = (payload) => [
     `연락처: ${payload.phone}`,
     `이메일: ${payload.email}`,
     `희망 수업: ${payload.course}`,
-    payload.portfolioInterest ? `관심 작품: ${payload.portfolioInterest}` : '',
+    payload.portfolioInterest ? `이런 스타일 배우기: ${payload.portfolioInterest}` : '',
     '',
     '문의 내용:',
     payload.message
@@ -39,10 +40,11 @@ export const onRequestPost = async ({ request, env }) => {
         return sendFailure('답장을 받을 수 있는 이메일을 입력해주세요.', 400);
     }
 
-    if (!env.CONTACT_TO_EMAIL || !env.RESEND_API_KEY) {
+    if (!env.RESEND_API_KEY) {
         return sendFailure('상담 메일 수신 설정이 아직 완료되지 않았습니다.', 503);
     }
 
+    const toEmail = env.CONTACT_TO_EMAIL || defaultContactEmail;
     const fromEmail = env.CONTACT_FROM_EMAIL || 'OSUM <onboarding@resend.dev>';
     const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -52,7 +54,7 @@ export const onRequestPost = async ({ request, env }) => {
         },
         body: JSON.stringify({
             from: fromEmail,
-            to: [env.CONTACT_TO_EMAIL],
+            to: [toEmail],
             reply_to: payload.email,
             subject: `[OSUM 상담 문의] ${payload.name} - ${payload.course}`,
             text: buildContactEmailText(payload)
