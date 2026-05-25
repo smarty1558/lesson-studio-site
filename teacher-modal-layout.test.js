@@ -77,12 +77,19 @@ test('portfolio cms labels match the unified public portfolio fields', () => {
     assert.doesNotMatch(js, /간략 설명|상세 프로젝트 설명|제작 포인트|포인트|프리뷰 종류|YouTube Preview|Audio Preview|Project Preview/);
 });
 
-test('portfolio detail views use title, credits, description, and tags', () => {
-    assert.match(js, /<dt>크레딧<\/dt>/);
+test('portfolio detail views show credit below title and tags as pills', () => {
+    assert.match(js, /<p class="portfolio-credit-line decode-text">\$\{enriched\.credits \|\| '-'\}<\/p>/);
     assert.match(js, /<dt>설명<\/dt>/);
-    assert.match(js, /<dt>태그<\/dt>/);
+    assert.match(js, /portfolio-tag-list/);
+    assert.match(js, /portfolio-tag/);
+    assert.doesNotMatch(js, /<dt>크레딧<\/dt>/);
     assert.doesNotMatch(js, /<dt>담당 강사<\/dt>/);
     assert.doesNotMatch(js, /<dt>제작 포인트<\/dt>/);
+});
+
+test('teacher work detail uses the portfolio consultation CTA label and spacing', () => {
+    assert.match(js, /<a href="#contact" class="portfolio-detail-cta">이런 스타일 배우기<\/a>/);
+    assert.match(css, /\.portfolio-detail-cta\s*\{[^}]*padding:\s*0 14px\s*;/s);
 });
 
 test('portfolio side list shows title and credits only', () => {

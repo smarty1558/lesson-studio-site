@@ -22,6 +22,16 @@ const toDisplayList = (...values) => values.flatMap((value) => {
 
 const normalizeTagList = (...values) => toDisplayList(...values);
 const formatTags = (...values) => normalizeTagList(...values).join(', ');
+const renderPortfolioTags = (...values) => {
+    const tags = normalizeTagList(...values);
+    if (!tags.length) return '';
+
+    return `
+        <div class="portfolio-tag-list" aria-label="태그">
+            ${tags.map((tag) => `<span class="portfolio-tag decode-text">${tag}</span>`).join('')}
+        </div>
+    `;
+};
 
 const renderMediaPill = (item) => {
     const mediaType = String(item.mediaType || '').trim();
@@ -135,7 +145,7 @@ const renderTeacherWorkMedia = (item) => {
 
 const renderTeacherWorkDetail = (item, index) => {
     const enriched = enrichTeacherPortfolioItem(item, index);
-    const tags = formatTags(enriched.tags, enriched.category);
+    const tags = renderPortfolioTags(enriched.tags, enriched.category);
 
     return `
         <div class="expanded-media">
@@ -143,23 +153,17 @@ const renderTeacherWorkDetail = (item, index) => {
         </div>
         <div class="expanded-copy">
             <h3>${enriched.title}</h3>
+            <p class="portfolio-credit-line decode-text">${enriched.credits || '-'}</p>
             <dl>
-                <div>
-                    <dt>크레딧</dt>
-                    <dd>${enriched.credits || '-'}</dd>
-                </div>
                 <div>
                     <dt>설명</dt>
                     <dd>${enriched.description || enriched.detail || enriched.desc || '-'}</dd>
                 </div>
-                <div>
-                    <dt>태그</dt>
-                    <dd>${tags || '-'}</dd>
-                </div>
             </dl>
+            ${tags}
             <div class="portfolio-detail-actions">
                 <button type="button" class="portfolio-back">목록으로</button>
-                <a href="#contact" class="portfolio-detail-cta">상담 신청</a>
+                <a href="#contact" class="portfolio-detail-cta">이런 스타일 배우기</a>
             </div>
         </div>
     `;
@@ -275,7 +279,7 @@ const renderStandaloneAdminPage = () => {
 
     const renderTeacherWorkDetail = (item, index) => {
         const enriched = enrichPortfolioItem(item, index);
-        const tags = formatTags(enriched.tags, enriched.category);
+        const tags = renderPortfolioTags(enriched.tags, enriched.category);
 
         return `
             <div class="expanded-media">
@@ -283,20 +287,14 @@ const renderStandaloneAdminPage = () => {
             </div>
             <div class="expanded-copy">
                 <h3>${enriched.title}</h3>
+                <p class="portfolio-credit-line decode-text">${enriched.credits || '-'}</p>
                 <dl>
-                    <div>
-                        <dt>크레딧</dt>
-                        <dd>${enriched.credits || '-'}</dd>
-                    </div>
                     <div>
                         <dt>설명</dt>
                         <dd>${enriched.description || enriched.detail || enriched.desc || '-'}</dd>
                     </div>
-                    <div>
-                        <dt>태그</dt>
-                        <dd>${tags || '-'}</dd>
-                    </div>
                 </dl>
+                ${tags}
                 <a href="#contact" class="portfolio-detail-cta">이 스타일 상담하기</a>
             </div>
         `;
@@ -2231,7 +2229,7 @@ const initSite = () => {
 
         const renderExpandedPanel = (item, index) => {
             const enriched = enrichPortfolioItem(item, index);
-            const tags = formatTags(enriched.tags, enriched.category);
+            const tags = renderPortfolioTags(enriched.tags, enriched.category);
             const isAlreadyOpen = expandedPanel.classList.contains('is-open');
             expandedPanel.dataset.portfolioInterestTitle = enriched.title;
             const contextLabel = `${title} 결과물`;
@@ -2252,20 +2250,14 @@ const initSite = () => {
                 </div>
                 <div class="expanded-copy">
                     <h3 class="decode-text">${enriched.title}</h3>
+                    <p class="portfolio-credit-line decode-text">${enriched.credits || '-'}</p>
                     <dl>
-                        <div>
-                            <dt>크레딧</dt>
-                            <dd class="decode-text">${enriched.credits || '-'}</dd>
-                        </div>
                         <div>
                             <dt>설명</dt>
                             <dd class="decode-text">${enriched.description || enriched.detail || enriched.desc || '-'}</dd>
                         </div>
-                        <div>
-                            <dt>태그</dt>
-                            <dd class="decode-text">${tags || '-'}</dd>
-                        </div>
                     </dl>
+                    ${tags}
                     <button type="button" class="portfolio-back">목록으로 돌아가기</button>
                     <a href="#contact" class="portfolio-detail-cta">이런 스타일 배우기</a>
                 </div>
