@@ -89,7 +89,10 @@ test('portfolio detail views show credit below title and tags as pills', () => {
 
 test('teacher work detail uses the portfolio consultation CTA label and spacing', () => {
     assert.match(js, /<a href="#contact" class="portfolio-detail-cta">이런 스타일 배우기<\/a>/);
+    assert.match(js, /<button type="button" class="portfolio-back">목록으로 돌아가기<\/button>/);
     assert.match(css, /\.portfolio-detail-cta\s*\{[^}]*padding:\s*0 14px\s*;/s);
+    assert.match(css, /\.portfolio-detail-cta:hover,\s*\.portfolio-back:hover\s*\{[^}]*transform:\s*translateY\(-2px\)\s*;/s);
+    assert.match(css, /\.portfolio-detail-cta:active,\s*\.portfolio-back:active\s*\{[^}]*transform:\s*translateY\(0\)\s*scale\(0\.98\)\s*;/s);
 });
 
 test('portfolio side list shows title and credits only', () => {

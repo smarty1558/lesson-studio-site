@@ -162,7 +162,7 @@ const renderTeacherWorkDetail = (item, index) => {
             </dl>
             ${tags}
             <div class="portfolio-detail-actions">
-                <button type="button" class="portfolio-back">목록으로</button>
+                <button type="button" class="portfolio-back">목록으로 돌아가기</button>
                 <a href="#contact" class="portfolio-detail-cta">이런 스타일 배우기</a>
             </div>
         </div>
