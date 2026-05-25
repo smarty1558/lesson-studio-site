@@ -71,7 +71,7 @@ const getTeacherWorkSourceUrl = (item) => [
 
 const enrichTeacherPortfolioItem = (item, index) => ({
     mediaType: index % 3 === 0 ? 'Audio' : index % 3 === 1 ? 'Video' : 'Project',
-    format: index % 3 === 0 ? 'Audio Preview' : index % 3 === 1 ? 'Video Preview' : 'Project Preview',
+    format: index % 3 === 0 ? '음원 데모' : index % 3 === 1 ? '영상' : '프로젝트',
     detail: item.description || item.desc || '',
     points: [],
     cta: 'Portfolio consultation',
@@ -131,12 +131,8 @@ const renderTeacherWorkDetail = (item, index) => {
             <p>${enriched.detail || enriched.desc || enriched.description || ''}</p>
             <dl>
                 <div>
-                    <dt>작품 설명</dt>
+                    <dt>간략 설명</dt>
                     <dd>${enriched.desc || enriched.description || ''}</dd>
-                </div>
-                <div>
-                    <dt>담당 강사</dt>
-                    <dd>CMS에서 연결된 강사 대표작입니다.</dd>
                 </div>
             </dl>
             ${points ? `<ul>${points}</ul>` : ''}
@@ -270,12 +266,8 @@ const renderStandaloneAdminPage = () => {
                 <p>${enriched.detail || enriched.desc || enriched.description || ''}</p>
                 <dl>
                     <div>
-                        <dt>분류/설명</dt>
+                        <dt>간략 설명</dt>
                         <dd>${enriched.desc || enriched.description || ''}</dd>
-                    </div>
-                    <div>
-                        <dt>강사 대표작</dt>
-                        <dd>CMS에서 연결된 강사 필터 기준으로 노출되는 작업입니다.</dd>
                     </div>
                 </dl>
                 ${points ? `<ul>${points}</ul>` : ''}
@@ -401,7 +393,7 @@ const renderStandaloneAdminPage = () => {
                                 <input name="externalUrl" placeholder="SoundCloud, Drive 등">
                             </label>
                         </div>
-                        <label>상세 설명
+                        <label>상세 프로젝트 설명
                             <textarea name="detail" rows="5" placeholder="결과물의 방향, 작업 과정, 수업 포인트를 적어주세요."></textarea>
                         </label>
                         <label>포인트
@@ -588,7 +580,7 @@ const renderUnifiedAdminPage = () => {
                                     ${Object.entries(genreOptions).map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
                                 </select>
                             </label>
-                            <label>참여자
+                            <label>참여 강사
                                 <select name="teacherKey">
                                     ${Object.entries(teacherOptions).map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
                                 </select>
@@ -613,7 +605,7 @@ const renderUnifiedAdminPage = () => {
                                 <input name="externalUrl" placeholder="SoundCloud, Drive 등">
                             </label>
                         </div>
-                        <label>상세 설명
+                        <label>상세 프로젝트 설명
                             <textarea name="detail" rows="5" placeholder="작업 방향, 수업 과정, 결과물 포인트를 적어주세요."></textarea>
                         </label>
                         <label>포인트
@@ -696,7 +688,7 @@ const renderUnifiedAdminPage = () => {
                 teacherName: teacherOptions[teacherKey],
                 desc: genreOptions[genreKey],
                 mediaType,
-                format: mediaType === 'Video' ? 'YouTube Preview' : mediaType === 'Audio' ? 'Audio Preview' : 'Project Preview',
+                format: mediaType === 'Video' ? '유튜브 영상' : mediaType === 'Audio' ? '음원 데모' : '프로젝트',
                 img: formData.get('img') || './joygo_jpop_hero.png',
                 youtubeUrl: formData.get('youtubeUrl') || '',
                 audioUrl: formData.get('audioUrl') || '',
@@ -1353,7 +1345,7 @@ const initSite = () => {
         visible: item.visible !== false,
         sortOrder: Number(item.sortOrder || 0),
         mediaType: item.mediaType || item.metadata?.mediaType || (item.audioUrl ? 'Audio' : item.youtubeUrl ? 'Video' : 'Project'),
-        format: item.format || item.metadata?.format || item.category || 'Portfolio Preview',
+        format: item.format || item.metadata?.format || item.category || '포트폴리오',
         detail: item.detail || item.metadata?.detail || item.description || '',
         points: normalizePointList(item.points, item.metadata?.points),
         teacherKeys: normalizeKeyList(item.teacherKeys, item.metadata?.teacherKeys, item.teacherKey),
@@ -1513,25 +1505,20 @@ const initSite = () => {
                             <label>제목<input name="title" required value="${editingItem?.title || ''}" placeholder="예: 조이고"></label>
                             <label>장르<input name="genre" required value="${editingItem?.genre || editingItem?.desc || ''}" placeholder="예: Game BGM, Anime, J-POP"></label>
                             <div class="admin-field admin-field-wide">
-                                <span>참여자</span>
+                                <span>참여 강사</span>
                                 <div class="admin-checks">${checkedList('teacherKeys', cmsLabels.teacher, selectedTeacherKeys)}</div>
                             </div>
                             <div class="admin-field admin-field-wide">
                                 <span>표시될 클래스</span>
                                 <div class="admin-checks">${checkedList('courseKeys', cmsLabels.course, selectedCourseKeys)}</div>
                             </div>
-                            <div class="admin-field">
-                                <span>프리뷰 종류</span>
-                                <p>유튜브 URL이면 Video, 오디오 URL이면 Audio로 자동 표시됩니다.</p>
-                            </div>
-                            <label>표시 형식<input name="format" value="${editingItem?.format || ''}" placeholder="예: YouTube Preview / Audio Preview"></label>
+                            <label>표시 형식<input name="format" value="${editingItem?.format || ''}" placeholder="예: 유튜브 영상 / 음원 데모"></label>
                             <label>이미지 URL<input name="img" value="${editingItem?.img || ''}" placeholder="./joygo_jpop_hero.png"></label>
                             <label>YouTube URL<input name="youtubeUrl" value="${editingItem?.youtubeUrl || ''}" placeholder="https://youtube.com/..."></label>
                             <label>Audio URL<input name="audioUrl" value="${editingItem?.audioUrl || ''}" placeholder="https://.../demo.mp3"></label>
                             <label>외부 링크<input name="externalUrl" value="${editingItem?.externalUrl || ''}" placeholder="SoundCloud, Drive, 음원 링크"></label>
                         </div>
-                        <label>상세 설명<textarea name="detail" rows="5" placeholder="작업 의도, 담당 파트, 수업에서 보여주고 싶은 포인트를 적어주세요.">${editingItem?.detail || ''}</textarea></label>
-                        <label>제작 포인트<input name="points" value="${Array.isArray(editingItem?.points) ? editingItem.points.join(', ') : ''}" placeholder="쉼표로 구분: 루프 설계, 보스전 전개, 믹싱"></label>
+                        <label>상세 프로젝트 설명<textarea name="detail" rows="5" placeholder="작업 의도, 담당 파트, 수업에서 보여주고 싶은 포인트를 적어주세요.">${editingItem?.detail || ''}</textarea></label>
                         <button type="submit" class="admin-primary">${editingItem ? '수정 저장' : '포트폴리오 등록'}</button>
                         ${editingItem ? '<button type="button" class="admin-link" data-cancel-edit>새 작품 등록으로 돌아가기</button>' : ''}
                     </form>
@@ -1620,7 +1607,7 @@ const initSite = () => {
                 targetKeys: courseKeys,
                 targetKey: courseKeys[0],
                 mediaType,
-                format: formData.get('format') || (mediaType === 'Video' ? 'YouTube Preview' : mediaType === 'Audio' ? 'Audio Preview' : 'Project Preview'),
+                format: formData.get('format') || (mediaType === 'Video' ? '유튜브 영상' : mediaType === 'Audio' ? '음원 데모' : '프로젝트'),
                 img: formData.get('img') || './joygo_jpop_hero.png',
                 youtubeUrl,
                 videoUrl: youtubeUrl,
@@ -1719,7 +1706,7 @@ const initSite = () => {
                             <label>Audio URL<input name="audioUrl" placeholder="https://.../demo.mp3"></label>
                             <label>외부 링크<input name="externalUrl" placeholder="SoundCloud, Melon, Drive 등"></label>
                         </div>
-                        <label>상세 설명<textarea name="detail" rows="5" placeholder="결과물의 방향, 작업 과정, 수업 포인트를 적어주세요."></textarea></label>
+                        <label>상세 프로젝트 설명<textarea name="detail" rows="5" placeholder="결과물의 방향, 작업 과정, 수업 포인트를 적어주세요."></textarea></label>
                         <label>포인트 3개<input name="points" placeholder="장면 분석, 사운드 설계, 완성 피드백"></label>
                         <button type="submit" class="admin-primary">포트폴리오 모달 추가</button>
                     </form>
@@ -2241,8 +2228,8 @@ const initSite = () => {
                             <dd class="decode-text">${enriched.desc}</dd>
                         </div>
                         <div>
-                            <dt>제작 포인트</dt>
-                            <dd>장면에 맞는 사운드, 멜로디 밀도, 완성 후 피드백까지 함께 봅니다.</dd>
+                            <dt>간략 설명</dt>
+                            <dd class="decode-text">${enriched.desc}</dd>
                         </div>
                     </dl>
                     <ul>${points}</ul>

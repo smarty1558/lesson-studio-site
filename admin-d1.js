@@ -194,7 +194,7 @@ const readTeacherProfileForm = (form) => {
     };
 };
 
-const readFormItem = (form) => {
+const readFormItem = (form, teacherOptionList = teacherOptions) => {
     const formData = new FormData(form);
     const points = String(formData.get('points') || '')
         .split(',')
@@ -205,6 +205,9 @@ const readFormItem = (form) => {
     const detail = String(formData.get('detail') || '').trim();
     const imageUrlManual = String(formData.get('imageUrlManual') || '').trim();
     const audioUrlManual = String(formData.get('audioUrlManual') || '').trim();
+    const youtubeUrl = String(formData.get('youtubeUrl') || '').trim();
+    const audioUrl = audioUrlManual || String(formData.get('audioUrl') || '').trim();
+    const mediaType = youtubeUrl ? 'Video' : audioUrl ? 'Audio' : 'Project';
     const targetKeys = checkedValues(form, 'targetKeys');
     const teacherKeys = checkedValues(form, 'teacherKeys');
 
@@ -215,20 +218,20 @@ const readFormItem = (form) => {
         category,
         date: String(formData.get('date') || '').trim(),
         imageUrl: imageUrlManual || String(formData.get('imageUrl') || '').trim(),
-        audioUrl: audioUrlManual || String(formData.get('audioUrl') || '').trim(),
+        audioUrl,
         externalLink: String(formData.get('externalLink') || '').trim(),
         visible: formData.get('visible') === 'on',
         sortOrder: Number(formData.get('sortOrder') || 0),
         metadata: {
-            mediaType: String(formData.get('mediaType') || 'Project'),
+            mediaType,
             format: String(formData.get('format') || '').trim(),
-            youtubeUrl: String(formData.get('youtubeUrl') || '').trim(),
+            youtubeUrl,
             imageUrlManual,
             audioUrlManual,
             targetKeys,
             teacherKeys,
             targetLabels: targetKeys.map((key) => labelFor(targetOptions, key)),
-            teacherNames: teacherKeys.map((key) => labelFor(teacherOptions, key)),
+            teacherNames: teacherKeys.map((key) => labelFor(teacherOptionList, key)),
             points,
             detail,
             legacyCategory: category
@@ -247,6 +250,11 @@ export const renderD1Admin = () => {
     let teacherItems = [];
     let editingItem = null;
     let activeAdminTab = 'portfolio';
+
+    const getTeacherChoiceOptions = () => teacherOptions.map(([key, fallbackLabel], index) => {
+        const profile = teacherProfileForKey(teacherItems, key, index);
+        return [key, profile.name || fallbackLabel];
+    });
 
     const setText = (selector, message, className = '') => {
         const target = document.querySelector(selector);
@@ -368,7 +376,7 @@ export const renderD1Admin = () => {
         document.body.innerHTML = `
             <main class="admin-shell admin-login-shell">
                 <section class="admin-panel admin-login-card">
-                    <span>OSUM CMS</span>
+                    <span>오타쿠 뮤직 스튜디오 CMS</span>
                     <h1>관리자 인증</h1>
                     <p>포트폴리오 CMS를 보려면 관리자 비밀번호를 입력하세요.</p>
                     <form id="admin-login-form">
@@ -411,7 +419,9 @@ export const renderD1Admin = () => {
             `;
         }
 
-    return items.map((entry, index) => {
+        const teacherChoiceOptions = getTeacherChoiceOptions();
+
+        return items.map((entry, index) => {
             const meta = itemMetadata(entry);
             const title = entry.title || 'Untitled';
             const detail = meta.detail || entry.description || '';
@@ -436,7 +446,7 @@ export const renderD1Admin = () => {
                     <td>${escapeHtml(truncate(entry.description || '', 54))}</td>
                     <td>${escapeHtml(entry.category || '-')}</td>
                     <td>${escapeHtml(truncate(meta.format || '', 42))}</td>
-                    <td><div class="admin-chip-list">${chips(meta.teacherKeys, teacherOptions)}</div></td>
+                    <td><div class="admin-chip-list">${chips(meta.teacherKeys, teacherChoiceOptions)}</div></td>
                     <td><div class="admin-chip-list">${chips(meta.targetKeys, targetOptions)}</div></td>
                     <td>${escapeHtml(truncate(detail, 58))}</td>
                     <td>${escapeHtml(entry.date || '-')}</td>
@@ -516,6 +526,7 @@ export const renderD1Admin = () => {
 
         const item = editingItem;
         const meta = itemMetadata(item);
+        const teacherChoiceOptions = getTeacherChoiceOptions();
 
         return `
             <div class="admin-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="admin-editor-title">
@@ -548,24 +559,19 @@ export const renderD1Admin = () => {
                         </label>
 
                         <div class="admin-field admin-field-wide">
-                            <span>태그 / 참여자</span>
-                            <div class="admin-checks">${renderChecks('teacherKeys', teacherOptions, meta.teacherKeys)}</div>
+                            <span>참여 강사</span>
+                            <div class="admin-checks">${renderChecks('teacherKeys', teacherChoiceOptions, meta.teacherKeys)}</div>
                         </div>
                         <div class="admin-field admin-field-wide">
                             <span>표시 조건</span>
                             <div class="admin-checks">${renderChecks('targetKeys', targetOptions, meta.targetKeys)}</div>
                         </div>
 
-                        <label>프로젝트 설명
+                        <label>간략 설명
                             <input name="description" value="${escapeHtml(item.description)}" placeholder="작곡 / 편곡 / BGM">
                         </label>
                         <label>간략 크레딧
-                            <input name="format" value="${escapeHtml(meta.format)}" placeholder="예: 작곡: OSUM / Audio Preview">
-                        </label>
-                        <label>프리뷰 종류
-                            <select name="mediaType">
-                                ${['Audio', 'Video', 'Project'].map((value) => `<option value="${value}" ${meta.mediaType === value ? 'selected' : ''}>${value}</option>`).join('')}
-                            </select>
+                            <input name="format" value="${escapeHtml(meta.format)}" placeholder="예: 작곡 / 편곡 / 믹스">
                         </label>
                         <label>공개 상태
                             <select name="visible">
@@ -597,11 +603,8 @@ export const renderD1Admin = () => {
                         <label>외부 링크
                             <input name="externalLink" value="${escapeHtml(item.externalLink)}" placeholder="SoundCloud, Drive, 음원 링크">
                         </label>
-                        <label class="admin-field-wide">상세 설명
+                        <label class="admin-field-wide">상세 프로젝트 설명
                             <textarea name="detail" rows="5" placeholder="상세 설명, 크레딧, 작업 포인트">${escapeHtml(meta.detail || item.description)}</textarea>
-                        </label>
-                        <label class="admin-field-wide">제작 포인트
-                            <input name="points" value="${escapeHtml((meta.points || []).join(', '))}" placeholder="쉼표로 구분: 루프 설계, 보스전 전개, 믹싱">
                         </label>
                     </div>
 
@@ -629,7 +632,7 @@ export const renderD1Admin = () => {
             <main class="admin-shell admin-table-shell admin-tab-${activeAdminTab}">
                 <header class="admin-topbar">
                     <div>
-                        <span>OSUM CMS</span>
+                        <span>오타쿠 뮤직 스튜디오 CMS</span>
                         <h1>포트폴리오 데이터베이스</h1>
                         <p>Wix CMS처럼 표에서 항목을 보고, 수정 화면에서 R2 업로드와 표시 조건을 관리합니다.</p>
                     </div>
@@ -668,12 +671,12 @@ export const renderD1Admin = () => {
                                     <th>프로젝트 이미지</th>
                                     <th>프로젝트 이름</th>
                                     <th>등급</th>
-                                    <th>프로젝트 설명</th>
+                                    <th>간략 설명</th>
                                     <th>카테고리</th>
                                     <th>간략 크레딧</th>
-                                    <th>태그</th>
+                                    <th>참여 강사</th>
                                     <th>표시 조건</th>
-                                    <th>상세설명</th>
+                                    <th>상세 프로젝트 설명</th>
                                     <th>완료일</th>
                                     <th>오디오</th>
                                     <th>동영상/링크</th>
@@ -713,7 +716,7 @@ export const renderD1Admin = () => {
         const imageFile = formData.get('imageFile');
         const audioFile = formData.get('audioFile');
         const status = form.querySelector('.admin-form-status');
-        const nextItem = readFormItem(form);
+        const nextItem = readFormItem(form, getTeacherChoiceOptions());
 
         if (!nextItem.title) {
             status.textContent = '프로젝트 이름은 필수입니다.';

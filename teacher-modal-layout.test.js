@@ -64,6 +64,21 @@ test('admin uses saved teacher names for portfolio assignment labels', () => {
     assert.match(adminJs, /chips\(meta\.teacherKeys,\s*teacherChoiceOptions\)/);
     assert.match(adminJs, /renderChecks\('teacherKeys',\s*teacherChoiceOptions,\s*meta\.teacherKeys\)/);
     assert.match(adminJs, /readFormItem\(form,\s*getTeacherChoiceOptions\(\)\)/);
+    assert.match(adminJs, /await loadTeachers\('Teacher profile saved\.'\)/);
+});
+
+test('portfolio cms labels match public detail fields without preview wording', () => {
+    assert.match(adminJs, />간략 설명</);
+    assert.match(adminJs, />상세 프로젝트 설명/);
+    assert.match(adminJs, />참여 강사</);
+    assert.doesNotMatch(adminJs, /태그 \/ 참여자|<th>태그<\/th>|프리뷰 종류|YouTube Preview|Audio Preview|Project Preview/);
+    assert.doesNotMatch(js, /프리뷰 종류|YouTube Preview|Audio Preview|Project Preview/);
+});
+
+test('portfolio detail views use cms field names and omit redundant fields', () => {
+    assert.match(js, /<dt>간략 설명<\/dt>/);
+    assert.doesNotMatch(js, /<dt>담당 강사<\/dt>/);
+    assert.doesNotMatch(js, /<dt>제작 포인트<\/dt>/);
 });
 
 test('portfolio filtering accepts teacher assignments from cms metadata', () => {
