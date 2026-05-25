@@ -299,6 +299,7 @@ body.site-ready .site-shell {
 .logo {
     display: flex;
     flex-direction: column;
+    gap: 5px;
     line-height: 1;
     text-decoration: none;
 }
