@@ -17,7 +17,7 @@ const normalizeContactPayload = (payload = {}) => ({
 });
 
 const buildContactEmailText = (payload) => [
-    '[OSUM 상담 문의]',
+    '[레슨 스튜디오 상담 문의]',
     '',
     `이름: ${payload.name}`,
     `연락처: ${payload.phone}`,
@@ -45,7 +45,7 @@ export const onRequestPost = async ({ request, env }) => {
     }
 
     const toEmail = env.CONTACT_TO_EMAIL || defaultContactEmail;
-    const fromEmail = env.CONTACT_FROM_EMAIL || 'OSUM <onboarding@resend.dev>';
+    const fromEmail = env.CONTACT_FROM_EMAIL || 'Lesson Studio <onboarding@resend.dev>';
     const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -56,7 +56,7 @@ export const onRequestPost = async ({ request, env }) => {
             from: fromEmail,
             to: [toEmail],
             reply_to: payload.email,
-            subject: `[OSUM 상담 문의] ${payload.name} - ${payload.course}`,
+            subject: `[레슨 스튜디오 상담 문의] ${payload.name} - ${payload.course}`,
             text: buildContactEmailText(payload)
         })
     });
