@@ -20,6 +20,14 @@ const toDisplayList = (...values) => values.flatMap((value) => {
         .filter(Boolean);
 }).filter((value, index, list) => list.indexOf(value) === index);
 
+const renderMediaPill = (item) => {
+    const mediaType = String(item.mediaType || '').trim();
+    const format = String(item.format || '').trim();
+    const shouldHideFormat = !format || /preview|프리뷰/i.test(format);
+
+    return [mediaType, shouldHideFormat ? '' : format].filter(Boolean).join(' · ');
+};
+
 const getTeacherWorkEmbedUrl = (url) => {
     if (!url) return '';
 
@@ -89,7 +97,6 @@ const renderTeacherWorkMedia = (item) => {
                     referrerpolicy="strict-origin-when-cross-origin"
                     allowfullscreen
                 ></iframe>
-                <div class="expanded-player-badge">YouTube Preview</div>
             </div>
         `;
     }
@@ -99,7 +106,6 @@ const renderTeacherWorkMedia = (item) => {
             <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
                 ${fallbackMarkup}
                 <audio controls src="${item.audioUrl}"></audio>
-                <div class="expanded-player-badge">Audio Preview</div>
             </div>
         `;
     }
@@ -107,7 +113,6 @@ const renderTeacherWorkMedia = (item) => {
     return `
         <div class="expanded-media-frame ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
             ${fallbackMarkup}
-            <div class="expanded-player-badge">${item.mediaType === 'Audio' ? 'Audio Preview' : item.mediaType === 'Video' ? 'Video Preview' : 'Project Preview'}</div>
         </div>
     `;
 };
@@ -121,7 +126,7 @@ const renderTeacherWorkDetail = (item, index) => {
             ${renderTeacherWorkMedia(enriched)}
         </div>
         <div class="expanded-copy">
-            <span class="media-pill">${enriched.mediaType} · ${enriched.format}</span>
+            <span class="media-pill">${renderMediaPill(enriched)}</span>
             <h3>${enriched.title}</h3>
             <p>${enriched.detail || enriched.desc || enriched.description || ''}</p>
             <dl>
@@ -223,7 +228,6 @@ const renderStandaloneAdminPage = () => {
                         referrerpolicy="strict-origin-when-cross-origin"
                         allowfullscreen
                     ></iframe>
-                    <div class="expanded-player-badge">YouTube Preview</div>
                 </div>
             `;
         }
@@ -233,7 +237,6 @@ const renderStandaloneAdminPage = () => {
                 <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
                     ${fallbackMarkup}
                     <audio controls src="${item.audioUrl}"></audio>
-                    <div class="expanded-player-badge">Audio Preview</div>
                 </div>
             `;
         }
@@ -241,7 +244,6 @@ const renderStandaloneAdminPage = () => {
         return `
             <div class="expanded-media-frame ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
                 ${fallbackMarkup}
-                <div class="expanded-player-badge">${item.mediaType === 'Audio' ? 'Audio Preview' : item.mediaType === 'Video' ? 'Video Preview' : 'Project Preview'}</div>
             </div>
         `;
     };
@@ -263,7 +265,7 @@ const renderStandaloneAdminPage = () => {
                 ${renderTeacherWorkMedia(enriched)}
             </div>
             <div class="expanded-copy">
-                <span class="media-pill">${enriched.mediaType} · ${enriched.format}</span>
+                <span class="media-pill">${renderMediaPill(enriched)}</span>
                 <h3>${enriched.title}</h3>
                 <p>${enriched.detail || enriched.desc || enriched.description || ''}</p>
                 <dl>
@@ -1061,6 +1063,29 @@ const initSite = () => {
         return profile;
     };
 
+    const syncTeacherCardsFromProfiles = async () => {
+        const cards = Array.from(document.querySelectorAll('.artist-card[data-teacher]'));
+        if (!cards.length) return;
+
+        await Promise.all(cards.map(async (card) => {
+            const key = card.dataset.teacher;
+            if (!key) return;
+
+            const profile = await loadTeacherProfile(key);
+            const visual = card.querySelector('.artist-image');
+            const roleTarget = card.querySelector('.artist-role');
+            const nameTarget = card.querySelector('h3');
+            const summaryTarget = card.querySelector('.artist-info p');
+
+            if (visual && profile.image) {
+                visual.style.backgroundImage = `url("${String(profile.image).replaceAll('"', '%22')}")`;
+            }
+            if (roleTarget) roleTarget.textContent = profile.role;
+            if (nameTarget) nameTarget.textContent = profile.name;
+            if (summaryTarget) summaryTarget.textContent = profile.summary;
+        }));
+    };
+
     const renderTeacherProfileMarkup = (profile) => `
         <section class="teacher-profile-card">
             <div class="teacher-profile-visual" style="background-image: url('${profile.image}')"></div>
@@ -1355,7 +1380,7 @@ const initSite = () => {
             ...teacherDataKeys.map((key) => loadTeacherProfile(key)),
             ...teacherDataKeys.map((key) => loadPortfolioItems('teacher', key)),
             ...courseDataKeys.map((key) => loadPortfolioItems('course', key))
-        ]).catch(() => {});
+        ]).then(syncTeacherCardsFromProfiles).catch(() => {});
 
         return siteDataCache.preloadPromise;
     };
@@ -2139,7 +2164,6 @@ const initSite = () => {
                             referrerpolicy="strict-origin-when-cross-origin"
                             allowfullscreen
                         ></iframe>
-                        <div class="expanded-player-badge">YouTube Preview</div>
                     </div>
                 `;
             }
@@ -2149,7 +2173,6 @@ const initSite = () => {
                     <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
                         ${fallbackMarkup}
                         <audio controls src="${item.audioUrl}"></audio>
-                        <div class="expanded-player-badge">Audio Preview</div>
                     </div>
                 `;
             }
@@ -2157,7 +2180,6 @@ const initSite = () => {
             return `
                 <div class="expanded-media-frame ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
                     ${fallbackMarkup}
-                    <div class="expanded-player-badge">${item.mediaType === 'Audio' ? 'Audio Preview' : item.mediaType === 'Video' ? 'Video Preview' : 'Project Preview'}</div>
                 </div>
             `;
         };
@@ -2184,7 +2206,7 @@ const initSite = () => {
                     ${renderExpandedMedia(enriched)}
                 </div>
                 <div class="expanded-copy">
-                    <span class="media-pill">${enriched.mediaType} · ${enriched.format}</span>
+                    <span class="media-pill">${renderMediaPill(enriched)}</span>
                     <h3 class="decode-text">${enriched.title}</h3>
                     <p class="decode-text">${enriched.detail}</p>
                     <dl>
