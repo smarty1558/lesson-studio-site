@@ -351,7 +351,7 @@ const renderStandaloneAdminPage = () => {
             <main class="admin-shell">
                 <header class="admin-topbar">
                     <div>
-                        <span>레슨 스튜디오 CMS</span>
+                        <span>오타쿠 뮤직 스튜디오 CMS</span>
                         <h1>포트폴리오 모달 관리</h1>
                         <p>아이템 하나에 여러 카테고리를 달면, 해당 카테고리를 쓰는 클래스/강사 모달에 자동으로 노출됩니다.</p>
                     </div>
@@ -569,7 +569,7 @@ const renderUnifiedAdminPage = () => {
             <main class="admin-shell">
                 <header class="admin-topbar">
                     <div>
-                        <span>레슨 스튜디오 CMS</span>
+                        <span>오타쿠 뮤직 스튜디오 CMS</span>
                         <h1>포트폴리오 아이템 관리</h1>
                         <p>아이템 하나에 장르와 참여 강사를 지정하면, 관련 클래스와 강사 포트폴리오에 자동으로 표시됩니다.</p>
                     </div>
@@ -1498,7 +1498,7 @@ const initSite = () => {
             <main class="admin-shell">
                 <header class="admin-topbar">
                     <div>
-                        <span>레슨 스튜디오 CMS</span>
+                        <span>오타쿠 뮤직 스튜디오 CMS</span>
                         <h1>포트폴리오 통합 관리</h1>
                         <p>작품 하나를 등록하고, 참여 강사와 표시 클래스를 여러 개 선택하면 해당 포트폴리오 보기 화면에 모두 노출됩니다.</p>
                     </div>
@@ -1693,7 +1693,7 @@ const initSite = () => {
             <main class="admin-shell">
                 <header class="admin-topbar">
                     <div>
-                        <span>레슨 스튜디오 CMS</span>
+                        <span>오타쿠 뮤직 스튜디오 CMS</span>
                         <h1>포트폴리오 모달 관리</h1>
                         <p>강사는 강사별, 클래스는 장르/카테고리별로 포트폴리오 항목을 추가합니다.</p>
                     </div>
