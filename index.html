@@ -220,16 +220,20 @@
                             <div class="form-group">
                                 <label>
                                     <span>이름</span>
-                                    <input type="text" placeholder="홍길동" required>
+                                    <input type="text" name="name" placeholder="홍길동" required>
                                 </label>
                                 <label>
                                     <span>연락처</span>
-                                    <input type="tel" placeholder="010-0000-0000" required>
+                                    <input type="tel" name="phone" placeholder="010-0000-0000" required>
+                                </label>
+                                <label>
+                                    <span>이메일</span>
+                                    <input type="email" name="email" placeholder="reply@example.com" required>
                                 </label>
                             </div>
                             <label>
                                 <span>희망 수업</span>
-                                <select required>
+                                <select name="course" required>
                                     <option value="">수업을 선택해주세요</option>
                                     <option value="game">게임 / 영화 OST</option>
                                     <option value="anime">애니메이션 BGM</option>
@@ -237,6 +241,10 @@
                                     <option value="sound">Sound Design</option>
                                     <option value="subculture">서브컬쳐 작곡 / 미디</option>
                                 </select>
+                            </label>
+                            <label>
+                                <span>문의 내용</span>
+                                <textarea name="message" rows="5" placeholder="배우고 싶은 방향, 현재 고민, 가능한 시간대 등을 자유롭게 적어주세요." required></textarea>
                             </label>
                             <button type="submit" class="btn btn-yellow">상담 신청 보내기</button>
                         </form>
@@ -279,5 +287,54 @@
     </div>
 
     <script type="module" src="./main.js?v=20260525-preview-labels"></script>
+    <script type="module">
+        const contactForm = document.getElementById('contact-form');
+
+        contactForm?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            const formData = new FormData(contactForm);
+            const button = contactForm.querySelector('button[type="submit"]');
+            const originalText = button?.textContent || '상담 신청 보내기';
+
+            if (button) {
+                button.textContent = '상담 신청 접수 중...';
+                button.disabled = true;
+            }
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: formData.get('name'),
+                        phone: formData.get('phone'),
+                        email: formData.get('email'),
+                        course: formData.get('course'),
+                        message: formData.get('message'),
+                        portfolioInterest: document.querySelector('[data-portfolio-interest]')?.textContent?.replace('삭제', '').trim() || ''
+                    })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || '상담 신청을 보내지 못했습니다.');
+                }
+
+                alert('상담 신청이 접수되었습니다. OSUM에서 곧 연락드릴게요.');
+                contactForm.reset();
+            } catch (error) {
+                alert(error.message || '상담 신청을 보내지 못했습니다.');
+            } finally {
+                if (button) {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            }
+        }, true);
+    </script>
 </body>
 </html>
