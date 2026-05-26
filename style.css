@@ -714,6 +714,15 @@ body.site-ready .site-shell {
     text-align: center;
 }
 
+.courses .section-header {
+    width: min(1040px, 100%);
+}
+
+.courses .section-header h2,
+.courses .section-header p {
+    white-space: nowrap;
+}
+
 .section-header h2,
 .portfolio-layout h2,
 .cta-card h2 {
@@ -3958,6 +3967,11 @@ textarea:focus {
     .section-header {
         margin-bottom: 34px;
         text-align: left;
+    }
+
+    .courses .section-header h2,
+    .courses .section-header p {
+        white-space: normal;
     }
 
     .grid,

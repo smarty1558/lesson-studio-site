@@ -26,6 +26,8 @@ test('classes copy and ordering match the requested course lineup', () => {
     assert.match(indexSource, /오타쿠 감각으로 수업을 고르세요/);
     assert.match(indexSource, /J-POP, 게임, 애니메이션, 보컬로이드, 버튜버 감성/);
     assert.match(indexSource, /data-course="jpop"[\s\S]*data-course="game"[\s\S]*data-course="anime"[\s\S]*data-course="sound"/);
+    assert.match(styleSource, /\.courses \.section-header\s*\{[^}]*width:\s*min\(1040px,\s*100%\)\s*;/s);
+    assert.match(styleSource, /\.courses \.section-header h2,\s*\.courses \.section-header p\s*\{[^}]*white-space:\s*nowrap\s*;/s);
     assert.match(indexSource, /<h3>J-POP · 보카로<\/h3>/);
     assert.match(mainSource, /jpop:\s*'J-POP · 보카로'/);
     assert.match(indexSource, /<h3>게임 BGM<\/h3>/);
