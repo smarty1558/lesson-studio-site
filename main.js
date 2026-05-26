@@ -11,6 +11,7 @@ import {
 import { getPortfolioItemsForTarget } from './portfolio-data.js';
 
 const uploadTesterMarkup = '';
+const DEFAULT_PORTFOLIO_IMAGE = './joygo_jpop_hero.png';
 
 const toDisplayList = (...values) => values.flatMap((value) => {
     if (Array.isArray(value)) return value.filter(Boolean);
@@ -87,12 +88,15 @@ const enrichTeacherPortfolioItem = (item, index) => {
     const credits = item.credits || item.metadata?.credits || item.format || item.metadata?.format || fallbackCredits;
     const description = item.description || item.metadata?.description || item.metadata?.detail || item.desc || '';
     const tags = normalizeTagList(item.tags, item.metadata?.tags, item.category);
+    const imageUrl = item.img || item.imageUrl || DEFAULT_PORTFOLIO_IMAGE;
 
     return {
         mediaType: index % 3 === 0 ? 'Audio' : index % 3 === 1 ? 'Video' : 'Project',
         format: credits,
         detail: description,
         description,
+        img: imageUrl,
+        imageUrl,
         tags,
         cta: 'Portfolio consultation',
         ...item,
@@ -100,6 +104,8 @@ const enrichTeacherPortfolioItem = (item, index) => {
         detail: description,
         description,
         credits,
+        img: imageUrl,
+        imageUrl,
         tags
     };
 };
@@ -108,10 +114,9 @@ const renderTeacherWorkMedia = (item) => {
     const youtubeSourceUrl = getTeacherWorkSourceUrl(item);
     const youtubeEmbedUrl = getTeacherWorkEmbedUrl(youtubeSourceUrl);
     const youtubeVideoId = getTeacherWorkVideoId(youtubeSourceUrl);
-    const imageUrl = item.img || item.imageUrl || '';
+    const imageUrl = item.img || item.imageUrl || DEFAULT_PORTFOLIO_IMAGE;
     const hasImage = Boolean(imageUrl);
     const imageStyle = hasImage ? ` style="background-image: url('${imageUrl}')"` : '';
-    const fallbackMarkup = hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>';
 
     if (youtubeEmbedUrl) {
         return `
@@ -130,7 +135,6 @@ const renderTeacherWorkMedia = (item) => {
     if (item.audioUrl) {
         return `
             <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-                ${fallbackMarkup}
                 <audio controls src="${item.audioUrl}"></audio>
             </div>
         `;
@@ -138,7 +142,6 @@ const renderTeacherWorkMedia = (item) => {
 
     return `
         <div class="expanded-media-frame ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-            ${fallbackMarkup}
         </div>
     `;
 };
@@ -235,9 +238,9 @@ const renderStandaloneAdminPage = () => {
         const youtubeSourceUrl = getTeacherYouTubeSourceUrl(item);
         const youtubeEmbedUrl = getTeacherYouTubeEmbedUrl(youtubeSourceUrl);
         const youtubeVideoId = getTeacherYouTubeVideoId(youtubeSourceUrl);
-        const hasImage = Boolean(item.img);
-        const imageStyle = hasImage ? ` style="background-image: url('${item.img}')"` : '';
-        const fallbackMarkup = hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>';
+        const imageUrl = item.img || item.imageUrl || DEFAULT_PORTFOLIO_IMAGE;
+        const hasImage = Boolean(imageUrl);
+        const imageStyle = hasImage ? ` style="background-image: url('${imageUrl}')"` : '';
 
         if (youtubeEmbedUrl) {
             return `
@@ -256,7 +259,6 @@ const renderStandaloneAdminPage = () => {
         if (item.audioUrl) {
             return `
                 <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-                    ${fallbackMarkup}
                     <audio controls src="${item.audioUrl}"></audio>
                 </div>
             `;
@@ -264,7 +266,6 @@ const renderStandaloneAdminPage = () => {
 
         return `
             <div class="expanded-media-frame ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-                ${fallbackMarkup}
             </div>
         `;
     };
@@ -1171,6 +1172,7 @@ const initSite = () => {
         const credits = item.credits || item.metadata?.credits || item.format || item.metadata?.format || fallbackCredits;
         const description = item.description || item.metadata?.description || item.detail || item.metadata?.detail || item.desc || '';
         const tags = normalizeTagList(item.tags, item.metadata?.tags, item.category);
+        const imageUrl = item.img || item.imageUrl || DEFAULT_PORTFOLIO_IMAGE;
 
         return {
             mediaType: index % 3 === 0 ? 'Audio' : index % 3 === 1 ? 'Video' : 'Project',
@@ -1178,6 +1180,8 @@ const initSite = () => {
             detail: description,
             desc: description,
             description,
+            img: imageUrl,
+            imageUrl,
             credits,
             tags,
             cta: '이런 결과물 상담하기',
@@ -1186,6 +1190,8 @@ const initSite = () => {
             detail: description,
             desc: description,
             description,
+            img: imageUrl,
+            imageUrl,
             credits,
             tags
         };
@@ -1372,8 +1378,8 @@ const initSite = () => {
         description: item.description || item.metadata?.description || item.metadata?.detail || '',
         category: item.category || '',
         date: item.date || '',
-        img: item.imageUrl || '',
-        imageUrl: item.imageUrl || '',
+        img: item.imageUrl || DEFAULT_PORTFOLIO_IMAGE,
+        imageUrl: item.imageUrl || DEFAULT_PORTFOLIO_IMAGE,
         audioUrl: item.audioUrl || '',
         youtubeUrl: item.youtubeUrl || item.metadata?.youtubeUrl || '',
         externalUrl: item.externalLink || '',
@@ -1892,7 +1898,6 @@ const initSite = () => {
             return `
                 <article class="portfolio-item" data-teacher-work-index="${index}">
                     <div class="frame-inner ${hasImage ? '' : 'is-missing-image'}"${hasImage ? ` style="background-image: url('${enriched.img}')"` : ''}>
-                        ${hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>'}
                     </div>
                     <div class="item-caption">
                         <h4>${enriched.title}</h4>
@@ -2039,7 +2044,6 @@ const initSite = () => {
             return `
             <article class="portfolio-item" data-portfolio-index="${index}">
                 <div class="frame-inner ${hasImage ? '' : 'is-missing-image'}"${hasImage ? ` style="background-image: url('${enriched.img}')"` : ''}>
-                    ${hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>'}
                     <div class="play-overlay">
                         <div class="play-icon">+</div>
                     </div>
@@ -2193,9 +2197,9 @@ const initSite = () => {
             const youtubeSourceUrl = getYouTubeSourceUrl(item);
             const youtubeEmbedUrl = getYouTubeEmbedUrl(youtubeSourceUrl);
             const youtubeVideoId = getYouTubeVideoId(youtubeSourceUrl);
-            const hasImage = Boolean(item.img);
-            const imageStyle = hasImage ? ` style="background-image: url('${item.img}')"` : '';
-            const fallbackMarkup = hasImage ? '' : '<div class="portfolio-image-fallback">No Image</div>';
+            const imageUrl = item.img || item.imageUrl || DEFAULT_PORTFOLIO_IMAGE;
+            const hasImage = Boolean(imageUrl);
+            const imageStyle = hasImage ? ` style="background-image: url('${imageUrl}')"` : '';
 
             if (youtubeEmbedUrl) {
                 return `
@@ -2214,7 +2218,6 @@ const initSite = () => {
             if (item.audioUrl) {
                 return `
                     <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-                        ${fallbackMarkup}
                         <audio controls src="${item.audioUrl}"></audio>
                     </div>
                 `;
@@ -2222,7 +2225,6 @@ const initSite = () => {
 
             return `
                 <div class="expanded-media-frame ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-                    ${fallbackMarkup}
                 </div>
             `;
         };

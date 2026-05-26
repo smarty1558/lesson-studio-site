@@ -100,6 +100,12 @@ test('portfolio side list shows title and credits only', () => {
     assert.doesNotMatch(js, /<span class="media-pill">\$\{enriched\.category \|\| enriched\.mediaType\}<\/span>\s*<h4>\$\{enriched\.title\}<\/h4>\s*<p>\$\{enriched\.desc/);
 });
 
+test('portfolio items without images use the default cover instead of no image text', () => {
+    assert.match(js, /const DEFAULT_PORTFOLIO_IMAGE = '\.\/joygo_jpop_hero\.png';/);
+    assert.match(js, /img:\s*item\.imageUrl \|\| DEFAULT_PORTFOLIO_IMAGE/);
+    assert.doesNotMatch(js, /portfolio-image-fallback">No Image/);
+});
+
 test('portfolio filtering accepts teacher assignments from cms metadata', () => {
     assert.match(js, /normalizeKeyList\(item\.teacherKeys,\s*item\.metadata\?\.teacherKeys,\s*item\.teacherKey\)/);
     assert.match(js, /normalizeKeyList\(item\.courseKeys,\s*item\.targetKeys,\s*item\.metadata\?\.targetKeys,\s*item\.targetKey\)/);
