@@ -211,30 +211,6 @@ body.site-ready .site-shell {
     50% { height: 42px; transform: translateY(-4px); }
 }
 
-@keyframes studentWorksFlow {
-    0% {
-        background-position: 8% 42%, 86% 18%, 32% 88%;
-        transform: translate3d(-1%, -0.5%, 0) scale(1.02);
-    }
-    50% {
-        background-position: 58% 36%, 36% 72%, 72% 42%;
-        transform: translate3d(1%, 0.5%, 0) scale(1.04);
-    }
-    100% {
-        background-position: 96% 66%, 12% 28%, 24% 20%;
-        transform: translate3d(0.5%, -1%, 0) scale(1.03);
-    }
-}
-
-@keyframes studentWorksShimmer {
-    from {
-        transform: translate3d(-4%, 0, 0) skewX(-6deg);
-    }
-    to {
-        transform: translate3d(4%, 0, 0) skewX(6deg);
-    }
-}
-
 .navbar {
     position: fixed;
     top: 14px;
@@ -1076,19 +1052,16 @@ body.view-cursor-active .view-cursor-dot {
         radial-gradient(ellipse at 74% 28%, rgba(254, 240, 138, 0.56), transparent 44%),
         radial-gradient(ellipse at 58% 78%, rgba(167, 139, 250, 0.18), transparent 42%);
     background-size: 150% 150%, 170% 170%, 145% 145%;
-    filter: blur(24px) saturate(1.08);
-    opacity: 0.78;
-    animation: studentWorksFlow 22s ease-in-out infinite alternate;
+    opacity: 0.58;
 }
 
 .portfolio-strip::after {
     background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.44), transparent 52%),
         linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
-    opacity: 0.34;
+    opacity: 0.22;
     mix-blend-mode: soft-light;
     transform: translate3d(0, 0, 0);
-    animation: studentWorksShimmer 18s ease-in-out infinite alternate;
 }
 
 .portfolio-layout {

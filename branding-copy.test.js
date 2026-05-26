@@ -22,6 +22,22 @@ test('hero and student works copy keep the requested line breaks', () => {
     assert.match(styleSource, /\.student-works-title span\s*\{[^}]*white-space:\s*nowrap\s*;/s);
 });
 
+test('student works section avoids heavy animated blur layers while scrolling', () => {
+    const portfolioBefore = styleSource.slice(
+        styleSource.indexOf('.portfolio-strip::before {'),
+        styleSource.indexOf('.portfolio-strip::after {')
+    );
+    const portfolioAfter = styleSource.slice(
+        styleSource.indexOf('.portfolio-strip::after {'),
+        styleSource.indexOf('.portfolio-layout {')
+    );
+
+    assert.doesNotMatch(portfolioBefore, /filter:\s*blur/);
+    assert.doesNotMatch(portfolioBefore, /animation:/);
+    assert.doesNotMatch(portfolioAfter, /animation:/);
+    assert.doesNotMatch(styleSource, /@keyframes studentWorksFlow|@keyframes studentWorksShimmer/);
+});
+
 test('classes copy and ordering match the requested course lineup', () => {
     assert.match(indexSource, /오타쿠 감각으로 수업을 고르세요/);
     assert.match(indexSource, /J-POP, 게임, 애니메이션, 보컬로이드, 버튜버 감성/);
