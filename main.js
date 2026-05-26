@@ -11,7 +11,7 @@ import {
 import { getPortfolioItemsForTarget } from './portfolio-data.js';
 
 const uploadTesterMarkup = '';
-const DEFAULT_PORTFOLIO_IMAGE = './joygo_jpop_hero.png';
+const DEFAULT_PORTFOLIO_IMAGE = new URL('./joygo_jpop_hero.png', import.meta.url).href;
 
 const toDisplayList = (...values) => values.flatMap((value) => {
     if (Array.isArray(value)) return value.filter(Boolean);

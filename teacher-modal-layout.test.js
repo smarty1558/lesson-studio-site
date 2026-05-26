@@ -101,7 +101,7 @@ test('portfolio side list shows title and credits only', () => {
 });
 
 test('portfolio items without images use the default cover instead of no image text', () => {
-    assert.match(js, /const DEFAULT_PORTFOLIO_IMAGE = '\.\/joygo_jpop_hero\.png';/);
+    assert.match(js, /const DEFAULT_PORTFOLIO_IMAGE = new URL\('\.\/joygo_jpop_hero\.png', import\.meta\.url\)\.href;/);
     assert.match(js, /img:\s*item\.imageUrl \|\| DEFAULT_PORTFOLIO_IMAGE/);
     assert.doesNotMatch(js, /portfolio-image-fallback">No Image/);
 });
