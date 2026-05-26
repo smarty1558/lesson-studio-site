@@ -1,11 +1,11 @@
 export const portfolioItems = [
     {
-        id: 'joygo-anime-opening',
+        id: 'sample-anime-opening',
         title: 'Sugar Rush Opening',
         description: 'Anime OP / J-pop vocal production demo',
         category: 'jpop',
         date: '2026-05-14',
-        imageUrl: './joygo_jpop_vocal_3.png',
+        imageUrl: './instructor-vocal-cover.png',
         audioUrl: '',
         externalLink: 'https://soundcloud.com/',
         visible: true,
@@ -17,12 +17,12 @@ export const portfolioItems = [
         points: ['Vocal tone guide', 'Opening-size chorus', 'Student portfolio direction']
     },
     {
-        id: 'joygo-game-ost',
+        id: 'sample-game-ost',
         title: 'Pixel Dungeon Battle',
         description: 'Game OST / loopable battle cue',
         category: 'game',
         date: '2026-04-28',
-        imageUrl: './joygo_jpop_hero.png',
+        imageUrl: './portfolio-default-cover.png',
         audioUrl: '',
         externalLink: '',
         visible: true,
@@ -33,7 +33,7 @@ export const portfolioItems = [
         points: ['Loop structure', 'Boss-scene energy', 'Hybrid instrument design']
     },
     {
-        id: 'joygo-sound-pack-hidden',
+        id: 'sample-sound-pack',
         title: 'Magic Skill Pack',
         description: 'Fantasy game sound design pack',
         category: 'sound',

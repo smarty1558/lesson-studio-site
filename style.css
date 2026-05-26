@@ -389,7 +389,7 @@ body.site-ready .site-shell {
 .hero-slider-wrapper {
     position: absolute;
     inset: 0;
-    background-image: url('./joygo_jpop_hero.png');
+    background-image: url('./portfolio-default-cover.png');
     background-size: cover;
     background-position: 68% center;
 }

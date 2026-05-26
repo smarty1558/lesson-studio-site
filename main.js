@@ -11,7 +11,7 @@ import {
 import { getPortfolioItemsForTarget } from './portfolio-data.js';
 
 const uploadTesterMarkup = '';
-const DEFAULT_PORTFOLIO_IMAGE = new URL('./joygo_jpop_hero.png', import.meta.url).href;
+const DEFAULT_PORTFOLIO_IMAGE = new URL('./portfolio-default-cover.png', import.meta.url).href;
 
 const toDisplayList = (...values) => values.flatMap((value) => {
     if (Array.isArray(value)) return value.filter(Boolean);
@@ -406,7 +406,7 @@ const renderStandaloneAdminPage = () => {
                                 <input name="format" placeholder="예: 유튜브 영상 / 음원 데모">
                             </label>
                             <label>썸네일 이미지 URL
-                                <input name="img" placeholder="./joygo_jpop_hero.png">
+                                <input name="img" placeholder="./portfolio-default-cover.png">
                             </label>
                             <label>YouTube URL
                                 <input name="youtubeUrl" placeholder="https://youtube.com/...">
@@ -511,7 +511,7 @@ const renderStandaloneAdminPage = () => {
                 desc: formData.get('desc') || '',
                 mediaType: formData.get('mediaType') || 'Project',
                 format: formData.get('format') || '',
-                img: formData.get('img') || './joygo_jpop_hero.png',
+                img: formData.get('img') || './portfolio-default-cover.png',
                 youtubeUrl: formData.get('youtubeUrl') || '',
                 audioUrl: formData.get('audioUrl') || '',
                 externalUrl: formData.get('externalUrl') || '',
@@ -598,7 +598,7 @@ const renderUnifiedAdminPage = () => {
                         <h2>아이템 추가</h2>
                         <div class="admin-grid">
                             <label>제목
-                                <input name="title" required placeholder="예: Joygo">
+                            <input name="title" required placeholder="예: Opening Demo">
                             </label>
                             <label>장르
                                 <select name="genreKey">
@@ -618,7 +618,7 @@ const renderUnifiedAdminPage = () => {
                                 </select>
                             </label>
                             <label>썸네일 이미지 URL
-                                <input name="img" placeholder="./joygo_jpop_hero.png">
+                                <input name="img" placeholder="./portfolio-default-cover.png">
                             </label>
                             <label>YouTube URL
                                 <input name="youtubeUrl" placeholder="https://youtube.com/...">
@@ -714,7 +714,7 @@ const renderUnifiedAdminPage = () => {
                 desc: genreOptions[genreKey],
                 mediaType,
                 format: mediaType === 'Video' ? '유튜브 영상' : mediaType === 'Audio' ? '음원 데모' : '프로젝트',
-                img: formData.get('img') || './joygo_jpop_hero.png',
+                img: formData.get('img') || './portfolio-default-cover.png',
                 youtubeUrl: formData.get('youtubeUrl') || '',
                 audioUrl: formData.get('audioUrl') || '',
                 externalUrl: formData.get('externalUrl') || '',
@@ -1556,7 +1556,7 @@ const initSite = () => {
                                 <div class="admin-checks">${checkedList('courseKeys', cmsLabels.course, selectedCourseKeys)}</div>
                             </div>
                             <label>표시 형식<input name="format" value="${editingItem?.format || ''}" placeholder="예: 유튜브 영상 / 음원 데모"></label>
-                            <label>이미지 URL<input name="img" value="${editingItem?.img || ''}" placeholder="./joygo_jpop_hero.png"></label>
+                            <label>이미지 URL<input name="img" value="${editingItem?.img || ''}" placeholder="./portfolio-default-cover.png"></label>
                             <label>YouTube URL<input name="youtubeUrl" value="${editingItem?.youtubeUrl || ''}" placeholder="https://youtube.com/..."></label>
                             <label>Audio URL<input name="audioUrl" value="${editingItem?.audioUrl || ''}" placeholder="https://.../demo.mp3"></label>
                             <label>외부 링크<input name="externalUrl" value="${editingItem?.externalUrl || ''}" placeholder="SoundCloud, Drive, 음원 링크"></label>
@@ -1651,7 +1651,7 @@ const initSite = () => {
                 targetKey: courseKeys[0],
                 mediaType,
                 format: formData.get('format') || (mediaType === 'Video' ? '유튜브 영상' : mediaType === 'Audio' ? '음원 데모' : '프로젝트'),
-                img: formData.get('img') || './joygo_jpop_hero.png',
+                img: formData.get('img') || './portfolio-default-cover.png',
                 youtubeUrl,
                 videoUrl: youtubeUrl,
                 audioUrl,
@@ -1744,7 +1744,7 @@ const initSite = () => {
                             <label>짧은 설명<input name="desc" required placeholder="예: J-POP / Electronic"></label>
                             <label>미디어 타입<select name="mediaType"><option>Audio</option><option>Video</option><option>Project</option></select></label>
                             <label>형식<input name="format" placeholder="예: 유튜브 영상 / 음원 데모"></label>
-                            <label>썸네일 이미지 URL<input name="img" placeholder="./joygo_jpop_hero.png"></label>
+                            <label>썸네일 이미지 URL<input name="img" placeholder="./portfolio-default-cover.png"></label>
                             <label>YouTube URL<input name="youtubeUrl" placeholder="https://youtube.com/..."></label>
                             <label>Audio URL<input name="audioUrl" placeholder="https://.../demo.mp3"></label>
                             <label>외부 링크<input name="externalUrl" placeholder="SoundCloud, Melon, Drive 등"></label>
@@ -1783,7 +1783,7 @@ const initSite = () => {
                 desc: formData.get('desc') || '',
                 mediaType: formData.get('mediaType') || 'Project',
                 format: formData.get('format') || '',
-                img: formData.get('img') || './joygo_jpop_hero.png',
+                img: formData.get('img') || './portfolio-default-cover.png',
                 youtubeUrl: formData.get('youtubeUrl') || '',
                 audioUrl: formData.get('audioUrl') || '',
                 externalUrl: formData.get('externalUrl') || '',
