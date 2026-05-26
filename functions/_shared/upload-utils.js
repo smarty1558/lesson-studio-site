@@ -29,7 +29,8 @@ export const uploadRules = {
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
     status,
     headers: {
-        'Content-Type': 'application/json; charset=utf-8'
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store'
     }
 });
 

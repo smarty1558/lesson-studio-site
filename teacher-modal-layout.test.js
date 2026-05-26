@@ -64,7 +64,7 @@ test('admin uses saved teacher names for portfolio assignment labels', () => {
     assert.match(adminJs, /chips\(meta\.teacherKeys,\s*teacherChoiceOptions\)/);
     assert.match(adminJs, /renderChecks\('teacherKeys',\s*teacherChoiceOptions,\s*meta\.teacherKeys\)/);
     assert.match(adminJs, /readFormItem\(form,\s*getTeacherChoiceOptions\(\)\)/);
-    assert.match(adminJs, /await loadTeachers\('Teacher profile saved\.'\)/);
+    assert.match(adminJs, /teacherItems = upsertTeacherItem\(teacherItems,\s*savedTeacher\.item/);
 });
 
 test('portfolio cms labels match the unified public portfolio fields', () => {

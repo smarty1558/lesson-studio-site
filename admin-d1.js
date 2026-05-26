@@ -34,6 +34,7 @@ const apiJson = async (url, { password, method = 'GET', body } = {}) => {
     const response = await fetch(url, {
         method,
         headers,
+        cache: 'no-store',
         body: body ? JSON.stringify(body) : undefined
     });
     const data = await response.json().catch(() => ({}));
@@ -188,6 +189,15 @@ const teacherProfileForKey = (items, key, index = 0) => ({
     ...getTeacherProfileWithOverride(key, items.find((item) => item.key === key)),
     sortOrder: index
 });
+
+const upsertTeacherItem = (items = [], item = {}) => {
+    if (!item.key) return items;
+
+    return [
+        ...items.filter((entry) => entry.key !== item.key),
+        item
+    ].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0) || String(a.key || '').localeCompare(String(b.key || '')));
+};
 
 const readTeacherProfileForm = (form) => {
     const formData = new FormData(form);
@@ -789,7 +799,7 @@ export const renderD1Admin = () => {
             password: adminPassword
         }) || nextProfile.imageUrl;
 
-        await apiJson('/api/admin/teachers', {
+        const savedTeacher = await apiJson('/api/admin/teachers', {
             password: adminPassword,
             method: 'POST',
             body: {
@@ -798,7 +808,13 @@ export const renderD1Admin = () => {
             }
         });
 
-        await loadTeachers('Teacher profile saved.');
+        teacherItems = upsertTeacherItem(teacherItems, savedTeacher.item || {
+            ...nextProfile,
+            image: imageUrl,
+            imageUrl
+        });
+        draw();
+        setText('.admin-status', 'Teacher profile saved.', 'admin-status admin-upload-success');
     };
 
     const bindEvents = () => {
