@@ -21,3 +21,11 @@ test('hero and student works copy keep the requested line breaks', () => {
     assert.match(indexSource, /수업의 끝은<br><span>취향이 박힌 결과물입니다<\/span>/);
     assert.match(styleSource, /\.student-works-title span\s*\{[^}]*white-space:\s*nowrap\s*;/s);
 });
+
+test('classes copy and ordering match the requested course lineup', () => {
+    assert.match(indexSource, /오타쿠 감각으로 수업을 고르세요/);
+    assert.match(indexSource, /J-POP, 게임, 애니메이션, 보컬로이드, 버튜버 감성/);
+    assert.match(indexSource, /data-course="jpop"[\s\S]*data-course="game"[\s\S]*data-course="anime"[\s\S]*data-course="sound"/);
+    assert.match(indexSource, /<h3>게임 BGM<\/h3>/);
+    assert.match(indexSource, /<h3>애니메이션 · 영화 OST<\/h3>/);
+});
