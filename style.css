@@ -915,6 +915,7 @@ body.view-cursor-active .view-cursor-dot {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    min-height: 74px;
     margin: 0 0 30px;
     list-style: none;
 }
@@ -932,7 +933,7 @@ body.view-cursor-active .view-cursor-dot {
 .btn-portfolio {
     min-height: 48px;
     width: 100%;
-    margin-top: 0;
+    margin-top: auto;
     position: relative;
     overflow: hidden;
     isolation: isolate;
@@ -4241,6 +4242,10 @@ textarea:focus {
     }
 
     .course-card p {
+        min-height: 0;
+    }
+
+    .course-tags {
         min-height: 0;
     }
 

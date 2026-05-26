@@ -38,5 +38,6 @@ test('class cards align descriptions, tags, and portfolio buttons consistently',
     assert.match(styleSource, /\.course-card h3\s*\{[^}]*min-height:\s*64px\s*;/s);
     assert.match(styleSource, /\.course-card p\s*\{[^}]*min-height:\s*112px\s*;/s);
     assert.match(styleSource, /\.course-tags\s*\{[^}]*margin:\s*0 0 30px\s*;/s);
-    assert.match(styleSource, /\.btn-portfolio\s*\{[^}]*margin-top:\s*0\s*;/s);
+    assert.match(styleSource, /\.course-tags\s*\{[^}]*min-height:\s*74px\s*;/s);
+    assert.match(styleSource, /\.btn-portfolio\s*\{[^}]*margin-top:\s*auto\s*;/s);
 });
