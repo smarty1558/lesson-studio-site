@@ -304,7 +304,7 @@ const renderStandaloneAdminPage = () => {
     const cmsStorageKey = 'osumPortfolioCmsItems';
     const targets = {
         course: {
-            jpop: 'J-POP',
+            jpop: 'J-POP · 보카로',
             game: '게임 BGM',
             anime: '애니메이션 · 영화 OST',
             sound: 'Sound Design'
@@ -1048,7 +1048,7 @@ const initSite = () => {
         modalContent?.classList.remove('teacher-mode', 'teacher-works-active');
     };
     const titleMap = {
-        jpop: 'J-POP',
+        jpop: 'J-POP · 보카로',
         game: '게임 BGM',
         anime: '애니메이션 · 영화 OST',
         sound: 'Sound Design'
@@ -1200,7 +1200,7 @@ const initSite = () => {
     const cmsStorageKey = 'osumPortfolioCmsItems';
     const cmsTargets = {
         course: {
-            jpop: 'J-POP',
+            jpop: 'J-POP · 보카로',
             game: '게임 BGM',
             anime: '애니메이션 · 영화 OST',
             sound: 'Sound Design'
@@ -1215,7 +1215,7 @@ const initSite = () => {
 
     const cmsLabels = {
         course: {
-            jpop: 'J-POP',
+            jpop: 'J-POP · 보카로',
             game: '게임 BGM',
             anime: '애니메이션 · 영화 OST',
             sound: 'Sound Design'
