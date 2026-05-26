@@ -1089,9 +1089,13 @@ body.view-cursor-active .view-cursor-dot {
 }
 
 .student-works-title {
-    max-width: 560px;
-    font-size: clamp(2.2rem, 3.45vw, 3.35rem);
+    max-width: 760px;
+    font-size: clamp(2.05rem, 3.05vw, 3.05rem);
     line-height: 1.12;
+}
+
+.student-works-title span {
+    white-space: nowrap;
 }
 
 .work-list {
@@ -4132,6 +4136,15 @@ textarea:focus {
     .hero p {
         font-size: 0.98rem;
         line-height: 1.65;
+    }
+
+    .student-works-title {
+        max-width: 100%;
+        font-size: clamp(2rem, 9vw, 2.8rem);
+    }
+
+    .student-works-title span {
+        white-space: normal;
     }
 
     .hero-btns {
