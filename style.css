@@ -1088,6 +1088,12 @@ body.view-cursor-active .view-cursor-dot {
     gap: 32px;
 }
 
+.student-works-title {
+    max-width: 560px;
+    font-size: clamp(2.2rem, 3.45vw, 3.35rem);
+    line-height: 1.12;
+}
+
 .work-list {
     display: flex;
     flex-wrap: wrap;
