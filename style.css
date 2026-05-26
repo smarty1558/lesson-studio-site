@@ -480,7 +480,7 @@ body.site-ready .site-shell {
 .hero p {
     max-width: 620px;
     color: #475569;
-    font-size: clamp(1.05rem, 1.6vw, 1.32rem);
+    font-size: clamp(1rem, 1.35vw, 1.16rem);
     font-weight: 500;
 }
 
