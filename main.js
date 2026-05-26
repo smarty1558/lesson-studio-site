@@ -1898,6 +1898,9 @@ const initSite = () => {
             return `
                 <article class="portfolio-item" data-teacher-work-index="${index}">
                     <div class="frame-inner ${hasImage ? '' : 'is-missing-image'}"${hasImage ? ` style="background-image: url('${enriched.img}')"` : ''}>
+                        <div class="play-overlay">
+                            <div class="play-icon">+</div>
+                        </div>
                     </div>
                     <div class="item-caption">
                         <h4>${enriched.title}</h4>
