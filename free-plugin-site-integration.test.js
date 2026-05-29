@@ -1,0 +1,27 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+const indexSource = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+const styleSource = readFileSync(new URL('./style.css', import.meta.url), 'utf8');
+const freePluginSource = readFileSync(new URL('./free-plugin-transition-options.html', import.meta.url), 'utf8');
+const viteConfigSource = readFileSync(new URL('./vite.config.js', import.meta.url), 'utf8');
+
+test('main site links to the free plugin interactive page from desktop and mobile navigation', () => {
+    assert.match(indexSource, /<a href="\.\/free-plugin-transition-options\.html">무료 플러그인<\/a>/);
+    assert.match(indexSource, /<div class="mobile-cta"[\s\S]*<a href="\.\/free-plugin-transition-options\.html">무료 플러그인<\/a>/);
+    assert.match(styleSource, /\.mobile-cta\s*\{[^}]*grid-template-columns:\s*0\.8fr 1\.35fr 1\.2fr 1fr\s*;/s);
+    assert.match(styleSource, /@media \(max-width: 420px\)[\s\S]*\.mobile-cta\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)\s*;/);
+});
+
+test('free plugin page is branded as part of the studio site', () => {
+    assert.match(freePluginSource, /<title>무료 플러그인 \| 오타쿠 뮤직 스튜디오<\/title>/);
+    assert.match(freePluginSource, /<div class="brand">오타쿠 뮤직 스튜디오<\/div>/);
+    assert.match(freePluginSource, /<a class="site-back" href="\.\/index\.html">사이트 홈<\/a>/);
+});
+
+test('vite build includes the free plugin page as a deployable route', () => {
+    assert.match(viteConfigSource, /input:\s*\{/);
+    assert.match(viteConfigSource, /main:\s*resolve\(rootDir,\s*'index\.html'\)/);
+    assert.match(viteConfigSource, /freePlugins:\s*resolve\(rootDir,\s*'free-plugin-transition-options\.html'\)/);
+});

@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>무료 플러그인 | 오타쿠 뮤직 스튜디오</title>
+  <style>
+    :root {
+      --paper: #fbfbf7;
+      --ink: #111111;
+      --muted: #6d6d68;
+      --line: rgba(17, 17, 17, .86);
+      --hairline: rgba(17, 17, 17, .18);
+      --accent: #7c3cff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Noto Sans KR", "Outfit", Arial, sans-serif;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    .home {
+      min-height: 100vh;
+      padding: 28px clamp(22px, 5vw, 72px);
+      transition: opacity 280ms ease, transform 520ms cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .home.is-running {
+      opacity: .08;
+      transform: translateX(-18vw);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .site-back,
+    .trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 128px;
+      min-height: 44px;
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      background: transparent;
+      padding: 0 18px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .site-back:hover,
+    .trigger:hover {
+      background: var(--ink);
+      color: var(--paper);
+      transform: translateY(-1px);
+    }
+
+    .hero {
+      width: min(1040px, 100%);
+      padding-top: clamp(96px, 16vh, 170px);
+    }
+
+    .kicker {
+      display: block;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 890px;
+      margin: 0;
+      font-size: clamp(52px, 8.4vw, 126px);
+      line-height: .92;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 610px;
+      margin: 30px 0 0;
+      color: var(--muted);
+      font-size: clamp(16px, 1.6vw, 20px);
+      line-height: 1.7;
+    }
+
+    .stage {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      overflow: hidden;
+      background: var(--paper);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease;
+    }
+
+    .stage.is-active {
+      opacity: 1;
+    }
+
+    .stage.is-complete {
+      pointer-events: auto;
+      cursor: grab;
+    }
+
+    .stage.is-complete.is-dragging {
+      cursor: grabbing;
+    }
+
+    .grid {
+      display: none;
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      background-image:
+        linear-gradient(var(--hairline) 1px, transparent 1px),
+        linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+      background-size: 72px 72px;
+      transform: scale(1.08);
+    }
+
+    .stage.run .grid {
+      animation: gridIn 700ms ease 1650ms forwards;
+    }
+
+    .stage.is-complete .grid {
+      opacity: 0;
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .hud {
+      position: absolute;
+      left: clamp(22px, 4vw, 56px);
+      top: 28px;
+      display: grid;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+
+    .stage.run .hud {
+      animation: labelIn 360ms ease 2150ms forwards;
+    }
+
+    .hud strong {
+      font-size: 12px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .hud span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .category {
+      position: absolute;
+      display: grid;
+      gap: 4px;
+      min-width: 156px;
+      min-height: 48px;
+      border: 1px solid transparent;
+      border-radius: 2px;
+      background: rgba(251, 251, 247, .9);
+      padding: 10px 12px;
+      box-shadow: 0 18px 60px rgba(17, 17, 17, .06);
+      opacity: 0;
+      --hover-scale: 1;
+      transform: translateY(12px) scale(calc(var(--scale, 1) * var(--hover-scale, 1)));
+      transform-origin: center center;
+      cursor: pointer;
+      text-align: left;
+      backdrop-filter: blur(10px);
+      transition: transform 180ms cubic-bezier(.16, 1, .3, 1), box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .category:hover {
+      --hover-scale: 1.08;
+      background: rgba(251, 251, 247, .98);
+      transform: translateY(0) scale(calc(var(--scale, 1) * var(--hover-scale, 1)));
+      box-shadow: 0 26px 70px rgba(17, 17, 17, .12);
+    }
+
+    .category .num {
+      color: var(--accent);
+      font-family: "Outfit", Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .category .name {
+      font-size: clamp(12px, 1.2vw, 15px);
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .stage.run .category {
+      animation: labelIn 360ms cubic-bezier(.2, 1, .2, 1) forwards;
+    }
+
+    .stage.is-complete .category {
+      animation: none;
+      opacity: 1;
+      transform: translateY(0) scale(calc(var(--scale, 1) * var(--hover-scale, 1)));
+    }
+
+    .c1 { animation-delay: 2300ms !important; }
+    .c2 { animation-delay: 2360ms !important; }
+    .c3 { animation-delay: 2420ms !important; }
+    .c4 { animation-delay: 2480ms !important; }
+    .c5 { animation-delay: 2540ms !important; }
+    .c6 { animation-delay: 2600ms !important; }
+    .c7 { animation-delay: 2660ms !important; }
+    .c8 { animation-delay: 2720ms !important; }
+    .c9 { animation-delay: 2780ms !important; }
+    .c10 { animation-delay: 2840ms !important; }
+
+    .drawer {
+      position: fixed;
+      left: var(--drawer-left, 28px);
+      top: var(--drawer-top, 28px);
+      z-index: 30;
+      width: var(--drawer-width, 180px);
+      max-height: var(--drawer-height, 64px);
+      overflow: auto;
+      scrollbar-width: none;
+      border: 1px solid rgba(17, 17, 17, .16);
+      border-radius: 4px;
+      background: rgba(251, 251, 247, .94);
+      padding: 18px;
+      box-shadow: 0 28px 90px rgba(17, 17, 17, .12);
+      opacity: 0;
+      transform: scale(.98);
+      transform-origin: top left;
+      transition:
+        left 260ms cubic-bezier(.16, 1, .3, 1),
+        top 260ms cubic-bezier(.16, 1, .3, 1),
+        width 260ms cubic-bezier(.16, 1, .3, 1),
+        max-height 260ms cubic-bezier(.16, 1, .3, 1),
+        opacity 120ms ease,
+        transform 260ms cubic-bezier(.16, 1, .3, 1);
+      pointer-events: none;
+      backdrop-filter: blur(14px);
+    }
+
+    .drawer::-webkit-scrollbar {
+      display: none;
+    }
+
+    .drawer.is-visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .drawer.is-expanded {
+      left: var(--drawer-expanded-left, 28px);
+      top: var(--drawer-expanded-top, 28px);
+      width: var(--drawer-expanded-width, min(780px, calc(100vw - 56px)));
+      max-height: var(--drawer-expanded-height, min(76vh, 720px));
+      pointer-events: auto;
+      cursor: grab;
+    }
+
+    .drawer.is-dragging {
+      cursor: grabbing;
+      transition: none;
+    }
+
+    .drawer h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .drawer p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .plugin-row {
+      display: grid;
+      grid-template-columns: minmax(120px, .8fr) minmax(150px, .95fr) minmax(220px, 1.55fr);
+      gap: 12px;
+      border-top: 1px solid rgba(17, 17, 17, .12);
+      padding: 12px 0;
+      color: var(--ink);
+      font-size: 13px;
+      text-decoration: none;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(7px);
+      animation: rowTypeIn 180ms cubic-bezier(.2, 1, .2, 1) forwards;
+      transition: background 140ms ease, padding 140ms ease;
+    }
+
+    .plugin-row:hover {
+      background: rgba(124, 60, 255, .075);
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .plugin-row strong {
+      font-weight: 900;
+    }
+
+    .plugin-row span,
+    .plugin-row em {
+      color: var(--muted);
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .drawer-note {
+      margin-top: 14px;
+      border-top: 1px solid rgba(17, 17, 17, .12);
+      padding-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    @keyframes gridIn {
+      to { opacity: .52; transform: scale(1); }
+    }
+
+    @keyframes labelIn {
+      to { opacity: 1; transform: translateY(0) scale(var(--scale, 1)); }
+    }
+
+    @keyframes rowTypeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 760px) {
+      body { overflow: auto; }
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .nav-actions {
+        width: 100%;
+      }
+      .site-back,
+      .trigger {
+        min-width: 0;
+        flex: 1;
+      }
+      .category {
+        min-width: 126px;
+        padding: 8px 10px;
+      }
+      .plugin-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .home,
+      .trigger,
+      .category,
+      .drawer {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="home" id="home">
+    <nav class="nav" aria-label="주요 메뉴">
+      <div class="brand">오타쿠 뮤직 스튜디오</div>
+      <div class="nav-actions">
+        <a class="site-back" href="./index.html">사이트 홈</a>
+        <button class="trigger" id="start" type="button">무료 플러그인</button>
+      </div>
+    </nav>
+    <section class="hero">
+      <span class="kicker">Free Plugin Index</span>
+      <h1>합법 무료 도구로 시작하는 사운드 메이킹.</h1>
+      <p>J-Pop, 게임음악, 효과음 제작 수업을 시작하는 입문자를 위한 무료 플러그인 큐레이션.</p>
+    </section>
+  </main>
+
+  <section class="stage" id="stage" aria-label="무료 플러그인 카테고리 맵">
+    <div class="grid"></div>
+    <canvas id="map"></canvas>
+    <div class="hud" aria-hidden="true">
+      <strong>Free Plugin Index</strong>
+      <span>Curated starter tools for music production</span>
+    </div>
+    <button class="category c1" type="button" data-index="0" data-title="처음 설치 세트"><span class="num">01</span><span class="name">처음 설치 세트</span></button>
+    <button class="category c2" type="button" data-index="1" data-title="J-Pop / 애니송"><span class="num">02</span><span class="name">J-Pop / 애니송</span></button>
+    <button class="category c3" type="button" data-index="2" data-title="게임음악 / 시네마틱"><span class="num">03</span><span class="name">게임음악 / 시네마틱</span></button>
+    <button class="category c4" type="button" data-index="3" data-title="믹싱 기본"><span class="num">04</span><span class="name">믹싱 기본</span></button>
+    <button class="category c5" type="button" data-index="4" data-title="분석 / 마스터링 체크"><span class="num">05</span><span class="name">분석 / 마스터링 체크</span></button>
+    <button class="category c6" type="button" data-index="5" data-title="공간계 / 분위기"><span class="num">06</span><span class="name">공간계 / 분위기</span></button>
+    <button class="category c7" type="button" data-index="6" data-title="효과음 제작 / 사운드 디자인"><span class="num">07</span><span class="name">효과음 제작 / 사운드 디자인</span></button>
+    <button class="category c8" type="button" data-index="7" data-title="로파이 / 캐릭터 / 디스토션"><span class="num">08</span><span class="name">로파이 / 캐릭터 / 디스토션</span></button>
+    <button class="category c9" type="button" data-index="8" data-title="기타 / 베이스 / 밴드 사운드"><span class="num">09</span><span class="name">기타 / 베이스 / 밴드 사운드</span></button>
+    <button class="category c10" type="button" data-index="9" data-title="Plugin Alliance 뉴비 추천"><span class="num">10</span><span class="name">Plugin Alliance 뉴비 추천</span></button>
+  </section>
+
+  <aside class="drawer" id="drawer" aria-live="polite">
+    <h2>처음 설치 세트</h2>
+    <p>뉴비가 처음부터 이것저것 다 깔면 헷갈리니까, 처음엔 이 정도만 설치해도 충분합니다.</p>
+    <div class="plugin-list"></div>
+    <div class="drawer-note"></div>
+  </aside>
+
+  <script>
+    const home = document.getElementById('home');
+    const start = document.getElementById('start');
+    const stage = document.getElementById('stage');
+    const canvas = document.getElementById('map');
+    const ctx = canvas.getContext('2d');
+    const drawer = document.getElementById('drawer');
+    const categories = [...document.querySelectorAll('.category')];
+    const pluginCategories = [
+      {
+        title: '처음 설치 세트',
+        description: '뉴비가 처음부터 이것저것 다 깔면 헷갈리니까, 처음엔 이 정도만 설치해도 충분합니다.',
+        note: 'TDR Nova는 다이내믹 EQ, Valhalla Supermassive는 무료 리버브/딜레이, Voxengo SPAN은 무료 FFT 스펙트럼 분석기입니다.',
+        items: [
+          ['Native Instruments', 'Komplete Start', '무료 악기, 신스, 샘플, 기본 제작 도구를 한 번에 갖출 때', 'https://www.native-instruments.com/en/products/komplete/bundles/komplete-start/'],
+          ['Vital Audio', 'Vital Basic', 'Serum 느낌의 웨이브테이블 신스. 리드, 베이스, 패드 만들 때', 'https://vital.audio/'],
+          ['Tokyo Dawn Records', 'TDR Nova', 'EQ, 다이내믹 EQ, 보컬 치찰음/대역 정리', 'https://www.tokyodawn.net/tdr-nova/'],
+          ['Valhalla DSP', 'Valhalla Supermassive', '몽환적인 리버브, 딜레이, 게임음악/앰비언트 공간감', 'https://valhalladsp.com/shop/reverb/valhalla-supermassive/'],
+          ['Voxengo', 'SPAN', '주파수 분석, 저역 과다 확인, 레퍼런스 비교', 'https://www.voxengo.com/product/span/'],
+          ['Youlean', 'Youlean Loudness Meter Free', 'LUFS, True Peak, 유튜브/스트리밍 음량 체크', 'https://youlean.co/youlean-loudness-meter/'],
+          ['Plugin Alliance', 'Free Plugins Bundle', 'EQ, 필터, 미터, 기타 앰프, 디스토션, 마스터링 맛보기', 'https://www.plugin-alliance.com/pages/free-plugins']
+        ]
+      },
+      {
+        title: 'J-Pop / 애니송',
+        description: '피아노, 스트링, 신스, 보컬 믹싱, 예쁜 공간감 중심.',
+        note: 'Splice INSTRUMENT는 무료 가상악기 플러그인이고, Slate Digital은 Fresh Air를 무료 플러그인 페이지에서 제공합니다.',
+        items: [
+          ['Native Instruments', 'Komplete Start', '피아노, 신스, 드럼, 기본 악기 소스 확보', 'https://www.native-instruments.com/en/products/komplete/bundles/komplete-start/'],
+          ['Splice', 'Splice INSTRUMENT', '피아노, 스트링, 패드 등 무료 프리셋 기반 악기', 'https://splice.com/instrument'],
+          ['Vital Audio', 'Vital Basic', 'J-Pop 리드, 베이스, 플럭, 패드 신스', 'https://vital.audio/'],
+          ['Tokyo Dawn Records', 'TDR Nova', '보컬 치찰음, 악기 대역 충돌 정리', 'https://www.tokyodawn.net/tdr-nova/'],
+          ['Slate Digital', 'Fresh Air', '보컬, 피아노, 신스에 밝은 고역 추가', 'https://slatedigital.com/free-plugins/'],
+          ['Valhalla DSP', 'Valhalla Supermassive', '몽환적인 리버브/딜레이, 애니송식 공간감', 'https://valhalladsp.com/shop/reverb/valhalla-supermassive/'],
+          ['Baby Audio', 'Magic Switch', '신스, 기타, 일렉피아노에 코러스 질감', 'https://babyaud.io/freebies']
+        ]
+      },
+      {
+        title: '게임음악 / 시네마틱',
+        description: '오케스트라, 패드, 판타지, 앰비언트, 분위기용.',
+        note: 'Orchestral Tools SINEfactory는 무료 가상악기 컬렉션이고, Surge XT는 여러 합성 방식과 필터, 모듈레이션을 갖춘 무료 신스입니다.',
+        items: [
+          ['Orchestral Tools', 'SINEfactory', '무료 오케스트라/시네마틱 악기, 판타지 분위기', 'https://www.orchestraltools.com/sinefactory'],
+          ['Splice', 'Splice INSTRUMENT', '스트링, 피아노, 퍼커션, 텍스처 악기', 'https://splice.com/instrument'],
+          ['Native Instruments', 'Komplete Start', '기본 악기와 사운드 재료 확보', 'https://www.native-instruments.com/en/products/komplete/bundles/komplete-start/'],
+          ['Surge Synth Team', 'Surge XT', '깊은 신스 사운드 디자인, 패드/FX/전자음', 'https://surge-synthesizer.github.io/'],
+          ['Vital Audio', 'Vital Basic', '게임음악용 리드, 베이스, 플럭, FX 신스', 'https://vital.audio/'],
+          ['Valhalla DSP', 'Valhalla Supermassive', '거대한 공간감, 던전/우주/판타지 리버브', 'https://valhalladsp.com/shop/reverb/valhalla-supermassive/'],
+          ['Decent Samples', 'Decent Sampler', '무료 샘플 악기 불러오기', 'https://store.decentsamples.com/downloads/decent-sampler/versions']
+        ]
+      },
+      {
+        title: '믹싱 기본',
+        description: 'EQ, 필터, 컴프, 레벨 정리. 수업에서 제일 설명하기 좋은 카테고리.',
+        note: 'TDR Kotelnikov은 무료 다운로드가 제공되는 컴프레서이고, UAD Explore FREE는 무료 제공 번들입니다.',
+        items: [
+          ['Tokyo Dawn Records', 'TDR Nova', '다이내믹 EQ, 보컬/드럼/악기 대역 정리', 'https://www.tokyodawn.net/tdr-nova/'],
+          ['Tokyo Dawn Records', 'TDR Kotelnikov', '투명한 컴프레서, 믹스버스/마스터버스 다이내믹 제어', 'https://www.tokyodawn.net/tdr-kotelnikov/'],
+          ['Plugin Alliance / Brainworx', 'bx_cleansweep V2', '하이패스/로우패스 필터, 불필요한 저역/고역 컷', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_solo', '모노, 좌우, 미드/사이드 체크', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_meter', '레벨, 다이내믹, 미드/사이드 미터링', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['SPL / Plugin Alliance', 'Free Ranger', '간단한 4밴드 EQ, 빠른 톤 조정', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['MeldaProduction', 'MCompressor / MEqualizer', '컴프/EQ 기본 개념 수업용', 'https://www.meldaproduction.com/MFreeFXBundle'],
+          ['Universal Audio', 'UAD Explore FREE', '1176, LA-2A 계열 컴프/아날로그 처리 입문', 'https://www.uaudio.com/products/uad-explore-free']
+        ]
+      },
+      {
+        title: '분석 / 마스터링 체크',
+        description: '뉴비가 귀로만 판단하기 힘들 때 눈으로 확인하는 도구.',
+        note: 'Youlean Loudness Meter는 무료 라우드니스 미터이고, Voxengo SPAN은 무료 실시간 FFT 스펙트럼 분석 플러그인입니다.',
+        items: [
+          ['Voxengo', 'SPAN', '주파수 스펙트럼, 저역/고역 밸런스 확인', 'https://www.voxengo.com/product/span/'],
+          ['Youlean', 'Youlean Loudness Meter Free', 'LUFS, True Peak, 스트리밍 음량 체크', 'https://youlean.co/youlean-loudness-meter/'],
+          ['Plugin Alliance / Brainworx', 'bx_meter', '다이내믹 레인지, 레벨, M/S 확인', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['MeldaProduction', 'MLoudnessAnalyzer', '라우드니스, 피크, 음량 기준 확인', 'https://www.meldaproduction.com/MFreeFXBundle'],
+          ['MeldaProduction', 'MOscilloscope', '킥/베이스 파형, 위상, 트랜지언트 확인', 'https://www.meldaproduction.com/MFreeFXBundle']
+        ]
+      },
+      {
+        title: '공간계 / 분위기',
+        description: '리버브, 딜레이, 코러스, 몽환감.',
+        note: '',
+        items: [
+          ['Valhalla DSP', 'Valhalla Supermassive', '대형 리버브, 딜레이, 우주/몽환/판타지 공간감', 'https://valhalladsp.com/shop/reverb/valhalla-supermassive/'],
+          ['Baby Audio', 'Magic Dice', '랜덤 공간계 FX, 버튼 하나로 분위기 만들기', 'https://babyaud.io/freebies'],
+          ['Baby Audio', 'Magic Switch', '코러스, 80s/시티팝/애니송 질감', 'https://babyaud.io/freebies'],
+          ['Kilohearts', 'Reverb / Delay / Chorus', '기본 리버브/딜레이/코러스 처리', 'https://kilohearts.com/products/kilohearts_essentials'],
+          ['MeldaProduction', 'MConvolutionEZ', '컨볼루션 리버브, 실제 공간감 느낌', 'https://www.meldaproduction.com/MFreeFXBundle'],
+          ['Plugin Alliance / Brainworx', 'bx_bluechorus2', '기타, 신스, 일렉피아노 코러스', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Cableguys', 'PanCake 2', '좌우로 움직이는 패드, 하이햇, FX', 'https://www.cableguys.com/pancake']
+        ]
+      },
+      {
+        title: '효과음 제작 / 사운드 디자인',
+        description: '필터, 딜레이, 모듈레이션, 디스토션, 신스 FX 중심.',
+        note: 'Kilohearts Essentials와 MeldaProduction MFreeFXBundle은 무료 이펙트 컬렉션이고, Magic Dice는 딜레이/리버브/모듈레이션 텍스처를 빠르게 만듭니다.',
+        items: [
+          ['Vital Audio', 'Vital Basic', '레이저, UI음, 전자음, 신스 FX 제작', 'https://vital.audio/'],
+          ['Surge Synth Team', 'Surge XT', '복잡한 FX, 노이즈, 모듈레이션 사운드', 'https://surge-synthesizer.github.io/'],
+          ['Kilohearts', 'Kilohearts Essentials', '필터, 딜레이, 코러스, 게이트, 리미터 등 기본 FX', 'https://kilohearts.com/products/kilohearts_essentials'],
+          ['MeldaProduction', 'MFreeFXBundle', '다양한 무료 이펙트 번들, 실험적 처리', 'https://www.meldaproduction.com/MFreeFXBundle'],
+          ['Baby Audio', 'Magic Dice', '랜덤 리버브/딜레이/모듈레이션 텍스처', 'https://babyaud.io/freebies'],
+          ['Cableguys', 'PanCake 2', '오토팬, 좌우 움직임, 반복 FX', 'https://www.cableguys.com/pancake'],
+          ['iZotope', 'Vinyl', '로파이, 먼지, 워블, 오래된 기계 질감', 'https://www.izotope.com/products/vinyl'],
+          ['Plugin Alliance / Brainworx', 'bx_subfilter', '킥/저역 효과음, 서브 임팩트 보강', 'https://www.plugin-alliance.com/pages/free-plugins']
+        ]
+      },
+      {
+        title: '로파이 / 캐릭터 / 디스토션',
+        description: '질감, 빈티지, 더러움, 왜곡, 색깔 입히기.',
+        note: 'iZotope Vinyl은 무료 로파이 플러그인으로 제공되며, 무료 플러그인 페이지에서도 Vinyl을 로파이 톤 플러그인으로 안내합니다.',
+        items: [
+          ['iZotope', 'Vinyl', '로파이, 먼지, 스크래치, 워블, 옛날 레코드 질감', 'https://www.izotope.com/products/vinyl'],
+          ['Slate Digital', 'Fresh Air', '보컬/신스/피아노에 밝고 시원한 고역 추가', 'https://slatedigital.com/free-plugins/'],
+          ['Plugin Alliance / Brainworx', 'bx_blackdist2', '기타, 베이스, 신스, 드럼 병렬 디스토션', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_yellowdrive', '가벼운 오버드라이브, 따뜻한 왜곡', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_distorange', '공격적인 왜곡, 게임음악/락 사운드', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_greenscreamer', '튜브스크리머 계열 기타 부스트', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_metal2', '메탈 기타, 과격한 신스/효과음 왜곡', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['MeldaProduction', 'MSaturator', '소리를 두껍게 하거나 존재감 추가', 'https://www.meldaproduction.com/MFreeFXBundle']
+        ]
+      },
+      {
+        title: '기타 / 베이스 / 밴드 사운드',
+        description: '락, 밴드, 애니송 기타, 게임 전투음악 쪽.',
+        note: 'Ample Bass P Lite는 Fender Precision Bass 기반의 무료 베이스 가상악기로 안내됩니다.',
+        items: [
+          ['Ample Sound', 'Ample Bass P Lite II', '무료 베이스 기타 가상악기, 밴드 베이스 라인', 'https://www.amplesound.net/en/pro-pd.asp?id=19'],
+          ['Plugin Alliance / Brainworx', 'bx_rockrack V3 Player', '기타 DI에 앰프 톤 입히기', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_megasingle', '락/메탈 하이게인 기타 톤', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_tuner', '기타/베이스 녹음 전 튜닝 체크', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_opto Pedal', '기타/베이스 레벨 안정화', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_greenscreamer', '기타 리드톤, 앰프 앞단 부스트', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Plugin Alliance / Brainworx', 'bx_metal2', '메탈/전투음악 기타 디스토션', 'https://www.plugin-alliance.com/pages/free-plugins']
+        ]
+      },
+      {
+        title: 'Plugin Alliance 뉴비 추천',
+        description: '플얼은 전부 나열하면 복잡하니까, 사이트에는 이 정도만 먼저 보여주는 게 좋음.',
+        note: '',
+        items: [
+          ['Brainworx', 'bx_cleansweep V2', '하이패스/로우패스, 트랙 정리', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Brainworx', 'bx_solo', '모노, L/R, M/S 체크', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Brainworx', 'bx_meter', '레벨, 다이내믹, M/S 미터링', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Brainworx', 'bx_subfilter', '킥/베이스 저역 정리와 보강', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['SPL', 'Free Ranger', '간단한 4밴드 EQ', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['elysia', 'niveau filter', '전체 톤 밝기/어두움 조절', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Brainworx', 'bx_masterdesk Classic', '데모 마스터링 맛보기', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Brainworx', 'bx_rockrack V3 Player', '기타 앰프 시뮬', 'https://www.plugin-alliance.com/pages/free-plugins'],
+          ['Brainworx', 'bx_tuner', '기타/베이스 튜너', 'https://www.plugin-alliance.com/pages/free-plugins']
+        ]
+      }
+    ];
+
+    const state = {
+      running: false,
+      startTime: 0,
+      dpr: 1,
+      width: 0,
+      height: 0,
+      panX: 0,
+      panY: 0,
+      zoom: 1,
+      dragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+      panStartX: 0,
+      panStartY: 0,
+      mapDragMoved: false,
+      drawerDragging: false,
+      drawerDragStartX: 0,
+      drawerDragStartY: 0,
+      drawerStartLeft: 0,
+      drawerStartTop: 0,
+      drawerCloseTimer: 0,
+      drawerOriginLeft: 0,
+      drawerOriginTop: 0,
+      drawerOriginWidth: 0,
+      drawerOriginHeight: 0,
+      cursorX: window.innerWidth / 2,
+      cursorY: window.innerHeight / 2,
+      cursorLoop: 0
+    };
+
+    const easeOutExpo = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    const easeInCubic = (t) => t * t * t;
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const pluginDetails = {
+      'Komplete Start': '처음 설치용으로 가장 든든한 올인원 스타터 팩. 악기와 샘플이 넓게 깔려서 곡 스케치가 빨라집니다.',
+      'Vital Basic': '시각적으로 파형을 보면서 만드는 현대적인 웨이브테이블 신스. 리드와 베이스를 직접 깎는 맛이 좋습니다.',
+      'TDR Nova': 'EQ처럼 보이지만 필요한 순간 특정 대역만 눌러주는 다이내믹 EQ. 보컬과 악기 충돌 정리에 강합니다.',
+      'Valhalla Supermassive': '작은 방보다 거대한 우주에 가까운 무료 공간계. 패드, 게임 배경, 몽환 파트에 바로 색이 납니다.',
+      'SPAN': '귀로 애매한 저역과 고역을 눈으로 확인하는 분석 기준점. 레퍼런스 비교할 때 특히 유용합니다.',
+      'Youlean Loudness Meter Free': '내 곡이 스트리밍에서 얼마나 크게 들릴지 확인하는 라우드니스 기준자입니다.',
+      'Free Plugins Bundle': 'Plugin Alliance의 무료 맛보기 묶음. 필터, 미터, 기타 톤, 마스터링 입문을 한 번에 찍어볼 수 있습니다.',
+      'Splice INSTRUMENT': '프리셋 기반으로 빠르게 쓸 수 있는 무료 악기. 피아노, 스트링, 패드 아이디어를 즉시 꺼내기 좋습니다.',
+      'Fresh Air': '소리 위쪽에 공기를 얹는 느낌의 익사이터. 보컬과 신스가 답답할 때 빠르게 밝아집니다.',
+      'Magic Switch': '한 버튼으로 코러스 질감을 얹는 장난감 같은 무료기. 시티팝, 애니송, 일렉피아노에 잘 어울립니다.',
+      'SINEfactory': '무료인데 분위기가 꽤 고급스러운 오케스트라/시네마틱 악기 창고입니다.',
+      'Surge XT': '무료 신스 중 깊이가 큰 편. 실험적인 패드, 노이즈, FX를 파고들 때 좋은 연구실 같은 도구입니다.',
+      'Decent Sampler': '무료 샘플 악기들을 불러오는 플레이어. 인터넷의 다양한 무료 라이브러리를 쓰는 입구가 됩니다.',
+      'TDR Kotelnikov': '색을 과하게 칠하지 않는 투명한 컴프레서. 믹스버스나 마스터버스 수업용으로 설명하기 좋습니다.',
+      'bx_cleansweep V2': '하이패스/로우패스 기본기를 익히기 좋은 필터. 트랙을 정리하는 첫 칼질 역할입니다.',
+      'bx_solo': '좌우, 모노, 미드/사이드를 빠르게 확인하는 체크 도구. 믹스 판단 실수를 줄여줍니다.',
+      'bx_meter': '레벨과 다이내믹을 보는 미터. 감으로만 볼륨 맞추는 습관을 고치기 좋습니다.',
+      'Free Ranger': '복잡하지 않은 4밴드 EQ. 빠르게 톤을 밝게/어둡게 만지는 연습에 좋습니다.',
+      'MCompressor / MEqualizer': '기본 컴프와 EQ 개념을 차근차근 보기 좋은 무료 묶음입니다.',
+      'UAD Explore FREE': '유명 아날로그 계열 처리를 무료로 맛보는 입구. 컴프 캐릭터 비교에 좋습니다.',
+      'MLoudnessAnalyzer': '라우드니스 수치를 더 세밀하게 보는 분석 도구. 마스터링 체크에 유용합니다.',
+      'MOscilloscope': '파형 움직임을 직접 보는 도구. 킥과 베이스, 위상 감각을 잡는 데 좋습니다.',
+      'Magic Dice': '결과를 예측하기보다 우연한 공간 질감을 뽑는 도구. 아이디어가 막혔을 때 빠릅니다.',
+      'Reverb / Delay / Chorus': 'Kilohearts식 가볍고 모듈식인 기본 공간계. 필요한 것만 깔끔하게 얹기 좋습니다.',
+      'MConvolutionEZ': '실제 공간을 찍은 듯한 컨볼루션 리버브. 자연스러운 공간감 설명에 좋습니다.',
+      'bx_bluechorus2': '클래식한 코러스 색. 기타, 신스, 일렉피아노에 빈티지한 흔들림을 줍니다.',
+      'PanCake 2': '좌우 움직임을 그려 넣는 오토팬. 반복 FX와 움직이는 패드에 생동감을 줍니다.',
+      'Kilohearts Essentials': '가볍고 직관적인 기본 이펙트 묶음. 사운드 디자인 체인을 빠르게 조립하기 좋습니다.',
+      'MFreeFXBundle': '무료인데 양이 많은 실험용 이펙트 창고. 하나씩 뜯어보며 처리 감각을 익히기 좋습니다.',
+      'Vinyl': '낡은 레코드, 먼지, 워블, 로파이 톤을 빠르게 만드는 캐릭터 플러그인입니다.',
+      'bx_subfilter': '킥과 베이스 아래쪽을 단단하게 만드는 서브 보강 도구. 임팩트 효과음에도 잘 맞습니다.',
+      'bx_blackdist2': '검고 거친 디스토션 질감. 병렬로 섞으면 드럼과 신스에 공격성이 붙습니다.',
+      'bx_yellowdrive': '가벼운 오버드라이브 색. 너무 과하지 않게 따뜻한 왜곡을 더합니다.',
+      'bx_distorange': '더 날카롭고 공격적인 왜곡. 게임 전투음악이나 거친 효과음에 어울립니다.',
+      'bx_greenscreamer': '기타 앰프 앞단을 밀어주는 부스트 감성. 리드톤을 앞으로 꺼내기 좋습니다.',
+      'bx_metal2': '하이게인 계열의 과격한 톤. 메탈 기타나 사운드 디자인용 왜곡에 씁니다.',
+      'MSaturator': '소리를 살짝 두껍고 앞으로 나오게 만드는 새츄레이션 도구입니다.',
+      'Ample Bass P Lite II': '무료 베이스 기타 가상악기. 밴드 편곡에서 실제 베이스 라인의 감을 잡기 좋습니다.',
+      'bx_rockrack V3 Player': 'DI 기타를 바로 앰프 톤처럼 들리게 하는 입문용 기타 앰프 시뮬입니다.',
+      'bx_megasingle': '락/메탈용 하이게인 색을 빠르게 내는 기타 톤 도구입니다.',
+      'bx_tuner': '녹음 전 가장 먼저 켜야 하는 튜너. 기타와 베이스 기본 세팅에 필요합니다.',
+      'bx_opto Pedal': '기타/베이스 레벨을 부드럽게 잡는 페달식 컴프 감성입니다.',
+      'niveau filter': '복잡한 EQ 대신 전체 톤의 밝고 어두운 방향을 크게 돌리는 도구입니다.',
+      'bx_masterdesk Classic': '데모 마스터링을 빠르게 맛보는 올인원 스타일 도구입니다.'
+    };
+
+    function getPluginDetail(plugin, use) {
+      return pluginDetails[plugin] || use;
+    }
+
+    function applyView(point) {
+      return {
+        x: state.width / 2 + (point.x - state.width / 2) * state.zoom + state.panX,
+        y: state.height / 2 + (point.y - state.height / 2) * state.zoom + state.panY
+      };
+    }
+
+    function isInsideSafeArea(point, rect) {
+      return point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom;
+    }
+
+    function constrainCenterToBranch(originScreen, desiredCenter, safeRect) {
+      if (isInsideSafeArea(desiredCenter, safeRect)) return desiredCenter;
+
+      let low = 0;
+      let high = 1;
+      for (let i = 0; i < 18; i += 1) {
+        const mid = (low + high) / 2;
+        const candidate = {
+          x: lerp(originScreen.x, desiredCenter.x, mid),
+          y: lerp(originScreen.y, desiredCenter.y, mid)
+        };
+        if (isInsideSafeArea(candidate, safeRect)) {
+          low = mid;
+        } else {
+          high = mid;
+        }
+      }
+
+      return {
+        x: lerp(originScreen.x, desiredCenter.x, low),
+        y: lerp(originScreen.y, desiredCenter.y, low)
+      };
+    }
+
+    function getLayout() {
+      const w = state.width;
+      const h = state.height;
+      const origin = { x: w * .52, y: h * .5 };
+      return {
+        origin,
+        points: [
+          { x: w * .18, y: h * .18, align: 'right' },
+          { x: w * .86, y: h * .24, align: 'left' },
+          { x: w * .2, y: h * .58, align: 'right' },
+          { x: w * .49, y: h * .72, align: 'center' },
+          { x: w * .78, y: h * .5, align: 'left' },
+          { x: w * .67, y: h * .72, align: 'left' },
+          { x: w * .34, y: h * .86, align: 'center' },
+          { x: w * .18, y: h * .78, align: 'right' },
+          { x: w * .9, y: h * .7, align: 'left' },
+          { x: w * .52, y: h * .16, align: 'center' }
+        ]
+      };
+    }
+
+    function getCategoryPlacement(index, rect) {
+      const { origin, points } = getLayout();
+      const originScreen = applyView(origin);
+      const point = points[index];
+      const screenPoint = applyView(point);
+      let desiredCenter = { x: screenPoint.x, y: screenPoint.y };
+
+      const safeRect = {
+        left: 18 + rect.width / 2,
+        right: state.width - rect.width / 2 - 18,
+        top: 70 + rect.height / 2,
+        bottom: state.height - rect.height / 2 - 22
+      };
+      const center = constrainCenterToBranch(originScreen, desiredCenter, safeRect);
+      const lineEnd = center;
+
+      return {
+        center,
+        lineEnd,
+        left: center.x - rect.width / 2,
+        top: center.y - rect.height / 2
+      };
+    }
+
+    function getSeparatedPlacements() {
+      const { origin } = getLayout();
+      const originScreen = applyView(origin);
+      const placements = categories.map((category, index) => {
+        const rect = category.getBoundingClientRect();
+        return {
+          rect,
+          ...getCategoryPlacement(index, rect)
+        };
+      });
+      const minGap = Math.max(96, Math.min(state.width, state.height) * .15);
+
+      for (let separationPass = 0; separationPass < 4; separationPass += 1) {
+        for (let i = 0; i < placements.length; i += 1) {
+          for (let j = i + 1; j < placements.length; j += 1) {
+            const a = placements[i];
+            const b = placements[j];
+            const dx = b.center.x - a.center.x;
+            const dy = b.center.y - a.center.y;
+            const distance = Math.max(Math.hypot(dx, dy), 1);
+            const needed = minGap - distance;
+            if (needed <= 0) continue;
+
+            [a, b].forEach((placement, offsetIndex) => {
+              const branchX = placement.center.x - originScreen.x;
+              const branchY = placement.center.y - originScreen.y;
+              const branchDistance = Math.max(Math.hypot(branchX, branchY), 1);
+              const push = needed * (offsetIndex === 0 ? -.5 : .5);
+              const side = offsetIndex === 0 ? -1 : 1;
+              const candidate = {
+                x: placement.center.x + (branchX / branchDistance) * Math.abs(push),
+                y: placement.center.y + (branchY / branchDistance) * Math.abs(push) + side * needed * .08
+              };
+              const safeRect = {
+                left: 18 + placement.rect.width / 2,
+                right: state.width - placement.rect.width / 2 - 18,
+                top: 70 + placement.rect.height / 2,
+                bottom: state.height - placement.rect.height / 2 - 22
+              };
+              placement.center = constrainCenterToBranch(originScreen, candidate, safeRect);
+              placement.lineEnd = placement.center;
+              placement.left = placement.center.x - placement.rect.width / 2;
+              placement.top = placement.center.y - placement.rect.height / 2;
+            });
+          }
+        }
+      }
+
+      return placements;
+    }
+
+    function getFinalBranchPoints() {
+      return getSeparatedPlacements().map((placement) => placement.lineEnd);
+    }
+
+    function positionCategories() {
+      const placements = getSeparatedPlacements();
+      categories.forEach((category, index) => {
+        const placement = placements[index];
+        category.style.left = `${placement.left}px`;
+        category.style.top = `${placement.top}px`;
+
+        const distance = Math.hypot(placement.center.x - state.width / 2, placement.center.y - state.height / 2);
+        const maxDistance = Math.hypot(state.width / 2, state.height / 2);
+        const scale = state.zoom * (.68 + (1 - clamp(distance / maxDistance, 0, 1)) * .62);
+        category.style.setProperty('--scale', scale.toFixed(3));
+      });
+    }
+
+    function resize() {
+      state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+      state.width = window.innerWidth;
+      state.height = window.innerHeight;
+      canvas.width = Math.round(state.width * state.dpr);
+      canvas.height = Math.round(state.height * state.dpr);
+      canvas.style.width = state.width + 'px';
+      canvas.style.height = state.height + 'px';
+      ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+      positionCategories();
+      if (!state.running) drawFrame(9999);
+    }
+
+    function drawLine(from, to, progress, width = 1.3, alpha = 1) {
+      const x = lerp(from.x, to.x, progress);
+      const y = lerp(from.y, to.y, progress);
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(x, y);
+      ctx.lineWidth = width;
+      ctx.strokeStyle = `rgba(17,17,17,${alpha})`;
+      ctx.stroke();
+    }
+
+    function getWarpedGridPoint(x, y, time) {
+      const dx = x - state.cursorX;
+      const dy = y - state.cursorY;
+      const distance = Math.hypot(dx, dy);
+      const radius = Math.min(state.width, state.height) * .33;
+      if (distance > radius) return { x, y };
+
+      const force = Math.pow(1 - distance / radius, 2.15);
+      const normalX = distance ? dx / distance : 0;
+      const normalY = distance ? dy / distance : 0;
+      const ripple = Math.sin(time + distance * .028) * 2.2 * force;
+      const bulge = 22 * force + ripple;
+      const tangent = Math.sin(time * .65 + x * .01 + y * .008) * 1.6 * force;
+
+      return {
+        x: x + normalX * bulge - normalY * tangent,
+        y: y + normalY * bulge + normalX * tangent
+      };
+    }
+
+    function getGridParallaxOffset(spacing) {
+      return {
+        offsetX: ((state.panX * .28) % spacing + spacing) % spacing,
+        offsetY: ((state.panY * .28) % spacing + spacing) % spacing
+      };
+    }
+
+    function drawWarpedGridLine(fixed, start, end, horizontal, progress, step, time) {
+      const easedProgress = progress * progress * (3 - 2 * progress);
+      const revealHead = lerp(start, end, easedProgress);
+      const first = horizontal
+        ? getWarpedGridPoint(start, fixed, time)
+        : getWarpedGridPoint(fixed, start, time);
+
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      let previous = first;
+
+      for (let position = start + step; position <= revealHead; position += step) {
+        const current = horizontal
+          ? getWarpedGridPoint(position, fixed, time)
+          : getWarpedGridPoint(fixed, position, time);
+        const mid = {
+          x: (previous.x + current.x) / 2,
+          y: (previous.y + current.y) / 2
+        };
+        ctx.quadraticCurveTo(previous.x, previous.y, mid.x, mid.y);
+        previous = current;
+      }
+
+      const last = horizontal
+        ? getWarpedGridPoint(revealHead, fixed, time)
+        : getWarpedGridPoint(fixed, revealHead, time);
+      ctx.lineTo(last.x, last.y);
+      ctx.stroke();
+    }
+
+    function drawWarpedGrid(elapsed = 9999) {
+      const spacing = 72;
+      const step = 24;
+      const time = performance.now() * .0014;
+      const { offsetX, offsetY } = getGridParallaxOffset(spacing);
+      const rowRevealProgress = clamp((elapsed - 1500) / 900, 0, 1);
+      const columnRevealProgress = clamp((elapsed - 1840) / 940, 0, 1);
+      if (rowRevealProgress <= 0 && columnRevealProgress <= 0) return;
+
+      ctx.save();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(17,17,17,.16)';
+
+      for (let y = -spacing + offsetY; y <= state.height + spacing; y += spacing) {
+        const stagger = clamp((y + spacing) / (state.height + spacing * 2), 0, 1) * .18;
+        const progress = clamp((rowRevealProgress - stagger) / .82, 0, 1);
+        if (progress <= 0) continue;
+        drawWarpedGridLine(y, -spacing + offsetX, state.width + spacing, true, progress, step, time);
+      }
+
+      for (let x = -spacing + offsetX; x <= state.width + spacing; x += spacing) {
+        const stagger = clamp((x + spacing) / (state.width + spacing * 2), 0, 1) * .2;
+        const progress = clamp((columnRevealProgress - stagger) / .8, 0, 1);
+        if (progress <= 0) continue;
+        drawWarpedGridLine(x, -spacing + offsetY, state.height + spacing, false, progress, step, time);
+      }
+
+      ctx.restore();
+    }
+
+    function drawFrame(elapsed) {
+      const w = state.width;
+      const h = state.height;
+      const { origin, points } = getLayout();
+      const startPoint = { x: -w * .18, y: origin.y };
+      const finalMode = elapsed >= 2900;
+      const drawOrigin = finalMode ? applyView(origin) : origin;
+      const branchPoints = finalMode ? getFinalBranchPoints() : points;
+      const absorption = clamp((elapsed - 1040) / 520, 0, 1);
+      const preAbsorbAlpha = 1 - easeInCubic(absorption);
+
+      ctx.clearRect(0, 0, w, h);
+      if (stage.classList.contains('is-complete') || elapsed >= 1500) drawWarpedGrid(elapsed);
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const lineGrow = clamp(elapsed / 1080, 0, 1);
+      const suckProgress = clamp((elapsed - 1080) / 480, 0, 1);
+      const isBeforeBurst = elapsed < 1880;
+      if (isBeforeBurst && (lineGrow > 0 || suckProgress > 0)) {
+        const headBeforeSuck = {
+          x: lerp(startPoint.x, origin.x, easeOutExpo(lineGrow)),
+          y: origin.y
+        };
+        const tailBeforeSuck = startPoint;
+        const pull = easeInCubic(suckProgress);
+        const head = {
+          x: lerp(headBeforeSuck.x, origin.x, pull),
+          y: origin.y
+        };
+        const tail = {
+          x: lerp(tailBeforeSuck.x, origin.x, pull),
+          y: origin.y
+        };
+        const alpha = suckProgress > 0 ? 1 : .96;
+        if (Math.abs(head.x - tail.x) > 1) {
+          ctx.beginPath();
+          ctx.moveTo(tail.x, tail.y);
+          ctx.lineTo(head.x, head.y);
+          ctx.lineWidth = lerp(2.1, 1.4, pull);
+          ctx.strokeStyle = `rgba(17,17,17,${alpha})`;
+          ctx.stroke();
+        }
+      }
+
+      const pauseProgress = clamp((elapsed - 1560) / 340, 0, 1);
+      if (pauseProgress > 0 && pauseProgress < 1) {
+        ctx.beginPath();
+        ctx.arc(drawOrigin.x, drawOrigin.y, lerp(0, 18, easeOutCubic(pauseProgress)), 0, Math.PI * 2);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(17,17,17,${.34 * (1 - pauseProgress)})`;
+        ctx.stroke();
+      }
+
+      const burstProgress = clamp((elapsed - 1880) / 760, 0, 1);
+      if (burstProgress > 0) {
+        branchPoints.forEach((point, index) => {
+          const p = clamp((burstProgress - index * .035) / .82, 0, 1);
+          if (p <= 0) return;
+          drawLine(drawOrigin, point, easeOutExpo(p), index === 1 ? 1.45 : 1.25, .9);
+          if (p > .92) {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 2.8, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(124,60,255,.9)';
+            ctx.fill();
+          }
+        });
+
+        ctx.beginPath();
+        ctx.arc(drawOrigin.x, drawOrigin.y, lerp(4, 52, easeOutCubic(burstProgress)), 0, Math.PI * 2);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(124,60,255,${.34 * (1 - burstProgress)})`;
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function animate(now) {
+      if (!state.running) return;
+      const elapsed = now - state.startTime;
+      drawFrame(elapsed);
+      if (elapsed < 2900) {
+        requestAnimationFrame(animate);
+      } else {
+        stage.classList.add('is-complete');
+        state.running = false;
+        positionCategories();
+        drawFrame(9999);
+        startCursorFieldLoop();
+      }
+    }
+
+    function startTransition() {
+      home.classList.add('is-running');
+      stage.classList.remove('run', 'is-complete');
+      stage.classList.add('is-active');
+      drawer.classList.remove('is-visible');
+      state.panX = 0;
+      state.panY = 0;
+      state.zoom = 1;
+      if (state.cursorLoop) {
+        cancelAnimationFrame(state.cursorLoop);
+        state.cursorLoop = 0;
+      }
+      positionCategories();
+      state.running = true;
+      state.startTime = performance.now();
+      requestAnimationFrame(animate);
+      requestAnimationFrame(() => stage.classList.add('run'));
+    }
+
+    start.addEventListener('click', startTransition);
+
+    function updatePan(nextX, nextY) {
+      state.panX = clamp(nextX, -state.width * .3, state.width * .3);
+      state.panY = clamp(nextY, -state.height * .3, state.height * .3);
+      positionCategories();
+      drawFrame(9999);
+    }
+
+    function updateZoom(wheelDeltaY) {
+      state.zoom = clamp(state.zoom - wheelDeltaY * 0.0012, 0.8, 1.2);
+      positionCategories();
+      drawFrame(9999);
+    }
+
+    function startCursorFieldLoop() {
+      if (state.cursorLoop) return;
+      const tick = () => {
+        if (!stage.classList.contains('is-active')) {
+          state.cursorLoop = 0;
+          return;
+        }
+        drawFrame(9999);
+        state.cursorLoop = requestAnimationFrame(tick);
+      };
+      state.cursorLoop = requestAnimationFrame(tick);
+    }
+
+    function updateDrawerPosition(nextLeft, nextTop) {
+      const rect = drawer.getBoundingClientRect();
+      const width = rect.width || Math.min(780, window.innerWidth - 56);
+      const height = Math.min(rect.height || window.innerHeight * .76, window.innerHeight - 56);
+      const left = clamp(nextLeft, 18, window.innerWidth - width - 18);
+      const top = clamp(nextTop, 18, window.innerHeight - height - 18);
+
+      drawer.style.setProperty('--drawer-expanded-left', `${left}px`);
+      drawer.style.setProperty('--drawer-expanded-top', `${top}px`);
+    }
+
+    function closeDrawer() {
+      if (!drawer.classList.contains('is-visible')) return;
+      drawer.style.setProperty('--drawer-left', `var(--drawer-origin-left)`);
+      drawer.style.setProperty('--drawer-top', `var(--drawer-origin-top)`);
+      drawer.style.setProperty('--drawer-width', `var(--drawer-origin-width)`);
+      drawer.style.setProperty('--drawer-height', `var(--drawer-origin-height)`);
+      drawer.classList.remove('is-expanded');
+      window.clearTimeout(state.drawerCloseTimer);
+      state.drawerCloseTimer = window.setTimeout(() => drawer.classList.remove('is-visible'), 170);
+    }
+
+    stage.addEventListener('pointerdown', (event) => {
+      if (!stage.classList.contains('is-complete')) return;
+      if (event.target.closest('.category')) return;
+      state.dragging = true;
+      state.mapDragMoved = false;
+      state.dragStartX = event.clientX;
+      state.dragStartY = event.clientY;
+      state.panStartX = state.panX;
+      state.panStartY = state.panY;
+      stage.classList.add('is-dragging');
+      stage.setPointerCapture?.(event.pointerId);
+    });
+
+    stage.addEventListener('pointermove', (event) => {
+      state.cursorX = lerp(state.cursorX, event.clientX, .32);
+      state.cursorY = lerp(state.cursorY, event.clientY, .32);
+      if (!state.dragging) return;
+      if (Math.hypot(event.clientX - state.dragStartX, event.clientY - state.dragStartY) > 5) {
+        state.mapDragMoved = true;
+      }
+      updatePan(
+        state.panStartX + event.clientX - state.dragStartX,
+        state.panStartY + event.clientY - state.dragStartY
+      );
+      if (!state.dragging) drawFrame(9999);
+    });
+
+    function stopDragging(event) {
+      if (!state.dragging) return;
+      state.dragging = false;
+      stage.classList.remove('is-dragging');
+      stage.releasePointerCapture?.(event.pointerId);
+    }
+
+    stage.addEventListener('pointerup', stopDragging);
+    stage.addEventListener('pointercancel', stopDragging);
+
+    stage.addEventListener('wheel', (event) => {
+      if (!stage.classList.contains('is-complete')) return;
+      event.preventDefault();
+      updateZoom(event.deltaY);
+    }, { passive: false });
+
+    stage.addEventListener('click', (event) => {
+      const category = event.target.closest('.category');
+      if (category) {
+        openDrawerFromCategory(category);
+        return;
+      }
+      if (state.mapDragMoved) {
+        state.mapDragMoved = false;
+        return;
+      }
+      closeDrawer();
+    });
+
+    drawer.addEventListener('mouseover', (event) => {
+      const row = event.target.closest('.plugin-row');
+      if (!row) return;
+      setDrawerNote(row.dataset.detail || row.dataset.use);
+    });
+
+    drawer.addEventListener('focusin', (event) => {
+      const row = event.target.closest('.plugin-row');
+      if (!row) return;
+      setDrawerNote(row.dataset.detail || row.dataset.use);
+    });
+
+    drawer.addEventListener('pointerdown', (event) => {
+      if (!drawer.classList.contains('is-expanded')) return;
+      if (event.target.closest('.plugin-row')) return;
+      const rect = drawer.getBoundingClientRect();
+
+      state.drawerDragging = true;
+      state.drawerDragStartX = event.clientX;
+      state.drawerDragStartY = event.clientY;
+      state.drawerStartLeft = rect.left;
+      state.drawerStartTop = rect.top;
+      drawer.classList.add('is-dragging');
+      drawer.setPointerCapture?.(event.pointerId);
+      event.stopPropagation();
+    });
+
+    drawer.addEventListener('pointermove', (event) => {
+      if (!state.drawerDragging) return;
+      updateDrawerPosition(
+        state.drawerStartLeft + event.clientX - state.drawerDragStartX,
+        state.drawerStartTop + event.clientY - state.drawerDragStartY
+      );
+    });
+
+    function stopDrawerDragging(event) {
+      if (!state.drawerDragging) return;
+      state.drawerDragging = false;
+      drawer.classList.remove('is-dragging');
+      drawer.releasePointerCapture?.(event.pointerId);
+    }
+
+    drawer.addEventListener('pointerup', stopDrawerDragging);
+    drawer.addEventListener('pointercancel', stopDrawerDragging);
+
+    window.addEventListener('pointermove', (event) => {
+      if (!stage.classList.contains('is-complete') || state.dragging) return;
+      state.cursorX = lerp(state.cursorX, event.clientX, .22);
+      state.cursorY = lerp(state.cursorY, event.clientY, .22);
+      drawFrame(9999);
+    });
+
+    function renderDrawer(index = 0) {
+      const data = pluginCategories[index] || pluginCategories[0];
+      drawer.querySelector('h2').textContent = data.title;
+      drawer.querySelector('p').textContent = data.description;
+      drawer.querySelector('.plugin-list').innerHTML = data.items.map(([company, plugin, use, url], rowIndex) => `
+        <a class="plugin-row" href="${url}" target="_blank" rel="noopener noreferrer" data-use="${use}" data-detail="${getPluginDetail(plugin, use)}" style="animation-delay:${rowIndex * 26}ms">
+          <span>${company}</span>
+          <strong>${plugin}</strong>
+          <em>${use}</em>
+        </a>
+      `).join('');
+      setDrawerNote(data.note || '행에 마우스를 올리면 해당 플러그인을 언제 쓰는지 여기에 표시됩니다.');
+    }
+
+    function setDrawerNote(text) {
+      const note = drawer.querySelector('.drawer-note');
+      note.textContent = text;
+      note.hidden = !text;
+    }
+
+    function openDrawerFromCategory(category) {
+      const rect = category.getBoundingClientRect();
+      const expandedWidth = Math.min(780, window.innerWidth - 56);
+      const expandedHeight = Math.min(window.innerHeight * .76, 720);
+      const expandedLeft = clamp(rect.left, 28, window.innerWidth - expandedWidth - 28);
+      const expandedTop = clamp(rect.top, 28, window.innerHeight - expandedHeight - 28);
+
+      state.drawerOriginLeft = rect.left;
+      state.drawerOriginTop = rect.top;
+      state.drawerOriginWidth = rect.width;
+      state.drawerOriginHeight = rect.height;
+      window.clearTimeout(state.drawerCloseTimer);
+      drawer.classList.remove('is-visible', 'is-expanded');
+      drawer.style.setProperty('--drawer-origin-left', `${state.drawerOriginLeft}px`);
+      drawer.style.setProperty('--drawer-origin-top', `${state.drawerOriginTop}px`);
+      drawer.style.setProperty('--drawer-origin-width', `${state.drawerOriginWidth}px`);
+      drawer.style.setProperty('--drawer-origin-height', `${state.drawerOriginHeight}px`);
+      drawer.style.setProperty('--drawer-left', `var(--drawer-origin-left)`);
+      drawer.style.setProperty('--drawer-top', `var(--drawer-origin-top)`);
+      drawer.style.setProperty('--drawer-width', `var(--drawer-origin-width)`);
+      drawer.style.setProperty('--drawer-height', `var(--drawer-origin-height)`);
+      drawer.style.setProperty('--drawer-expanded-left', `${expandedLeft}px`);
+      drawer.style.setProperty('--drawer-expanded-top', `${expandedTop}px`);
+      drawer.style.setProperty('--drawer-expanded-width', `${expandedWidth}px`);
+      drawer.style.setProperty('--drawer-expanded-height', `${expandedHeight}px`);
+      renderDrawer(Number(category.dataset.index));
+
+      requestAnimationFrame(() => {
+        drawer.classList.add('is-visible');
+        requestAnimationFrame(() => drawer.classList.add('is-expanded'));
+      });
+    }
+
+    window.addEventListener('resize', resize);
+    renderDrawer(0);
+    resize();
+  </script>
+</body>
+</html>
