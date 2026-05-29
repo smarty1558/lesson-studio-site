@@ -26,6 +26,14 @@ test('free plugin navigation opens an in-page portal instead of leaving the home
     assert.match(styleSource, /\.site-shell\.is-free-plugin-launching\s*\{[^}]*translateX\(-18vw\)/s);
 });
 
+test('home cursor receives pointer updates from the embedded free plugin preview', () => {
+    assert.match(mainSource, /window\.addEventListener\('message'/);
+    assert.match(mainSource, /data\.type === 'free-plugin-cursor'/);
+    assert.match(mainSource, /mouseX = Number\(data\.x\) \|\| mouseX/);
+    assert.match(mainSource, /cursorPill\.classList\.toggle\('is-visible', Boolean\(data\.active\)\)/);
+    assert.match(mainSource, /data\.type === 'free-plugin-cursor-press'/);
+});
+
 test('free plugin page is branded as part of the studio site', () => {
     assert.match(freePluginSource, /<title>무료 플러그인 \| 오타쿠 뮤직 스튜디오<\/title>/);
     assert.match(freePluginSource, /<div class="brand">오타쿠 뮤직 스튜디오<\/div>/);

@@ -1024,6 +1024,24 @@ const initSite = () => {
             cursorPill.classList.toggle('is-visible', Boolean(activeCursorTarget));
         }, { passive: true });
 
+        window.addEventListener('message', (event) => {
+            if (event.origin !== window.location.origin) return;
+            const data = event.data;
+            if (!data || typeof data !== 'object') return;
+
+            if (data.type === 'free-plugin-cursor') {
+                mouseX = Number(data.x) || mouseX;
+                mouseY = Number(data.y) || mouseY;
+                activeCursorTarget = data.active ? freePluginPortal : null;
+                document.body.classList.toggle('view-cursor-active', Boolean(data.active));
+                cursorPill.classList.toggle('is-visible', Boolean(data.active));
+            }
+
+            if (data.type === 'free-plugin-cursor-press') {
+                cursorPill.classList.toggle('is-pressed', Boolean(data.pressed));
+            }
+        });
+
         cursorTargets.forEach((target) => {
             target.addEventListener('mouseenter', () => {
                 document.body.classList.add('view-cursor-active');
