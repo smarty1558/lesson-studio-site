@@ -6,6 +6,7 @@
   <title>무료 플러그인 | 오타쿠 뮤직 스튜디오</title>
   <style>
     :root {
+      --hidden-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1' viewBox='0 0 1 1'%3E%3C/svg%3E") 0 0, none;
       --paper: #fbfbf7;
       --ink: #111111;
       --muted: #6d6d68;
@@ -15,6 +16,13 @@
     }
 
     * { box-sizing: border-box; }
+
+    html,
+    html *,
+    body,
+    body * {
+      cursor: var(--hidden-cursor) !important;
+    }
 
     body {
       margin: 0;
@@ -132,11 +140,11 @@
 
     .stage.is-complete {
       pointer-events: auto;
-      cursor: grab;
+      cursor: grab !important;
     }
 
     .stage.is-complete.is-dragging {
-      cursor: grabbing;
+      cursor: grabbing !important;
     }
 
     .grid {
@@ -302,12 +310,19 @@
       width: var(--drawer-expanded-width, min(780px, calc(100vw - 56px)));
       max-height: var(--drawer-expanded-height, min(76vh, 720px));
       pointer-events: auto;
-      cursor: grab;
+      cursor: grab !important;
     }
 
     .drawer.is-dragging {
-      cursor: grabbing;
+      cursor: grabbing !important;
       transition: none;
+    }
+
+    .stage.is-complete .category,
+    .drawer.is-expanded .plugin-row,
+    .site-back,
+    .trigger {
+      cursor: var(--hidden-cursor) !important;
     }
 
     .drawer h2 {
