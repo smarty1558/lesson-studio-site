@@ -1255,6 +1255,45 @@ textarea:focus {
     font-weight: 700;
 }
 
+.site-shell {
+    transform-origin: center center;
+    transition:
+        opacity 0.28s ease,
+        transform 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.site-shell.is-free-plugin-launching {
+    opacity: 0.08;
+    transform: translateX(-18vw);
+}
+
+.free-plugin-portal {
+    position: fixed;
+    inset: 0;
+    z-index: 2600;
+    background: #fbfbf7;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+.free-plugin-portal.is-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.free-plugin-portal[hidden] {
+    display: none;
+}
+
+.free-plugin-portal iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #fbfbf7;
+}
+
 .mobile-cta {
     position: fixed;
     left: 12px;

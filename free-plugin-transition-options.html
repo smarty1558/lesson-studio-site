@@ -1276,6 +1276,10 @@
     window.addEventListener('resize', resize);
     renderDrawer(0);
     resize();
+
+    if (new URLSearchParams(window.location.search).has('autostart')) {
+      requestAnimationFrame(startTransition);
+    }
   </script>
 </body>
 </html>

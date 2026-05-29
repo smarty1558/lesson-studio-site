@@ -800,6 +800,27 @@ const initSite = () => {
     updateNav();
     window.addEventListener('scroll', updateNav, { passive: true });
 
+    const freePluginPortal = document.querySelector('[data-free-plugin-portal]');
+    const freePluginFrame = freePluginPortal?.querySelector('[data-free-plugin-frame]');
+    const freePluginLaunchers = document.querySelectorAll('[data-free-plugin-launch]');
+    const appShell = document.getElementById('app');
+    const openFreePluginPortal = (event) => {
+        if (!freePluginPortal || !freePluginFrame) return;
+
+        event.preventDefault();
+        freePluginFrame.src = './free-plugin-transition-options.html?autostart=1&embed=1';
+        freePluginPortal.hidden = false;
+        document.body.classList.add('free-plugin-portal-open');
+        appShell?.classList.add('is-free-plugin-launching');
+        window.requestAnimationFrame(() => {
+            freePluginPortal.classList.add('is-active');
+        });
+    };
+
+    freePluginLaunchers.forEach((launcher) => {
+        launcher.addEventListener('click', openFreePluginPortal);
+    });
+
     const contactForm = document.getElementById('contact-form');
     const contactSection = document.getElementById('contact');
     const contactCard = document.querySelector('.cta-card');
