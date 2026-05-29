@@ -6,6 +6,7 @@
   <title>무료 플러그인 | 오타쿠 뮤직 스튜디오</title>
   <style>
     :root {
+      --hidden-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1' viewBox='0 0 1 1'%3E%3C/svg%3E") 0 0, none;
       --paper: #fbfbf7;
       --ink: #111111;
       --muted: #6d6d68;
@@ -15,6 +16,13 @@
     }
 
     * { box-sizing: border-box; }
+
+    html,
+    html *,
+    body,
+    body * {
+      cursor: var(--hidden-cursor) !important;
+    }
 
     body {
       margin: 0;
@@ -367,6 +375,57 @@
       line-height: 1.55;
     }
 
+    .view-cursor-dot,
+    .view-cursor-pill {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 3000;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    .view-cursor-dot {
+      width: 15px;
+      height: 15px;
+      border-radius: 999px;
+      background: #7c3aed;
+      box-shadow: 0 0 0 7px rgba(124, 58, 237, .11), 0 8px 22px rgba(124, 58, 237, .24);
+      opacity: .92;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .view-cursor-pill {
+      display: grid;
+      place-items: center;
+      min-width: 72px;
+      height: 34px;
+      border: 1px solid rgba(124, 58, 237, .18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .9);
+      color: #7c3aed;
+      font-family: "Outfit", "Noto Sans KR", Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0;
+      box-shadow: 0 10px 24px rgba(124, 58, 237, .1);
+      opacity: 0;
+      transform-origin: center center;
+      transition: opacity .18s ease;
+    }
+
+    .view-cursor-pill.is-visible {
+      opacity: 1;
+    }
+
+    .view-cursor-pill.is-pressed {
+      box-shadow: 0 3px 0 #ddd6fe;
+    }
+
+    body.view-cursor-active .view-cursor-dot {
+      opacity: 0;
+    }
+
     @keyframes gridIn {
       to { opacity: .52; transform: scale(1); }
     }
@@ -399,6 +458,20 @@
       }
       .plugin-row {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (pointer: coarse) {
+      html,
+      html *,
+      body,
+      body * {
+        cursor: auto !important;
+      }
+
+      .view-cursor-dot,
+      .view-cursor-pill {
+        display: none;
       }
     }
 
@@ -462,6 +535,8 @@
     const ctx = canvas.getContext('2d');
     const drawer = document.getElementById('drawer');
     const categories = [...document.querySelectorAll('.category')];
+    const cursorDot = document.createElement('div');
+    const cursorPill = document.createElement('div');
     const pluginCategories = [
       {
         title: '처음 설치 세트',
@@ -635,6 +710,10 @@
       drawerOriginHeight: 0,
       cursorX: window.innerWidth / 2,
       cursorY: window.innerHeight / 2,
+      pointerX: window.innerWidth / 2,
+      pointerY: window.innerHeight / 2,
+      pillX: window.innerWidth / 2,
+      pillY: window.innerHeight / 2,
       cursorLoop: 0
     };
 
@@ -1095,6 +1174,29 @@
       state.cursorLoop = requestAnimationFrame(tick);
     }
 
+    function renderViewCursor() {
+      state.pillX += (state.pointerX - state.pillX) * .22;
+      state.pillY += (state.pointerY - state.pillY) * .22;
+      cursorDot.style.transform = `translate3d(${state.pointerX}px, ${state.pointerY}px, 0) translate(-50%, -50%)`;
+      const pillScale = cursorPill.classList.contains('is-pressed')
+        ? .9
+        : cursorPill.classList.contains('is-visible')
+          ? 1
+          : .72;
+      cursorPill.style.transform = `translate3d(${state.pillX + 28}px, ${state.pillY + 18}px, 0) translate(-50%, -50%) scale(${pillScale})`;
+      requestAnimationFrame(renderViewCursor);
+    }
+
+    function initViewCursor() {
+      cursorDot.className = 'view-cursor-dot';
+      cursorPill.className = 'view-cursor-pill';
+      cursorPill.textContent = 'VIEW';
+      cursorDot.setAttribute('aria-hidden', 'true');
+      cursorPill.setAttribute('aria-hidden', 'true');
+      document.body.append(cursorDot, cursorPill);
+      requestAnimationFrame(renderViewCursor);
+    }
+
     function updateDrawerPosition(nextLeft, nextTop) {
       const rect = drawer.getBoundingClientRect();
       const width = rect.width || Math.min(780, window.innerWidth - 56);
@@ -1131,6 +1233,8 @@
     });
 
     stage.addEventListener('pointermove', (event) => {
+      state.pointerX = event.clientX;
+      state.pointerY = event.clientY;
       state.cursorX = lerp(state.cursorX, event.clientX, .32);
       state.cursorY = lerp(state.cursorY, event.clientY, .32);
       if (!state.dragging) return;
@@ -1201,6 +1305,8 @@
     });
 
     drawer.addEventListener('pointermove', (event) => {
+      state.pointerX = event.clientX;
+      state.pointerY = event.clientY;
       if (!state.drawerDragging) return;
       updateDrawerPosition(
         state.drawerStartLeft + event.clientX - state.drawerDragStartX,
@@ -1219,10 +1325,23 @@
     drawer.addEventListener('pointercancel', stopDrawerDragging);
 
     window.addEventListener('pointermove', (event) => {
+      state.pointerX = event.clientX;
+      state.pointerY = event.clientY;
+      const viewTarget = event.target.closest('.category, .plugin-row, .site-back, .trigger');
+      document.body.classList.toggle('view-cursor-active', Boolean(viewTarget));
+      cursorPill.classList.toggle('is-visible', Boolean(viewTarget));
       if (!stage.classList.contains('is-complete') || state.dragging) return;
       state.cursorX = lerp(state.cursorX, event.clientX, .22);
       state.cursorY = lerp(state.cursorY, event.clientY, .22);
       drawFrame(9999);
+    });
+
+    window.addEventListener('pointerdown', () => {
+      cursorPill.classList.add('is-pressed');
+    });
+
+    window.addEventListener('pointerup', () => {
+      cursorPill.classList.remove('is-pressed');
     });
 
     function renderDrawer(index = 0) {
@@ -1279,6 +1398,7 @@
     }
 
     window.addEventListener('resize', resize);
+    initViewCursor();
     renderDrawer(0);
     resize();
 
