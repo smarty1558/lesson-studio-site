@@ -12,6 +12,129 @@ import { getPortfolioItemsForTarget } from './portfolio-data.js';
 
 const uploadTesterMarkup = '';
 const DEFAULT_PORTFOLIO_IMAGE = new URL('./portfolio-default-cover.png', import.meta.url).href;
+const AUDIO_PREVIEW_VOLUME_KEY = 'osumAudioPreviewVolume';
+const DEFAULT_AUDIO_PREVIEW_VOLUME = 0.45;
+
+const readAudioPreviewVolume = () => {
+    try {
+        const storedVolume = Number(localStorage.getItem(AUDIO_PREVIEW_VOLUME_KEY));
+        return Number.isFinite(storedVolume) ? Math.min(1, Math.max(0, storedVolume)) : DEFAULT_AUDIO_PREVIEW_VOLUME;
+    } catch {
+        return DEFAULT_AUDIO_PREVIEW_VOLUME;
+    }
+};
+
+const writeAudioPreviewVolume = (volume) => {
+    try {
+        localStorage.setItem(AUDIO_PREVIEW_VOLUME_KEY, String(Math.min(1, Math.max(0, Number(volume)))));
+    } catch {
+        // localStorage can be unavailable in private or embedded contexts.
+    }
+};
+
+const applyAudioPreviewVolume = (volume, sourceAudio = null) => {
+    document.querySelectorAll('audio[data-osum-audio-preview]').forEach((audio) => {
+        if (audio !== sourceAudio) audio.volume = volume;
+    });
+};
+
+const formatAudioTime = (seconds = 0) => {
+    if (!Number.isFinite(seconds)) return '0:00';
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${remainingSeconds}`;
+};
+
+const renderOsumAudioPlayer = (item) => `
+    <div class="osum-audio-player" data-osum-audio-player>
+        <audio data-osum-audio-preview preload="metadata" src="${item.audioUrl}"></audio>
+        <div class="osum-audio-volume">
+            <div class="osum-audio-volume-popover" data-volume-popover>
+                <input type="range" min="0" max="1" step="0.01" value="${DEFAULT_AUDIO_PREVIEW_VOLUME}" aria-label="음원 볼륨" data-audio-volume>
+            </div>
+            <button type="button" class="osum-audio-volume-button" aria-label="볼륨 조절">VOL</button>
+        </div>
+        <div class="osum-audio-chip">
+            <button type="button" class="osum-audio-play" aria-label="음원 재생" data-audio-toggle>▶</button>
+            <div class="osum-audio-main">
+                <div class="osum-audio-head">
+                    <strong>${item.title || 'Portfolio Audio'}</strong>
+                    <span data-audio-current>0:00</span>
+                </div>
+                <div class="osum-audio-progress" data-audio-seek>
+                    <span data-audio-progress></span>
+                </div>
+                <div class="osum-audio-meta">
+                    <span>${item.credits || item.format || item.mediaType || 'Audio'}</span>
+                    <span data-audio-duration>0:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+`;
+
+const bindAudioPreviewVolume = (root = document) => {
+    root.querySelectorAll('audio[data-osum-audio-preview]').forEach((audio) => {
+        if (audio.dataset.volumeBound === 'true') return;
+
+        audio.dataset.volumeBound = 'true';
+        audio.volume = readAudioPreviewVolume();
+        const player = audio.closest('[data-osum-audio-player]');
+        const volumeInput = player?.querySelector('[data-audio-volume]');
+        if (volumeInput) volumeInput.value = String(audio.volume);
+        audio.addEventListener('volumechange', () => {
+            writeAudioPreviewVolume(audio.volume);
+            applyAudioPreviewVolume(audio.volume, audio);
+            document.querySelectorAll('[data-audio-volume]').forEach((input) => {
+                input.value = String(audio.volume);
+            });
+        });
+
+        const playButton = player?.querySelector('[data-audio-toggle]');
+        const progressFill = player?.querySelector('[data-audio-progress]');
+        const seekTarget = player?.querySelector('[data-audio-seek]');
+        const currentTarget = player?.querySelector('[data-audio-current]');
+        const durationTarget = player?.querySelector('[data-audio-duration]');
+
+        const syncProgress = () => {
+            const duration = audio.duration || 0;
+            const percent = duration ? Math.min(100, (audio.currentTime / duration) * 100) : 0;
+            if (progressFill) progressFill.style.width = `${percent}%`;
+            if (currentTarget) currentTarget.textContent = formatAudioTime(audio.currentTime);
+            if (durationTarget) durationTarget.textContent = formatAudioTime(duration);
+        };
+
+        playButton?.addEventListener('click', () => {
+            if (audio.paused) {
+                document.querySelectorAll('audio[data-osum-audio-preview]').forEach((otherAudio) => {
+                    if (otherAudio !== audio) otherAudio.pause();
+                });
+                audio.play();
+            } else {
+                audio.pause();
+            }
+        });
+
+        audio.addEventListener('play', () => {
+            if (playButton) playButton.textContent = 'Ⅱ';
+        });
+        audio.addEventListener('pause', () => {
+            if (playButton) playButton.textContent = '▶';
+        });
+        audio.addEventListener('loadedmetadata', syncProgress);
+        audio.addEventListener('timeupdate', syncProgress);
+        seekTarget?.addEventListener('click', (event) => {
+            if (!audio.duration) return;
+            const rect = seekTarget.getBoundingClientRect();
+            audio.currentTime = ((event.clientX - rect.left) / rect.width) * audio.duration;
+        });
+        volumeInput?.addEventListener('input', () => {
+            audio.volume = Number(volumeInput.value);
+        });
+        syncProgress();
+    });
+};
 
 const toDisplayList = (...values) => values.flatMap((value) => {
     if (Array.isArray(value)) return value.filter(Boolean);
@@ -135,7 +258,7 @@ const renderTeacherWorkMedia = (item) => {
     if (item.audioUrl) {
         return `
             <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-                <audio controls src="${item.audioUrl}"></audio>
+                ${renderOsumAudioPlayer(item)}
             </div>
         `;
     }
@@ -259,7 +382,7 @@ const renderStandaloneAdminPage = () => {
         if (item.audioUrl) {
             return `
                 <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-                    <audio controls src="${item.audioUrl}"></audio>
+                    ${renderOsumAudioPlayer(item)}
                 </div>
             `;
         }
@@ -747,6 +870,16 @@ const initSite = () => {
         renderUnifiedAdminPage();
         return;
     }
+
+    bindAudioPreviewVolume();
+    const audioPreviewObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node instanceof Element) bindAudioPreviewVolume(node);
+            });
+        });
+    });
+    audioPreviewObserver.observe(document.body, { childList: true, subtree: true });
 
     const observerOptions = {
         threshold: 0.12,
@@ -2260,7 +2393,7 @@ const initSite = () => {
             if (item.audioUrl) {
                 return `
                     <div class="expanded-media-frame has-audio ${hasImage ? '' : 'is-missing-image'}"${imageStyle}>
-                        <audio controls src="${item.audioUrl}"></audio>
+                        ${renderOsumAudioPlayer(item)}
                     </div>
                 `;
             }

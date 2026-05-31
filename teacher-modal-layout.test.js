@@ -95,6 +95,24 @@ test('teacher work detail uses the portfolio consultation CTA label and spacing'
     assert.match(css, /\.portfolio-detail-cta:active,\s*\.portfolio-back:active\s*\{[^}]*transform:\s*translateY\(0\)\s*scale\(0\.98\)\s*;/s);
 });
 
+test('audio portfolio players share and cache the same volume', () => {
+    assert.match(js, /const AUDIO_PREVIEW_VOLUME_KEY = 'osumAudioPreviewVolume';/);
+    assert.match(js, /const readAudioPreviewVolume = \(\) =>/);
+    assert.match(js, /localStorage\.setItem\(AUDIO_PREVIEW_VOLUME_KEY/);
+    assert.match(js, /querySelectorAll\('audio\[data-osum-audio-preview\]'\)/);
+    assert.match(js, /audio\.addEventListener\('volumechange'/);
+    assert.match(js, /const renderOsumAudioPlayer = \(item\) =>/);
+    assert.match(js, /class="osum-audio-player"/);
+    assert.match(js, /data-audio-toggle/);
+    assert.match(js, /data-audio-volume/);
+    assert.match(js, /data-volume-popover/);
+    assert.match(js, /<audio data-osum-audio-preview preload="metadata" src="\$\{item\.audioUrl\}"><\/audio>/);
+    assert.match(css, /\.osum-audio-player\s*\{/);
+    assert.match(css, /\.osum-audio-volume-popover\s*\{/);
+    assert.match(css, /\.osum-audio-volume:hover \.osum-audio-volume-popover,/);
+    assert.match(css, /\.osum-audio-volume:focus-within \.osum-audio-volume-popover\s*\{/);
+});
+
 test('portfolio side list shows title and credits only', () => {
     assert.match(js, /<h4>\$\{enriched\.title\}<\/h4>\s*<p>\$\{enriched\.credits\}<\/p>/);
     assert.doesNotMatch(js, /<span class="media-pill">\$\{enriched\.category \|\| enriched\.mediaType\}<\/span>\s*<h4>\$\{enriched\.title\}<\/h4>\s*<p>\$\{enriched\.desc/);
