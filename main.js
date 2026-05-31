@@ -49,12 +49,6 @@ const formatAudioTime = (seconds = 0) => {
 const renderOsumAudioPlayer = (item) => `
     <div class="osum-audio-player" data-osum-audio-player>
         <audio data-osum-audio-preview preload="metadata" src="${item.audioUrl}"></audio>
-        <div class="osum-audio-volume">
-            <div class="osum-audio-volume-popover" data-volume-popover>
-                <input type="range" min="0" max="1" step="0.01" value="${DEFAULT_AUDIO_PREVIEW_VOLUME}" aria-label="음원 볼륨" data-audio-volume>
-            </div>
-            <button type="button" class="osum-audio-volume-button" aria-label="볼륨 조절">VOL</button>
-        </div>
         <div class="osum-audio-chip">
             <button type="button" class="osum-audio-play" aria-label="음원 재생" data-audio-toggle>▶</button>
             <div class="osum-audio-main">
@@ -67,7 +61,13 @@ const renderOsumAudioPlayer = (item) => `
                 </div>
                 <div class="osum-audio-meta">
                     <span>${item.credits || item.format || item.mediaType || 'Audio'}</span>
-                    <span data-audio-duration>0:00</span>
+                    <div class="osum-audio-volume-inline">
+                        <span data-audio-duration>0:00</span>
+                        <label>
+                            <span>VOL</span>
+                            <input type="range" min="0" max="1" step="0.01" value="${DEFAULT_AUDIO_PREVIEW_VOLUME}" aria-label="음원 볼륨" data-audio-volume>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>

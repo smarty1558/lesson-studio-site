@@ -105,12 +105,13 @@ test('audio portfolio players share and cache the same volume', () => {
     assert.match(js, /class="osum-audio-player"/);
     assert.match(js, /data-audio-toggle/);
     assert.match(js, /data-audio-volume/);
-    assert.match(js, /data-volume-popover/);
+    assert.match(js, /class="osum-audio-volume-inline"/);
+    assert.doesNotMatch(js, /data-volume-popover/);
     assert.match(js, /<audio data-osum-audio-preview preload="metadata" src="\$\{item\.audioUrl\}"><\/audio>/);
     assert.match(css, /\.osum-audio-player\s*\{/);
-    assert.match(css, /\.osum-audio-volume-popover\s*\{/);
-    assert.match(css, /\.osum-audio-volume:hover \.osum-audio-volume-popover,/);
-    assert.match(css, /\.osum-audio-volume:focus-within \.osum-audio-volume-popover\s*\{/);
+    assert.match(css, /\.osum-audio-volume-inline\s*\{/);
+    assert.doesNotMatch(css, /\.osum-audio-volume-popover/);
+    assert.doesNotMatch(css, /\.osum-audio-volume:hover/);
 });
 
 test('portfolio side list shows title and credits only', () => {

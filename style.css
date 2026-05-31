@@ -2466,10 +2466,8 @@ textarea:focus {
 }
 
 .osum-audio-play,
-.osum-audio-volume-button {
+.osum-audio-volume-inline input {
     border: 0;
-    cursor: pointer;
-    font-weight: 1000;
 }
 
 .osum-audio-play {
@@ -2536,51 +2534,27 @@ textarea:focus {
     background: linear-gradient(90deg, var(--primary-dark), var(--secondary), var(--mint));
 }
 
-.osum-audio-volume {
-    position: absolute;
-    top: -10px;
-    right: -8px;
-    z-index: 5;
+.osum-audio-volume-inline {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.osum-audio-volume-button {
-    width: 48px;
-    height: 34px;
-    border: 1px solid rgba(255, 255, 255, 0.76);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.9);
+.osum-audio-volume-inline label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.osum-audio-volume-inline label > span {
     color: var(--primary-dark);
     font-size: 0.68rem;
-    box-shadow: 0 10px 24px rgba(23, 32, 51, 0.14);
+    font-weight: 1000;
 }
 
-.osum-audio-volume-popover {
-    width: 128px;
-    padding: 10px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.82);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 14px 28px rgba(23, 32, 51, 0.16);
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(12px) scaleX(0.88);
-    transform-origin: right center;
-    transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.osum-audio-volume:hover .osum-audio-volume-popover,
-.osum-audio-volume:focus-within .osum-audio-volume-popover {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(0) scaleX(1);
-}
-
-.osum-audio-volume-popover input {
-    display: block;
-    width: 100%;
+.osum-audio-volume-inline input {
+    width: 92px;
+    cursor: pointer;
     accent-color: var(--primary-dark);
 }
 
