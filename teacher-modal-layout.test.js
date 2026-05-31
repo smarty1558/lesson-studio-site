@@ -117,6 +117,7 @@ test('audio portfolio players share and cache the same volume', () => {
     assert.match(css, /\.osum-audio-player\s*\{/);
     assert.match(css, /\.osum-audio-volume-inline\s*\{/);
     assert.match(css, /\.osum-audio-chip\s*\{[^}]*grid-template-columns:\s*1fr\s*;/s);
+    assert.match(css, /\.osum-audio-chip\s*\{[^}]*border-radius:\s*22px\s*;/s);
     assert.match(css, /\.osum-audio-topline\s*\{/);
     assert.match(css, /\.osum-audio-bottomline\s*\{/);
     assert.match(css, /\.osum-audio-time-row\s*\{/);
