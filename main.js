@@ -38,6 +38,14 @@ const applyAudioPreviewVolume = (volume, sourceAudio = null) => {
     });
 };
 
+const setAudioVolumeFill = (input, volume) => {
+    if (!input) return;
+    const clampedVolume = Math.min(1, Math.max(0, Number(volume) || 0));
+    const percent = `${Math.round(clampedVolume * 100)}%`;
+    input.style.setProperty('--volume-fill', percent);
+    input.setAttribute('aria-valuetext', percent);
+};
+
 const formatAudioTime = (seconds = 0) => {
     if (!Number.isFinite(seconds)) return '0:00';
 
@@ -82,12 +90,16 @@ const bindAudioPreviewVolume = (root = document) => {
         audio.volume = readAudioPreviewVolume();
         const player = audio.closest('[data-osum-audio-player]');
         const volumeInput = player?.querySelector('[data-audio-volume]');
-        if (volumeInput) volumeInput.value = String(audio.volume);
+        if (volumeInput) {
+            volumeInput.value = String(audio.volume);
+            setAudioVolumeFill(volumeInput, audio.volume);
+        }
         audio.addEventListener('volumechange', () => {
             writeAudioPreviewVolume(audio.volume);
             applyAudioPreviewVolume(audio.volume, audio);
             document.querySelectorAll('[data-audio-volume]').forEach((input) => {
                 input.value = String(audio.volume);
+                setAudioVolumeFill(input, audio.volume);
             });
         });
 
@@ -131,6 +143,7 @@ const bindAudioPreviewVolume = (root = document) => {
         });
         volumeInput?.addEventListener('input', () => {
             audio.volume = Number(volumeInput.value);
+            setAudioVolumeFill(volumeInput, audio.volume);
         });
         syncProgress();
     });

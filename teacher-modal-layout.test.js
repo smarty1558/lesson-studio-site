@@ -99,6 +99,8 @@ test('audio portfolio players share and cache the same volume', () => {
     assert.match(js, /const AUDIO_PREVIEW_VOLUME_KEY = 'osumAudioPreviewVolume';/);
     assert.match(js, /const readAudioPreviewVolume = \(\) =>/);
     assert.match(js, /localStorage\.setItem\(AUDIO_PREVIEW_VOLUME_KEY/);
+    assert.match(js, /const setAudioVolumeFill = \(input,\s*volume\) =>/);
+    assert.match(js, /input\.style\.setProperty\('--volume-fill'/);
     assert.match(js, /querySelectorAll\('audio\[data-osum-audio-preview\]'\)/);
     assert.match(js, /audio\.addEventListener\('volumechange'/);
     assert.match(js, /const renderOsumAudioPlayer = \(item\) =>/);
@@ -110,6 +112,11 @@ test('audio portfolio players share and cache the same volume', () => {
     assert.match(js, /<audio data-osum-audio-preview preload="metadata" src="\$\{item\.audioUrl\}"><\/audio>/);
     assert.match(css, /\.osum-audio-player\s*\{/);
     assert.match(css, /\.osum-audio-volume-inline\s*\{/);
+    assert.match(css, /\.osum-audio-volume-inline input:focus-visible\s*\{\s*outline:\s*none\s*;/);
+    assert.match(css, /\.osum-audio-volume-inline input::-webkit-slider-runnable-track\s*\{/);
+    assert.match(css, /var\(--volume-fill,\s*45%\)/);
+    assert.match(css, /\.osum-audio-volume-inline input::-webkit-slider-thumb\s*\{/);
+    assert.match(css, /\.osum-audio-volume-inline input::-moz-focus-outer\s*\{/);
     assert.doesNotMatch(css, /\.osum-audio-volume-popover/);
     assert.doesNotMatch(css, /\.osum-audio-volume:hover/);
 });
