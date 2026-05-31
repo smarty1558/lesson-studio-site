@@ -2451,12 +2451,12 @@ textarea:focus {
 
 .osum-audio-chip {
     display: grid;
-    grid-template-columns: 54px minmax(0, 1fr);
+    grid-template-columns: 1fr;
     align-items: center;
-    gap: 14px;
-    padding: 15px;
+    gap: 12px;
+    padding: 16px 18px 13px;
     border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: 22px;
+    border-radius: 999px;
     background: rgba(255, 255, 255, 0.86);
     box-shadow:
         inset 0 1px 1px rgba(255, 255, 255, 0.9),
@@ -2490,28 +2490,42 @@ textarea:focus {
 
 .osum-audio-main {
     min-width: 0;
+    display: grid;
+    gap: 9px;
 }
 
-.osum-audio-head,
-.osum-audio-meta {
+.osum-audio-topline {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
+}
+
+.osum-audio-title-group {
+    min-width: 0;
+    display: flex;
+    align-items: center;
     gap: 12px;
 }
 
-.osum-audio-head strong {
+.osum-audio-title-group > div {
+    min-width: 0;
+}
+
+.osum-audio-title-group strong {
+    display: block;
     min-width: 0;
     overflow: hidden;
     color: var(--text-main);
     font-size: 0.98rem;
     font-weight: 1000;
+    line-height: 1.1;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.osum-audio-head span,
-.osum-audio-meta {
+.osum-audio-title-group span,
+.osum-audio-time-row {
     color: var(--text-muted);
     font-size: 0.76rem;
     font-weight: 900;
@@ -2519,7 +2533,6 @@ textarea:focus {
 
 .osum-audio-progress {
     height: 9px;
-    margin: 9px 0 7px;
     overflow: hidden;
     border-radius: 999px;
     background: rgba(23, 32, 51, 0.1);
@@ -2534,7 +2547,21 @@ textarea:focus {
     background: linear-gradient(90deg, var(--primary-dark), var(--secondary), var(--mint));
 }
 
+.osum-audio-bottomline {
+    display: grid;
+    gap: 4px;
+}
+
+.osum-audio-time-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+    line-height: 1;
+}
+
 .osum-audio-volume-inline {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2554,7 +2581,7 @@ textarea:focus {
 
 .osum-audio-volume-inline input {
     --volume-fill: 45%;
-    width: 96px;
+    width: clamp(82px, 11vw, 128px);
     height: 18px;
     margin: 0;
     padding: 0;

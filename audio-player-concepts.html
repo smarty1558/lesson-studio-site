@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSUM Audio Player Concepts</title>
+    <title>Audio Player Layout</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800;900&family=Noto+Sans+KR:wght@600;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --ink: #172033;
@@ -16,7 +16,6 @@
             --blue: #60a5fa;
             --mint: #9af7d2;
             --yellow: #fef08a;
-            --line: rgba(124, 58, 237, 0.16);
         }
 
         * {
@@ -24,34 +23,28 @@
         }
 
         body {
-            margin: 0;
             min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            padding: 40px;
             font-family: "Noto Sans KR", system-ui, sans-serif;
             color: var(--ink);
             background:
-                linear-gradient(135deg, rgba(253, 250, 255, 0.98), rgba(238, 247, 255, 0.94) 54%, rgba(255, 253, 245, 0.96)),
-                #f8f7ff;
+                radial-gradient(circle at 18% 22%, rgba(254, 240, 138, 0.5), transparent 28%),
+                radial-gradient(circle at 78% 18%, rgba(96, 165, 250, 0.34), transparent 30%),
+                linear-gradient(135deg, #fdfaff, #eef7ff 56%, #fffdf5);
         }
 
-        .page {
-            width: min(1240px, calc(100% - 44px));
-            margin: 0 auto;
-            padding: 54px 0 72px;
-        }
-
-        .hero {
-            display: flex;
-            align-items: end;
-            justify-content: space-between;
-            gap: 28px;
-            margin-bottom: 28px;
+        .stage {
+            width: min(880px, 100%);
+            display: grid;
+            gap: 18px;
         }
 
         .kicker {
-            display: inline-flex;
-            min-height: 30px;
-            align-items: center;
-            padding: 0 12px;
+            width: fit-content;
+            padding: 7px 13px;
             border: 1px solid rgba(124, 58, 237, 0.18);
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.72);
@@ -61,177 +54,110 @@
         }
 
         h1 {
-            margin: 14px 0 0;
+            margin: 0;
             font-family: "Outfit", "Noto Sans KR", sans-serif;
-            font-size: clamp(2.4rem, 5vw, 5.1rem);
-            line-height: 0.95;
+            font-size: clamp(2.1rem, 5vw, 4rem);
+            line-height: 1;
             letter-spacing: 0;
         }
 
-        .hero p {
-            max-width: 430px;
-            margin: 0;
-            color: var(--muted);
-            font-weight: 700;
-            line-height: 1.65;
-        }
-
-        .grid {
+        .mock-frame {
+            min-height: 340px;
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 22px;
-        }
-
-        .concept {
-            min-height: 350px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 22px;
-            padding: 24px;
+            align-content: end;
+            padding: clamp(20px, 5vw, 56px);
             border: 1px solid rgba(255, 255, 255, 0.82);
-            border-radius: 28px;
+            border-radius: 32px;
             background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(246, 242, 255, 0.78)),
-                rgba(255, 255, 255, 0.72);
-            box-shadow: 0 24px 60px rgba(124, 58, 237, 0.12);
+                linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.76)),
+                url("./portfolio-default-cover.png") center / cover;
+            box-shadow: 0 28px 70px rgba(124, 58, 237, 0.14);
         }
 
-        .concept-head {
-            display: flex;
-            justify-content: space-between;
-            gap: 18px;
-        }
-
-        .concept h2 {
-            margin: 0;
-            font-family: "Outfit", "Noto Sans KR", sans-serif;
-            font-size: 1.46rem;
-            letter-spacing: 0;
-        }
-
-        .concept small {
-            color: var(--muted);
-            font-weight: 900;
-        }
-
-        .tag {
-            flex: 0 0 auto;
-            align-self: start;
-            padding: 7px 11px;
+        .osum-audio-chip {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 9px;
+            padding: 16px 18px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.82);
             border-radius: 999px;
-            background: rgba(124, 58, 237, 0.1);
-            color: var(--purple);
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.92),
+                0 20px 38px rgba(23, 32, 51, 0.18);
+            backdrop-filter: blur(16px) saturate(150%);
+            -webkit-backdrop-filter: blur(16px) saturate(150%);
+        }
+
+        .osum-audio-topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .osum-audio-title-group {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .osum-audio-play {
+            width: 54px;
+            height: 54px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--violet), var(--blue) 64%, var(--yellow));
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 900;
+            box-shadow: 0 14px 28px rgba(96, 165, 250, 0.24);
+        }
+
+        .osum-audio-title-group > div {
+            min-width: 0;
+        }
+
+        strong {
+            display: block;
+            overflow: hidden;
+            font-size: 1rem;
+            line-height: 1.1;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .credit {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
             font-size: 0.76rem;
             font-weight: 900;
         }
 
-        .player {
-            position: relative;
-            min-height: 190px;
-            overflow: hidden;
-            border-radius: 24px;
-        }
-
-        .row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .play {
+        .osum-audio-volume-inline {
             flex: 0 0 auto;
-            width: 58px;
-            height: 58px;
-            display: grid;
-            place-items: center;
-            border: 0;
-            border-radius: 20px;
-            background: linear-gradient(135deg, var(--violet), var(--blue) 65%, var(--yellow));
-            color: #fff;
-            font-size: 1.45rem;
-            font-weight: 900;
-            box-shadow: 0 18px 34px rgba(96, 165, 250, 0.24);
         }
 
-        .track {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .title {
-            display: block;
-            font-size: 1.04rem;
-            font-weight: 900;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .meta {
-            display: block;
-            margin-top: 3px;
-            color: var(--muted);
-            font-size: 0.82rem;
-            font-weight: 800;
-        }
-
-        .bar {
-            position: relative;
-            height: 10px;
-            overflow: hidden;
-            border-radius: 999px;
-            background: rgba(23, 32, 51, 0.1);
-        }
-
-        .bar::before {
-            content: "";
-            position: absolute;
-            inset: 0 auto 0 0;
-            width: 42%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, var(--purple), var(--blue), var(--mint));
-        }
-
-        .time {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 8px;
-            color: var(--muted);
-            font-family: "Outfit", monospace;
-            font-size: 0.78rem;
-            font-weight: 900;
-        }
-
-        .volume {
+        .osum-audio-volume-inline label {
             display: flex;
             align-items: center;
-            gap: 9px;
-            color: var(--muted);
-            font-size: 0.8rem;
-            font-weight: 900;
-        }
-
-        .volume-bar {
-            width: 88px;
-            height: 8px;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--purple) 45%, rgba(23, 32, 51, 0.12) 45%);
-        }
-
-        .inline-volume {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
             gap: 8px;
-            color: var(--purple);
-            font-size: 0.72rem;
-            font-weight: 900;
         }
 
-        .inline-volume input {
+        .osum-audio-volume-inline span {
+            color: var(--purple);
+            font-size: 0.68rem;
+            font-weight: 1000;
+        }
+
+        .osum-audio-volume-inline input {
             --volume-fill: 45%;
-            width: 96px;
+            width: clamp(82px, 16vw, 128px);
             height: 18px;
             margin: 0;
             padding: 0;
@@ -243,19 +169,18 @@
             -webkit-appearance: none;
         }
 
-        .inline-volume input:focus,
-        .inline-volume input:focus-visible {
+        .osum-audio-volume-inline input:focus,
+        .osum-audio-volume-inline input:focus-visible {
             outline: none;
         }
 
-        .inline-volume input::-webkit-slider-runnable-track {
+        .osum-audio-volume-inline input::-webkit-slider-runnable-track {
             height: 8px;
-            border: 0;
             border-radius: 999px;
             background: linear-gradient(90deg, var(--purple) 0 var(--volume-fill), rgba(23, 32, 51, 0.14) var(--volume-fill) 100%);
         }
 
-        .inline-volume input::-webkit-slider-thumb {
+        .osum-audio-volume-inline input::-webkit-slider-thumb {
             width: 16px;
             height: 16px;
             margin-top: -4px;
@@ -267,20 +192,20 @@
             -webkit-appearance: none;
         }
 
-        .inline-volume input::-moz-range-track {
+        .osum-audio-volume-inline input::-moz-range-track {
             height: 8px;
             border: 0;
             border-radius: 999px;
             background: rgba(23, 32, 51, 0.14);
         }
 
-        .inline-volume input::-moz-range-progress {
+        .osum-audio-volume-inline input::-moz-range-progress {
             height: 8px;
             border-radius: 999px;
             background: var(--purple);
         }
 
-        .inline-volume input::-moz-range-thumb {
+        .osum-audio-volume-inline input::-moz-range-thumb {
             width: 16px;
             height: 16px;
             border: 2px solid #ffffff;
@@ -289,265 +214,102 @@
             box-shadow: 0 6px 14px rgba(124, 58, 237, 0.22);
         }
 
-        .inline-volume input::-moz-focus-outer {
+        .osum-audio-volume-inline input::-moz-focus-outer {
             border: 0;
         }
 
-        .glass {
+        .osum-audio-bottomline {
             display: grid;
-            align-content: end;
-            gap: 18px;
-            padding: 22px;
-            background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(223, 243, 255, 0.4)),
-                url("./portfolio-default-cover.png") center / cover;
+            gap: 4px;
         }
 
-        .glass .inner {
-            display: grid;
-            gap: 16px;
-            padding: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.74);
-            border-radius: 22px;
-            background: rgba(255, 255, 255, 0.72);
-            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 16px 36px rgba(23, 32, 51, 0.12);
-        }
-
-        .console {
-            padding: 20px;
-            border: 2px solid #151827;
-            background:
-                linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-                linear-gradient(180deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-                #171b2f;
-            background-size: 22px 22px;
-            color: #fff;
-            box-shadow: 8px 8px 0 #d8e3ff;
-        }
-
-        .console .screen {
-            display: grid;
-            gap: 18px;
-            padding: 18px;
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .console .meta,
-        .console .time,
-        .console .volume {
-            color: rgba(255, 255, 255, 0.72);
-        }
-
-        .console .bar {
-            background: rgba(255, 255, 255, 0.14);
-        }
-
-        .vocaloid {
-            display: grid;
-            gap: 18px;
-            align-content: center;
-            padding: 22px;
-            background:
-                linear-gradient(135deg, rgba(154, 247, 210, 0.28), rgba(167, 139, 250, 0.28)),
-                #101626;
-            color: #fff;
-        }
-
-        .meters {
-            display: grid;
-            gap: 9px;
-        }
-
-        .meter {
-            height: 12px;
+        .osum-audio-progress {
+            height: 9px;
+            overflow: hidden;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(23, 32, 51, 0.1);
         }
 
-        .meter:nth-child(1) span { width: 72%; }
-        .meter:nth-child(2) span { width: 54%; }
-        .meter:nth-child(3) span { width: 88%; }
-
-        .meter span {
+        .osum-audio-progress span {
             display: block;
+            width: 42%;
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, var(--mint), var(--blue), var(--violet));
+            background: linear-gradient(90deg, var(--purple), var(--blue), var(--mint));
         }
 
-        .vocaloid .meta,
-        .vocaloid .time,
-        .vocaloid .volume {
-            color: rgba(255, 255, 255, 0.74);
+        .osum-audio-time-row {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-family: "Outfit", "Noto Sans KR", sans-serif;
+            font-size: 0.76rem;
+            font-weight: 900;
+            line-height: 1;
         }
 
-        .chip {
-            display: grid;
-            align-content: end;
-            padding: 18px;
-            background: url("./portfolio-default-cover.png") center / cover;
-        }
-
-        .chip-panel {
-            display: grid;
-            gap: 14px;
-            padding: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 22px;
-            background: rgba(255, 255, 255, 0.86);
-            box-shadow: 0 20px 38px rgba(23, 32, 51, 0.18);
-        }
-
-        .chip .play {
-            width: 48px;
-            height: 48px;
-            border-radius: 999px;
-        }
-
-        @media (max-width: 860px) {
-            .hero,
-            .grid {
-                grid-template-columns: 1fr;
+        @media (max-width: 620px) {
+            body {
+                padding: 18px;
             }
 
-            .hero {
-                display: grid;
+            .mock-frame {
+                min-height: 300px;
+                padding: 16px;
+                border-radius: 24px;
             }
 
-            .grid {
-                display: grid;
+            .osum-audio-chip {
+                border-radius: 28px;
+            }
+
+            .osum-audio-topline {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .osum-audio-volume-inline,
+            .osum-audio-volume-inline label,
+            .osum-audio-volume-inline input {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <main class="page">
-        <header class="hero">
-            <div>
-                <span class="kicker">Audio Player Concepts</span>
-                <h1>OSUM 음원 플레이어<br>시안 4개</h1>
-            </div>
-            <p>같은 곡을 네 가지 스타일로 배치했습니다. 실제 적용 시 볼륨은 모든 플레이어가 같은 저장값을 공유하도록 갑니다.</p>
-        </header>
-
-        <section class="grid" aria-label="오디오 플레이어 시안">
-            <article class="concept">
-                <div class="concept-head">
-                    <div>
-                        <h2>01 Glass Cassette</h2>
-                        <small>몽글한 OSUM 글래스 카드</small>
-                    </div>
-                    <span class="tag">soft</span>
-                </div>
-                <div class="player glass">
-                    <div class="inner">
-                        <div class="row">
-                            <button class="play" aria-label="재생">▶</button>
-                            <div class="track">
-                                <span class="title">Blue Hour J-POP Demo</span>
-                                <span class="meta">J-POP · Vocal Direction</span>
-                            </div>
-                        </div>
+    <main class="stage">
+        <span class="kicker">Audio Player Concept 04</span>
+        <h1>Album Chip Player</h1>
+        <section class="mock-frame" aria-label="audio player preview">
+            <div class="osum-audio-chip">
+                <div class="osum-audio-topline">
+                    <div class="osum-audio-title-group">
+                        <button type="button" class="osum-audio-play" aria-label="재생">▶</button>
                         <div>
-                            <div class="bar"></div>
-                            <div class="time"><span>01:14</span><span>02:48</span></div>
-                        </div>
-                        <div class="volume"><span>VOL</span><span class="volume-bar"></span><span>45%</span></div>
-                    </div>
-                </div>
-            </article>
-
-            <article class="concept">
-                <div class="concept-head">
-                    <div>
-                        <h2>02 Anime Console</h2>
-                        <small>게임 HUD 같은 강한 인상</small>
-                    </div>
-                    <span class="tag">pick</span>
-                </div>
-                <div class="player console">
-                    <div class="screen">
-                        <div class="row">
-                            <button class="play" aria-label="재생">▶</button>
-                            <div class="track">
-                                <span class="title">Battle Loop Sketch</span>
-                                <span class="meta">Game BGM · Loop Music</span>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="bar"></div>
-                            <div class="time"><span>00:48</span><span>01:56</span></div>
-                        </div>
-                        <div class="volume"><span>OUTPUT</span><span class="volume-bar"></span><span>45%</span></div>
-                    </div>
-                </div>
-            </article>
-
-            <article class="concept">
-                <div class="concept-head">
-                    <div>
-                        <h2>03 Vocaloid Deck</h2>
-                        <small>민트/보라 레벨미터 감성</small>
-                    </div>
-                    <span class="tag">neon</span>
-                </div>
-                <div class="player vocaloid">
-                    <div class="row">
-                        <button class="play" aria-label="재생">▶</button>
-                        <div class="track">
-                            <span class="title">Character Vocal Demo</span>
-                            <span class="meta">Vocaloid · Anime Song</span>
+                            <strong>Opening Song Guide</strong>
+                            <span class="credit">Anime Opening · Topline</span>
                         </div>
                     </div>
-                    <div class="meters" aria-hidden="true">
-                        <div class="meter"><span></span></div>
-                        <div class="meter"><span></span></div>
-                        <div class="meter"><span></span></div>
-                    </div>
-                    <div>
-                        <div class="bar"></div>
-                        <div class="time"><span>01:02</span><span>03:10</span></div>
-                    </div>
-                    <div class="volume"><span>VOL</span><span class="volume-bar"></span><span>45%</span></div>
-                </div>
-            </article>
-
-            <article class="concept">
-                <div class="concept-head">
-                    <div>
-                        <h2>04 Album Chip Player</h2>
-                        <small>이미지를 살리는 하단 칩</small>
-                    </div>
-                    <span class="tag">clean</span>
-                </div>
-                <div class="player chip">
-                    <div class="chip-panel">
-                        <div class="row">
-                            <button class="play" aria-label="재생">▶</button>
-                            <div class="track">
-                                <span class="title">Opening Song Guide</span>
-                                <span class="meta">Anime Opening · Topline</span>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="bar"></div>
-                            <div class="time"><span>00:36</span><span>02:24</span></div>
-                        </div>
-                        <label class="inline-volume">
+                    <div class="osum-audio-volume-inline">
+                        <label>
                             <span>VOL</span>
-                            <input type="range" min="0" max="1" step="0.01" value="0.45" aria-label="volume">
+                            <input type="range" min="0" max="1" step="0.01" value="0.45" aria-label="볼륨">
                         </label>
                     </div>
                 </div>
-            </article>
+                <div class="osum-audio-bottomline">
+                    <div class="osum-audio-progress"><span></span></div>
+                    <div class="osum-audio-time-row">
+                        <span>01:00</span>
+                        <span>02:34</span>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
     <script>
-        document.querySelectorAll('.inline-volume input').forEach((input) => {
-            const sync = () => {
-                input.style.setProperty('--volume-fill', `${Math.round(Number(input.value) * 100)}%`);
-            };
+        document.querySelectorAll('.osum-audio-volume-inline input').forEach((input) => {
+            const sync = () => input.style.setProperty('--volume-fill', `${Math.round(Number(input.value) * 100)}%`);
             input.addEventListener('input', sync);
             sync();
         });

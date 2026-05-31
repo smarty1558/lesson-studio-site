@@ -108,10 +108,18 @@ test('audio portfolio players share and cache the same volume', () => {
     assert.match(js, /data-audio-toggle/);
     assert.match(js, /data-audio-volume/);
     assert.match(js, /class="osum-audio-volume-inline"/);
+    assert.match(js, /class="osum-audio-topline"/);
+    assert.match(js, /class="osum-audio-bottomline"/);
+    assert.match(js, /<div class="osum-audio-progress" data-audio-seek>/);
+    assert.match(js, /<span data-audio-current>0:00<\/span>\s*<span data-audio-duration>0:00<\/span>/);
     assert.doesNotMatch(js, /data-volume-popover/);
     assert.match(js, /<audio data-osum-audio-preview preload="metadata" src="\$\{item\.audioUrl\}"><\/audio>/);
     assert.match(css, /\.osum-audio-player\s*\{/);
     assert.match(css, /\.osum-audio-volume-inline\s*\{/);
+    assert.match(css, /\.osum-audio-chip\s*\{[^}]*grid-template-columns:\s*1fr\s*;/s);
+    assert.match(css, /\.osum-audio-topline\s*\{/);
+    assert.match(css, /\.osum-audio-bottomline\s*\{/);
+    assert.match(css, /\.osum-audio-time-row\s*\{/);
     assert.match(css, /\.osum-audio-volume-inline input:focus-visible\s*\{\s*outline:\s*none\s*;/);
     assert.match(css, /\.osum-audio-volume-inline input::-webkit-slider-runnable-track\s*\{/);
     assert.match(css, /var\(--volume-fill,\s*45%\)/);

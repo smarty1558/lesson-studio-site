@@ -58,23 +58,29 @@ const renderOsumAudioPlayer = (item) => `
     <div class="osum-audio-player" data-osum-audio-player>
         <audio data-osum-audio-preview preload="metadata" src="${item.audioUrl}"></audio>
         <div class="osum-audio-chip">
-            <button type="button" class="osum-audio-play" aria-label="음원 재생" data-audio-toggle>▶</button>
             <div class="osum-audio-main">
-                <div class="osum-audio-head">
-                    <strong>${item.title || 'Portfolio Audio'}</strong>
-                    <span data-audio-current>0:00</span>
-                </div>
-                <div class="osum-audio-progress" data-audio-seek>
-                    <span data-audio-progress></span>
-                </div>
-                <div class="osum-audio-meta">
-                    <span>${item.credits || item.format || item.mediaType || 'Audio'}</span>
+                <div class="osum-audio-topline">
+                    <div class="osum-audio-title-group">
+                        <button type="button" class="osum-audio-play" aria-label="음원 재생" data-audio-toggle>▶</button>
+                        <div>
+                            <strong>${item.title || 'Portfolio Audio'}</strong>
+                            <span>${item.credits || item.format || item.mediaType || 'Audio'}</span>
+                        </div>
+                    </div>
                     <div class="osum-audio-volume-inline">
-                        <span data-audio-duration>0:00</span>
                         <label>
                             <span>VOL</span>
                             <input type="range" min="0" max="1" step="0.01" value="${DEFAULT_AUDIO_PREVIEW_VOLUME}" aria-label="음원 볼륨" data-audio-volume>
                         </label>
+                    </div>
+                </div>
+                <div class="osum-audio-bottomline">
+                    <div class="osum-audio-progress" data-audio-seek>
+                        <span data-audio-progress></span>
+                    </div>
+                    <div class="osum-audio-time-row">
+                        <span data-audio-current>0:00</span>
+                        <span data-audio-duration>0:00</span>
                     </div>
                 </div>
             </div>
