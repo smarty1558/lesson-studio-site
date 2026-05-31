@@ -960,6 +960,12 @@ const initSite = () => {
         if (!freePluginPortal || !freePluginFrame) return;
 
         event.preventDefault();
+        freePluginPortal.classList.remove('is-active', 'is-frame-ready');
+        freePluginFrame.addEventListener('load', () => {
+            window.setTimeout(() => {
+                freePluginPortal.classList.add('is-frame-ready');
+            }, 360);
+        }, { once: true });
         freePluginFrame.src = './free-plugin-transition-options.html?autostart=1&embed=1';
         freePluginPortal.hidden = false;
         document.body.classList.add('free-plugin-portal-open');

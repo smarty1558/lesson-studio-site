@@ -22,8 +22,12 @@ test('free plugin navigation opens an in-page portal instead of leaving the home
     assert.match(mainSource, /event\.preventDefault\(\)/);
     assert.match(mainSource, /free-plugin-transition-options\.html\?autostart=1&embed=1/);
     assert.match(mainSource, /is-free-plugin-launching/);
+    assert.match(mainSource, /is-frame-ready/);
+    assert.match(mainSource, /window\.setTimeout\(\(\) => \{\s*freePluginPortal\.classList\.add\('is-frame-ready'\)/s);
     assert.match(styleSource, /\.free-plugin-portal\s*\{[^}]*position:\s*fixed;[^}]*z-index:\s*2600;/s);
-    assert.match(styleSource, /\.site-shell\.is-free-plugin-launching\s*\{[^}]*translateX\(-18vw\)/s);
+    assert.match(styleSource, /\.site-shell\.is-free-plugin-launching\s*\{[^}]*opacity:\s*0\s*;[^}]*translateX\(-22vw\)/s);
+    assert.match(styleSource, /\.free-plugin-portal iframe\s*\{[^}]*opacity:\s*0\s*;/s);
+    assert.match(styleSource, /\.free-plugin-portal\.is-frame-ready iframe\s*\{[^}]*opacity:\s*1\s*;/s);
 });
 
 test('home cursor receives pointer updates from the embedded free plugin preview', () => {

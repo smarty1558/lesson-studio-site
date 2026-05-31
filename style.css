@@ -1263,8 +1263,8 @@ textarea:focus {
 }
 
 .site-shell.is-free-plugin-launching {
-    opacity: 0.08;
-    transform: translateX(-18vw);
+    opacity: 0;
+    transform: translateX(-22vw);
 }
 
 .free-plugin-portal {
@@ -1292,6 +1292,12 @@ textarea:focus {
     border: 0;
     display: block;
     background: #fbfbf7;
+    opacity: 0;
+    transition: opacity 0.32s ease;
+}
+
+.free-plugin-portal.is-frame-ready iframe {
+    opacity: 1;
 }
 
 .mobile-cta {
