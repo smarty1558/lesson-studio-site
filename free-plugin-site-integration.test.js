@@ -50,6 +50,8 @@ test('free plugin page is branded as part of the studio site', () => {
     assert.match(freePluginSource, /<title>무료 플러그인 \| OMUS<\/title>/);
     assert.match(freePluginSource, /<div class="brand">OMUS \| OTAKU MUSIC LESSON STUDIO<\/div>/);
     assert.match(freePluginSource, /<a class="site-back" href="\.\/index\.html">홈페이지로 돌아가기<\/a>/);
+    assert.match(freePluginSource, /<a class="stage-back" href="\.\/index\.html" target="_top">홈페이지로 돌아가기<\/a>/);
+    assert.match(freePluginSource, /\.stage\.is-complete \.stage-back\s*\{[^}]*opacity:\s*1;[^}]*pointer-events:\s*auto;/s);
     assert.match(freePluginSource, /new URLSearchParams\(window\.location\.search\)\.has\('autostart'\)/);
     assert.match(freePluginSource, /requestAnimationFrame\(startTransition\)/);
 });
