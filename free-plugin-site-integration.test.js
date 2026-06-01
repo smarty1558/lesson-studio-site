@@ -9,10 +9,19 @@ const freePluginSource = readFileSync(new URL('./free-plugin-transition-options.
 const viteConfigSource = readFileSync(new URL('./vite.config.js', import.meta.url), 'utf8');
 
 test('main site links to the free plugin interactive page from desktop and mobile navigation', () => {
+    assert.match(indexSource, /<source src="\.\/omus-hero\.mp4" type="video\/mp4">/);
     assert.match(indexSource, /<a href="\.\/free-plugin-transition-options\.html" data-free-plugin-launch>무료 플러그인<\/a>/);
     assert.match(indexSource, /<div class="mobile-cta"[\s\S]*<a href="\.\/free-plugin-transition-options\.html" data-free-plugin-launch>무료 플러그인<\/a>/);
     assert.match(styleSource, /\.mobile-cta\s*\{[^}]*grid-template-columns:\s*0\.8fr 1\.35fr 1\.2fr 1fr\s*;/s);
     assert.match(styleSource, /@media \(max-width: 420px\)[\s\S]*\.mobile-cta\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)\s*;/);
+});
+
+test('main page promotes free plugins between classes and teachers', () => {
+    assert.match(indexSource, /<section id="courses"[\s\S]*<section id="free-plugins" class="free-plugin-spotlight"[\s\S]*<section id="teachers"/);
+    assert.match(indexSource, /무료 플러그인으로 먼저 소리를 만들어보세요/);
+    assert.match(indexSource, /<a href="\.\/free-plugin-transition-options\.html" class="free-plugin-spotlight-cta" data-free-plugin-launch>무료 플러그인 보기<\/a>/);
+    assert.match(styleSource, /\.free-plugin-spotlight\s*\{/);
+    assert.match(styleSource, /\.free-plugin-spotlight-cta\s*\{/);
 });
 
 test('free plugin navigation opens an in-page portal instead of leaving the home page', () => {
@@ -38,9 +47,9 @@ test('home cursor receives pointer updates from the embedded free plugin preview
 });
 
 test('free plugin page is branded as part of the studio site', () => {
-    assert.match(freePluginSource, /<title>무료 플러그인 \| 오타쿠 뮤직 스튜디오<\/title>/);
-    assert.match(freePluginSource, /<div class="brand">오타쿠 뮤직 스튜디오<\/div>/);
-    assert.match(freePluginSource, /<a class="site-back" href="\.\/index\.html">사이트 홈<\/a>/);
+    assert.match(freePluginSource, /<title>무료 플러그인 \| OMUS<\/title>/);
+    assert.match(freePluginSource, /<div class="brand">OMUS \| OTAKU MUSIC LESSON STUDIO<\/div>/);
+    assert.match(freePluginSource, /<a class="site-back" href="\.\/index\.html">홈페이지로 돌아가기<\/a>/);
     assert.match(freePluginSource, /new URLSearchParams\(window\.location\.search\)\.has\('autostart'\)/);
     assert.match(freePluginSource, /requestAnimationFrame\(startTransition\)/);
 });

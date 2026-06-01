@@ -10,6 +10,10 @@ const visibleBrandingSource = [indexSource, mainSource, contactApiSource].join('
 
 test('public branding uses the J-Pop game music lesson studio name and subtitle', () => {
     assert.match(indexSource, /OMUS \| 오타쿠 뮤직 레슨 스튜디오/);
+    assert.match(indexSource, /<div class="intro-mark">OMUS<\/div>/);
+    assert.match(indexSource, /<p>OTAKU MUSIC LESSON STUDIO<\/p>/);
+    assert.doesNotMatch(indexSource, /OTAKU MUSIC<\/div>/);
+    assert.doesNotMatch(indexSource, /당신의 음악이 켜지는 중/);
     assert.match(mainSource, /OMUS \| 오타쿠 뮤직 레슨 스튜디오 CMS/);
     assert.match(contactApiSource, /OMUS \| 오타쿠 뮤직 레슨 스튜디오 상담 문의/);
     assert.match(indexSource, /J-Pop · 서브컬쳐 · 애니송 · 제이팝 · 게임음악 작곡\/미디 1:1 레슨 \| 성인 대상/);
