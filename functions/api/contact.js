@@ -18,7 +18,7 @@ const normalizeContactPayload = (payload = {}) => ({
 });
 
 const buildContactEmailText = (payload) => [
-    '[OMUS | 오타쿠 뮤직 레슨 스튜디오 상담 문의]',
+    '[오타쿠 뮤직 스튜디오 상담 문의]',
     '',
     `이름: ${payload.name}`,
     `연락처: ${payload.phone}`,
@@ -58,7 +58,7 @@ export const onRequestPost = async ({ request, env }) => {
             from: fromEmail,
             to: [toEmail],
             reply_to: payload.email,
-            subject: `[OMUS | 오타쿠 뮤직 레슨 스튜디오 상담 문의] ${payload.name} - ${payload.course}`,
+            subject: `[오타쿠 뮤직 스튜디오 상담 문의] ${payload.name} - ${payload.course}`,
             text: buildContactEmailText(payload)
         })
     });
