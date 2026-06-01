@@ -969,6 +969,17 @@ const initSite = () => {
             freePluginPortal.classList.add('is-active');
         });
     };
+    const closeFreePluginPortal = () => {
+        if (!freePluginPortal || !freePluginFrame) return;
+
+        freePluginPortal.classList.remove('is-active');
+        appShell?.classList.remove('is-free-plugin-launching');
+        document.body.classList.remove('free-plugin-portal-open', 'view-cursor-active');
+        window.setTimeout(() => {
+            freePluginPortal.hidden = true;
+            freePluginFrame.src = '';
+        }, 180);
+    };
 
     freePluginLaunchers.forEach((launcher) => {
         launcher.addEventListener('click', openFreePluginPortal);
@@ -1192,6 +1203,12 @@ const initSite = () => {
 
             if (data.type === 'free-plugin-cursor-press') {
                 cursorPill.classList.toggle('is-pressed', Boolean(data.pressed));
+            }
+
+            if (data.type === 'free-plugin-close') {
+                cursorPill.classList.remove('is-visible', 'is-pressed');
+                activeCursorTarget = null;
+                closeFreePluginPortal();
             }
         });
 
