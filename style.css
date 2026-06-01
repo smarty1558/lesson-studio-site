@@ -1292,12 +1292,6 @@ textarea:focus {
     border: 0;
     display: block;
     background: #fbfbf7;
-    opacity: 0;
-    transition: opacity 0.32s ease;
-}
-
-.free-plugin-portal.is-frame-ready iframe {
-    opacity: 1;
 }
 
 .mobile-cta {
