@@ -52,6 +52,11 @@ test('home page always handles the embedded free plugin back button', () => {
     assert.match(mainSource, /event\.source === freePluginFrame\?\.contentWindow/);
     assert.match(mainSource, /event\.origin === 'null'/);
     assert.match(mainSource, /data\.type !== 'free-plugin-go-home'[\s\S]*closeFreePluginPortal\(\);/);
+    const closePortalBlock = mainSource.slice(
+        mainSource.indexOf('const closeFreePluginPortal = () => {'),
+        mainSource.indexOf('const isFreePluginFrameMessage')
+    );
+    assert.doesNotMatch(closePortalBlock, /cursorPill/);
 });
 
 test('free plugin page is branded as part of the studio site', () => {

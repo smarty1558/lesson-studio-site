@@ -975,7 +975,6 @@ const initSite = () => {
         freePluginPortal.classList.remove('is-active');
         appShell?.classList.remove('is-free-plugin-launching');
         document.body.classList.remove('free-plugin-portal-open', 'view-cursor-active');
-        cursorPill?.classList.remove('is-visible', 'is-pressed');
         window.setTimeout(() => {
             freePluginPortal.hidden = true;
             freePluginFrame.src = '';
