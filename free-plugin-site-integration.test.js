@@ -68,6 +68,7 @@ test('free plugin page is branded as part of the studio site', () => {
     assert.match(freePluginSource, /const homeBackLinks = \[\.\.\.document\.querySelectorAll\('\[data-home-back\]'\)\]/);
     assert.match(freePluginSource, /homeBackLinks\.forEach/);
     assert.match(freePluginSource, /window\.parent\.postMessage\(\{ type: 'free-plugin-go-home' \}, '\*'\)/);
+    assert.match(freePluginSource, /window\.top\.location\.href = '\.\/index\.html'/);
     assert.match(freePluginSource, /const params = new URLSearchParams\(window\.location\.search\)/);
     assert.match(freePluginSource, /params\.has\('autostart'\)/);
     assert.match(freePluginSource, /requestAnimationFrame\(startTransition\)/);

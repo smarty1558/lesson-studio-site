@@ -1367,6 +1367,9 @@
 
         event.preventDefault();
         window.parent.postMessage({ type: 'free-plugin-go-home' }, '*');
+        window.setTimeout(() => {
+          window.top.location.href = './index.html';
+        }, 260);
       });
     });
 
