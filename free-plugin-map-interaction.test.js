@@ -105,7 +105,7 @@ test('free plugin page reuses the parent home cursor instead of creating a secon
   assert.match(html, /function syncParentCursor/);
   assert.match(html, /window\.parent\.postMessage/);
   assert.match(html, /type:\s*'free-plugin-cursor'/);
-  assert.match(html, /event\.target\?\.closest\?\.\('\.category, \.plugin-row, \.site-back, \.stage-back, \.trigger'\)/);
+  assert.match(html, /event\.target\?\.closest\?\.\('\.category, \.plugin-row, \.home-reload, \.trigger'\)/);
 });
 
 test('static css grid is hidden so only the animated canvas grid remains', () => {
