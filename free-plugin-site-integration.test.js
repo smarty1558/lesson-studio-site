@@ -31,7 +31,7 @@ test('free plugin navigation opens an in-page portal instead of leaving the home
     assert.match(mainSource, /event\.preventDefault\(\)/);
     assert.match(mainSource, /free-plugin-transition-options\.html\?autostart=1&embed=1/);
     assert.match(mainSource, /is-free-plugin-launching/);
-    assert.match(mainSource, /data\.type === 'free-plugin-close'/);
+    assert.match(mainSource, /data\.type === 'free-plugin-go-home'/);
     assert.match(mainSource, /freePluginPortal\.hidden = true/);
     assert.doesNotMatch(mainSource, /is-frame-ready/);
     assert.match(styleSource, /\.free-plugin-portal\s*\{[^}]*position:\s*fixed;[^}]*z-index:\s*2600;/s);
@@ -48,13 +48,19 @@ test('home cursor receives pointer updates from the embedded free plugin preview
     assert.match(mainSource, /data\.type === 'free-plugin-cursor-press'/);
 });
 
+test('home page always handles the embedded free plugin back button', () => {
+    assert.match(mainSource, /window\.addEventListener\('message', \(event\) => \{[\s\S]*data\.type !== 'free-plugin-go-home'[\s\S]*window\.location\.href = '\.\/index\.html';[\s\S]*\}\);/);
+});
+
 test('free plugin page is branded as part of the studio site', () => {
     assert.match(freePluginSource, /<title>무료 플러그인 \| OMUS<\/title>/);
     assert.match(freePluginSource, /<div class="brand">OMUS \| OTAKU MUSIC LESSON STUDIO<\/div>/);
-    assert.match(freePluginSource, /<a class="site-back" href="\.\/index\.html">홈페이지로 돌아가기<\/a>/);
+    assert.match(freePluginSource, /<a class="site-back" href="\.\/index\.html" target="_top" data-home-back>홈페이지로 돌아가기<\/a>/);
     assert.match(freePluginSource, /<a class="stage-back" href="\.\/index\.html" target="_top" data-home-back>홈페이지로 돌아가기<\/a>/);
     assert.match(freePluginSource, /\.stage\.is-complete \.stage-back\s*\{[^}]*opacity:\s*1;[^}]*pointer-events:\s*auto;/s);
-    assert.match(freePluginSource, /window\.parent\.postMessage\(\{ type: 'free-plugin-close' \}/);
+    assert.match(freePluginSource, /const homeBackLinks = \[\.\.\.document\.querySelectorAll\('\[data-home-back\]'\)\]/);
+    assert.match(freePluginSource, /homeBackLinks\.forEach/);
+    assert.match(freePluginSource, /window\.parent\.postMessage\(\{ type: 'free-plugin-go-home' \}/);
     assert.match(freePluginSource, /const params = new URLSearchParams\(window\.location\.search\)/);
     assert.match(freePluginSource, /params\.has\('autostart'\)/);
     assert.match(freePluginSource, /requestAnimationFrame\(startTransition\)/);

@@ -985,6 +985,15 @@ const initSite = () => {
         launcher.addEventListener('click', openFreePluginPortal);
     });
 
+    window.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data;
+        if (!data || typeof data !== 'object') return;
+        if (data.type !== 'free-plugin-go-home') return;
+
+        window.location.href = './index.html';
+    });
+
     const contactForm = document.getElementById('contact-form');
     const contactSection = document.getElementById('contact');
     const contactCard = document.querySelector('.cta-card');
@@ -1205,10 +1214,10 @@ const initSite = () => {
                 cursorPill.classList.toggle('is-pressed', Boolean(data.pressed));
             }
 
-            if (data.type === 'free-plugin-close') {
+            if (data.type === 'free-plugin-go-home') {
                 cursorPill.classList.remove('is-visible', 'is-pressed');
                 activeCursorTarget = null;
-                closeFreePluginPortal();
+                window.location.href = './index.html';
             }
         });
 
