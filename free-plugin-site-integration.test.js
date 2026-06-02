@@ -49,7 +49,9 @@ test('home cursor receives pointer updates from the embedded free plugin preview
 });
 
 test('home page always handles the embedded free plugin back button', () => {
-    assert.match(mainSource, /window\.addEventListener\('message', \(event\) => \{[\s\S]*data\.type !== 'free-plugin-go-home'[\s\S]*window\.location\.href = '\.\/index\.html';[\s\S]*\}\);/);
+    assert.match(mainSource, /event\.source === freePluginFrame\?\.contentWindow/);
+    assert.match(mainSource, /event\.origin === 'null'/);
+    assert.match(mainSource, /data\.type !== 'free-plugin-go-home'[\s\S]*closeFreePluginPortal\(\);/);
 });
 
 test('free plugin page is branded as part of the studio site', () => {
@@ -60,7 +62,7 @@ test('free plugin page is branded as part of the studio site', () => {
     assert.match(freePluginSource, /\.stage\.is-complete \.stage-back\s*\{[^}]*opacity:\s*1;[^}]*pointer-events:\s*auto;/s);
     assert.match(freePluginSource, /const homeBackLinks = \[\.\.\.document\.querySelectorAll\('\[data-home-back\]'\)\]/);
     assert.match(freePluginSource, /homeBackLinks\.forEach/);
-    assert.match(freePluginSource, /window\.parent\.postMessage\(\{ type: 'free-plugin-go-home' \}/);
+    assert.match(freePluginSource, /window\.parent\.postMessage\(\{ type: 'free-plugin-go-home' \}, '\*'\)/);
     assert.match(freePluginSource, /const params = new URLSearchParams\(window\.location\.search\)/);
     assert.match(freePluginSource, /params\.has\('autostart'\)/);
     assert.match(freePluginSource, /requestAnimationFrame\(startTransition\)/);

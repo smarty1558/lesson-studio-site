@@ -1149,7 +1149,7 @@
 
     function syncParentCursor(event, overrides = {}) {
       if (window.parent === window) return;
-      const viewTarget = event.target?.closest?.('.category, .plugin-row, .site-back, .trigger');
+      const viewTarget = event.target?.closest?.('.category, .plugin-row, .site-back, .stage-back, .trigger');
       window.parent.postMessage({
         type: 'free-plugin-cursor',
         x: event.clientX,
@@ -1366,7 +1366,7 @@
         if (!params.has('embed')) return;
 
         event.preventDefault();
-        window.parent.postMessage({ type: 'free-plugin-go-home' }, window.location.origin);
+        window.parent.postMessage({ type: 'free-plugin-go-home' }, '*');
       });
     });
 
