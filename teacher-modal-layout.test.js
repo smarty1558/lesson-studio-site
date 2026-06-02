@@ -40,6 +40,15 @@ test('teacher details use a dedicated modal separate from the portfolio modal', 
     assert.doesNotMatch(js, /openModal\(artistCard\.dataset\.teacher,\s*'teacher'\)/);
 });
 
+test('portfolio modals prewarm markup and media before click animations', () => {
+    assert.match(js, /preparedPortfolioViews:\s*new Map\(\)/);
+    assert.match(js, /const preparePortfolioView = async/);
+    assert.match(js, /decodePortfolioImages/);
+    assert.match(js, /requestIdleCallback/);
+    assert.match(js, /preparePortfolioView\('teacher', key\)/);
+    assert.match(js, /preparePortfolioView\('course', key\)/);
+});
+
 test('admin renders portfolio and teacher cms as separate tabs', () => {
     assert.match(adminJs, /let activeAdminTab = 'portfolio'/);
     assert.match(adminJs, /data-admin-tab="portfolio"/);
@@ -163,14 +172,14 @@ test('site preloads teacher and portfolio data before hiding intro loader', () =
 
 test('teacher works opens as a grid before entering detail mode', () => {
     const teacherWorksMarkup = js.slice(
-        js.indexOf('const worksMarkup = data.length'),
-        js.indexOf('teacherModalBody.innerHTML = `', js.indexOf('const worksMarkup = data.length'))
+        js.indexOf('const renderPortfolioCardMarkup ='),
+        js.indexOf('const decodePortfolioImages =', js.indexOf('const renderPortfolioCardMarkup ='))
     );
 
     assert.doesNotMatch(js, /teacher-works-detail is-open/);
     assert.match(js, /teacher-work-detail-active/);
     assert.match(js, /portfolio-back/);
-    assert.match(teacherWorksMarkup, /data-teacher-work-index="\$\{index\}"/);
+    assert.match(js, /renderPortfolioCardMarkup\(item,\s*index,\s*'data-teacher-work-index'\)/);
     assert.match(teacherWorksMarkup, /<div class="frame-inner[^>]*>\s*<div class="play-overlay">\s*<div class="play-icon">\+<\/div>/);
     assert.match(css, /\.teacher-dedicated-portfolio\s*\{\s*display:\s*block\s*;/);
     assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*display:\s*grid\s*;/s);

@@ -1308,6 +1308,8 @@ const initSite = () => {
         portfolioItems: undefined,
         teacherProfiles: new Map(),
         portfolioByTarget: new Map(),
+        preparedPortfolioViews: new Map(),
+        decodedImages: new Set(),
         preloadPromise: null
     };
     const getPortfolioCacheKey = (type, key) => `${type}:${key}`;
@@ -1665,6 +1667,85 @@ const initSite = () => {
         return filtered;
     };
 
+    const renderPortfolioCardMarkup = (item, index, indexAttribute) => {
+        const enriched = enrichPortfolioItem(item, index);
+        const hasImage = Boolean(enriched.img);
+
+        return `
+            <article class="portfolio-item" ${indexAttribute}="${index}">
+                <div class="frame-inner ${hasImage ? '' : 'is-missing-image'}"${hasImage ? ` style="background-image: url('${enriched.img}')"` : ''}>
+                    <div class="play-overlay">
+                        <div class="play-icon">+</div>
+                    </div>
+                </div>
+                <div class="item-caption">
+                    <h4>${enriched.title}</h4>
+                    <p>${enriched.credits}</p>
+                </div>
+            </article>
+        `;
+    };
+
+    const decodePortfolioImages = async (items = [], profile = null) => {
+        const imageUrls = [
+            profile?.image,
+            ...items.map((item) => item.img || item.imageUrl || DEFAULT_PORTFOLIO_IMAGE)
+        ].filter(Boolean);
+
+        await Promise.all(imageUrls.map((url) => {
+            if (siteDataCache.decodedImages.has(url)) return Promise.resolve();
+
+            siteDataCache.decodedImages.add(url);
+            const image = new Image();
+            image.decoding = 'async';
+            image.src = url;
+
+            return (image.decode ? image.decode() : new Promise((resolve) => {
+                image.onload = resolve;
+                image.onerror = resolve;
+            })).catch(() => {});
+        }));
+    };
+
+    const preparePortfolioView = async (type, key) => {
+        const cacheKey = getPortfolioCacheKey(type, key);
+        if (siteDataCache.preparedPortfolioViews.has(cacheKey)) {
+            return siteDataCache.preparedPortfolioViews.get(cacheKey);
+        }
+
+        const preparedPromise = (async () => {
+            const data = await loadPortfolioItems(type, key);
+            const profile = type === 'teacher' ? await loadTeacherProfile(key) : null;
+            const portfolioMarkup = data.length
+                ? data.map((item, index) => renderPortfolioCardMarkup(item, index, 'data-portfolio-index')).join('')
+                : '<p class="portfolio-empty">No visible portfolio items yet.</p>';
+            const teacherWorksMarkup = data.length
+                ? data.map((item, index) => renderPortfolioCardMarkup(item, index, 'data-teacher-work-index')).join('')
+                : '<p class="portfolio-empty">CMS에 연결된 대표작이 아직 없습니다.</p>';
+
+            decodePortfolioImages(data, profile);
+
+            return {
+                data,
+                profile,
+                portfolioMarkup,
+                teacherWorksMarkup
+            };
+        })();
+
+        siteDataCache.preparedPortfolioViews.set(cacheKey, preparedPromise);
+        return preparedPromise;
+    };
+
+    const schedulePortfolioPrewarm = () => {
+        const schedule = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 240));
+
+        schedule(() => {
+            teacherDataKeys.forEach((key) => preparePortfolioView('teacher', key));
+            courseDataKeys.forEach((key) => preparePortfolioView('course', key));
+        }, { timeout: 1800 });
+    };
+
     const preloadSiteData = () => {
         if (siteDataCache.preloadPromise) return siteDataCache.preloadPromise;
 
@@ -1686,6 +1767,7 @@ const initSite = () => {
             ]);
         } finally {
             finishIntroLoader();
+            schedulePortfolioPrewarm();
         }
     };
 
@@ -2103,43 +2185,21 @@ const initSite = () => {
         teacherModalBody.innerHTML = '<p class="portfolio-empty">강사 정보를 불러오는 중입니다...</p>';
         teacherModalContent.classList.remove('teacher-works-active', 'is-shutting-down', 'teacher-view-switching', 'teacher-view-ready', 'detail-mode', 'teacher-work-detail-mode');
 
-        let profile;
-        let data = [];
+        let prepared;
 
         try {
-            [profile, data] = await Promise.all([
-                loadTeacherProfile(key),
-                loadPortfolioItems('teacher', key)
-            ]);
+            prepared = await preparePortfolioView('teacher', key);
         } catch (error) {
             teacherModalBody.innerHTML = `<p class="portfolio-empty">${error.message || '강사 정보를 불러오지 못했습니다.'}</p>`;
             return;
         }
 
         if (openToken !== teacherOpenToken) return;
+        const { profile, data, teacherWorksMarkup } = prepared;
         teacherModal.classList.add('active');
         teacherModal.classList.remove('is-dismissing');
         teacherModal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
-
-        const worksMarkup = data.length ? data.map((item, index) => {
-            const enriched = enrichPortfolioItem(item, index);
-            const hasImage = Boolean(enriched.img);
-
-            return `
-                <article class="portfolio-item" data-teacher-work-index="${index}">
-                    <div class="frame-inner ${hasImage ? '' : 'is-missing-image'}"${hasImage ? ` style="background-image: url('${enriched.img}')"` : ''}>
-                        <div class="play-overlay">
-                            <div class="play-icon">+</div>
-                        </div>
-                    </div>
-                    <div class="item-caption">
-                        <h4>${enriched.title}</h4>
-                        <p>${enriched.credits}</p>
-                    </div>
-                </article>
-            `;
-        }).join('') : '<p class="portfolio-empty">CMS에 연결된 대표작이 아직 없습니다.</p>';
 
         teacherModalBody.innerHTML = `
             <div class="teacher-modal-stage teacher-dedicated-stage">
@@ -2156,7 +2216,7 @@ const initSite = () => {
                             </button>
                         </div>
                         <div class="teacher-dedicated-portfolio">
-                            <div class="portfolio-gallery teacher-works-gallery">${worksMarkup}</div>
+                            <div class="portfolio-gallery teacher-works-gallery">${teacherWorksMarkup}</div>
                             <div class="portfolio-expanded-panel teacher-works-detail" aria-live="polite"></div>
                         </div>
                     </section>
@@ -2258,10 +2318,10 @@ const initSite = () => {
             gallery.innerHTML = '';
         }
 
-        let data = [];
+        let prepared;
 
         try {
-            data = await loadPortfolioItems(isTeacher ? 'teacher' : 'course', key);
+            prepared = await preparePortfolioView(isTeacher ? 'teacher' : 'course', key);
         } catch (error) {
             modalContent?.classList.remove('teacher-preparing');
             gallery?.classList.remove('teacher-gallery-preparing');
@@ -2270,25 +2330,9 @@ const initSite = () => {
         }
 
         if (openToken !== modalOpenToken) return;
+        const { data, portfolioMarkup } = prepared;
 
-        gallery.innerHTML = data.length ? data.map((item, index) => {
-            const enriched = enrichPortfolioItem(item, index);
-            const hasImage = Boolean(enriched.img);
-
-            return `
-            <article class="portfolio-item" data-portfolio-index="${index}">
-                <div class="frame-inner ${hasImage ? '' : 'is-missing-image'}"${hasImage ? ` style="background-image: url('${enriched.img}')"` : ''}>
-                    <div class="play-overlay">
-                        <div class="play-icon">+</div>
-                    </div>
-                </div>
-                <div class="item-caption">
-                    <h4>${enriched.title}</h4>
-                    <p>${enriched.credits}</p>
-                </div>
-            </article>
-        `;
-        }).join('') : '<p class="portfolio-empty">No visible portfolio items yet.</p>';
+        gallery.innerHTML = portfolioMarkup;
 
         if (!isTeacher) {
             modal.classList.add('active');
@@ -2300,7 +2344,7 @@ const initSite = () => {
         }
 
         if (isTeacher && modalContent && gallery) {
-            const profile = await loadTeacherProfile(key);
+            const profile = prepared.profile || await loadTeacherProfile(key);
             if (openToken !== modalOpenToken) return;
             const state = getTeacherProfileViewState('detail');
             const stage = document.createElement('div');
@@ -2655,6 +2699,24 @@ const initSite = () => {
         }
 
     });
+
+    const prewarmPortfolioTarget = (event) => {
+        const teacherTarget = event.target.closest('.artist-card[data-teacher], .btn-portfolio[data-teacher]');
+        if (teacherTarget?.dataset.teacher) {
+            const key = teacherTarget.dataset.teacher;
+            preparePortfolioView('teacher', key);
+            return;
+        }
+
+        const courseTarget = event.target.closest('.course-card[data-course], .btn-portfolio[data-course]');
+        if (courseTarget?.dataset.course) {
+            const key = courseTarget.dataset.course;
+            preparePortfolioView('course', key);
+        }
+    };
+
+    document.addEventListener('pointerenter', prewarmPortfolioTarget, true);
+    document.addEventListener('focusin', prewarmPortfolioTarget);
 
     closeBtn?.addEventListener('click', closeModal);
     overlay?.addEventListener('click', closeModal);
