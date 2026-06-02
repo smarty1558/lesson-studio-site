@@ -63,6 +63,12 @@ test('free plugin page is branded as part of the studio site', () => {
     assert.match(freePluginSource, /requestAnimationFrame\(startTransition\)/);
 });
 
+test('embedded free plugin preview hides the temporary prototype home screen', () => {
+    assert.match(freePluginSource, /document\.documentElement\.classList\.add\('is-embedded'\)/);
+    assert.match(freePluginSource, /html\.is-embedded \.home\s*\{[^}]*display:\s*none\s*;/s);
+    assert.match(freePluginSource, /if \(!params\.has\('embed'\)\) \{\s*home\.classList\.add\('is-running'\);\s*\}/);
+});
+
 test('vite build includes the free plugin page as a deployable route', () => {
     assert.match(viteConfigSource, /input:\s*\{/);
     assert.match(viteConfigSource, /main:\s*resolve\(rootDir,\s*'index\.html'\)/);

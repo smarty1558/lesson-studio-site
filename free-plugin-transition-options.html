@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>무료 플러그인 | OMUS</title>
+  <script>
+    if (new URLSearchParams(window.location.search).has('embed')) {
+      document.documentElement.classList.add('is-embedded');
+    }
+  </script>
   <style>
     :root {
       --hidden-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1' viewBox='0 0 1 1'%3E%3C/svg%3E") 0 0, none;
@@ -47,6 +52,10 @@
     .home.is-running {
       opacity: .08;
       transform: translateX(-18vw);
+    }
+
+    html.is-embedded .home {
+      display: none;
     }
 
     .nav {
@@ -504,6 +513,7 @@
     const start = document.getElementById('start');
     const stage = document.getElementById('stage');
     const homeReload = document.querySelector('.home-reload');
+    const params = new URLSearchParams(window.location.search);
     const canvas = document.getElementById('map');
     const ctx = canvas.getContext('2d');
     const drawer = document.getElementById('drawer');
@@ -1095,7 +1105,9 @@
     }
 
     function startTransition() {
-      home.classList.add('is-running');
+      if (!params.has('embed')) {
+        home.classList.add('is-running');
+      }
       homeReload?.classList.remove('is-visible');
       stage.classList.remove('run', 'is-complete');
       stage.classList.add('is-active');
@@ -1353,8 +1365,6 @@
     window.addEventListener('resize', resize);
     renderDrawer(0);
     resize();
-
-    const params = new URLSearchParams(window.location.search);
 
     if (params.has('autostart')) {
       requestAnimationFrame(startTransition);
