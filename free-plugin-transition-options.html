@@ -691,7 +691,9 @@
       drawerOriginHeight: 0,
       cursorX: window.innerWidth / 2,
       cursorY: window.innerHeight / 2,
-      cursorLoop: 0
+      cursorLoop: 0,
+      cursorActiveUntil: 0,
+      mapFrame: 0
     };
 
     const easeOutExpo = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
@@ -1131,20 +1133,28 @@
     function updatePan(nextX, nextY) {
       state.panX = clamp(nextX, -state.width * .3, state.width * .3);
       state.panY = clamp(nextY, -state.height * .3, state.height * .3);
-      positionCategories();
-      drawFrame(9999);
+      requestMapFrame();
     }
 
     function updateZoom(wheelDeltaY) {
       state.zoom = clamp(state.zoom - wheelDeltaY * 0.0012, 0.8, 1.2);
-      positionCategories();
-      drawFrame(9999);
+      requestMapFrame();
+    }
+
+    function requestMapFrame() {
+      if (state.mapFrame) return;
+      state.mapFrame = requestAnimationFrame(() => {
+        state.mapFrame = 0;
+        positionCategories();
+        drawFrame(9999);
+      });
     }
 
     function startCursorFieldLoop() {
       if (state.cursorLoop) return;
-      const tick = () => {
-        if (!stage.classList.contains('is-active')) {
+      state.cursorActiveUntil = Math.max(state.cursorActiveUntil, performance.now() + 420);
+      const tick = (now) => {
+        if (!stage.classList.contains('is-active') || now > state.cursorActiveUntil) {
           state.cursorLoop = 0;
           return;
         }
@@ -1205,6 +1215,8 @@
       syncParentCursor(event);
       state.cursorX = lerp(state.cursorX, event.clientX, .32);
       state.cursorY = lerp(state.cursorY, event.clientY, .32);
+      state.cursorActiveUntil = performance.now() + 420;
+      startCursorFieldLoop();
       if (!state.dragging) return;
       if (Math.hypot(event.clientX - state.dragStartX, event.clientY - state.dragStartY) > 5) {
         state.mapDragMoved = true;
@@ -1296,7 +1308,8 @@
       if (!stage.classList.contains('is-complete') || state.dragging) return;
       state.cursorX = lerp(state.cursorX, event.clientX, .22);
       state.cursorY = lerp(state.cursorY, event.clientY, .22);
-      drawFrame(9999);
+      state.cursorActiveUntil = performance.now() + 420;
+      startCursorFieldLoop();
     });
 
     window.addEventListener('pointerdown', () => {

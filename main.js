@@ -926,8 +926,10 @@ const initSite = () => {
     const navbar = document.querySelector('.navbar');
     let navRevealTimer;
     let lastScrollY = Math.max(window.scrollY, 0);
+    let navUpdateFrame = 0;
 
     const updateNav = () => {
+        navUpdateFrame = 0;
         const currentScrollY = Math.max(window.scrollY, 0);
         const scrollingDown = currentScrollY >= lastScrollY;
 
@@ -949,8 +951,13 @@ const initSite = () => {
         lastScrollY = currentScrollY;
     };
 
+    const requestNavUpdate = () => {
+        if (navUpdateFrame) return;
+        navUpdateFrame = window.requestAnimationFrame(updateNav);
+    };
+
     updateNav();
-    window.addEventListener('scroll', updateNav, { passive: true });
+    window.addEventListener('scroll', requestNavUpdate, { passive: true });
 
     const freePluginPortal = document.querySelector('[data-free-plugin-portal]');
     const freePluginFrame = freePluginPortal?.querySelector('[data-free-plugin-frame]');
@@ -1082,18 +1089,34 @@ const initSite = () => {
         renderPortfolioInterest(clearPortfolioInterest());
     });
 
-    document.querySelectorAll('.course-card, .artist-card').forEach((card) => {
-        card.addEventListener('mousemove', (event) => {
-            const rect = card.getBoundingClientRect();
-            card.style.setProperty('--mouse-x', `${event.clientX - rect.left}px`);
-            card.style.setProperty('--mouse-y', `${event.clientY - rect.top}px`);
+    const prefersFinePointer = !window.matchMedia || window.matchMedia('(pointer: fine)').matches;
+    if (prefersFinePointer) {
+        document.querySelectorAll('.course-card, .artist-card').forEach((card) => {
+            let cardMouseFrame = 0;
+            let cardMouseX = 0;
+            let cardMouseY = 0;
+
+            const updateCardMousePosition = () => {
+                cardMouseFrame = 0;
+                const rect = card.getBoundingClientRect();
+                card.style.setProperty('--mouse-x', `${cardMouseX - rect.left}px`);
+                card.style.setProperty('--mouse-y', `${cardMouseY - rect.top}px`);
+            };
+
+            card.addEventListener('mousemove', (event) => {
+                cardMouseX = event.clientX;
+                cardMouseY = event.clientY;
+                if (!cardMouseFrame) {
+                    cardMouseFrame = window.requestAnimationFrame(updateCardMousePosition);
+                }
+            }, { passive: true });
         });
-    });
+    }
 
     const cursorTargets = document.querySelectorAll('.course-card, .artist-card[data-teacher]');
-    const statCursorTargets = document.querySelectorAll('.stat-item');
+    const statCursorTargets = Array.from(document.querySelectorAll('.stat-item'));
 
-    if (cursorTargets.length) {
+    if (cursorTargets.length && prefersFinePointer) {
         const cursorDot = document.createElement('div');
         const cursorPill = document.createElement('div');
         let mouseX = window.innerWidth / 2;
@@ -1101,6 +1124,7 @@ const initSite = () => {
         let pillX = mouseX;
         let pillY = mouseY;
         let activeCursorTarget = null;
+        let cursorFrame = 0;
 
         cursorDot.className = 'view-cursor-dot';
         cursorPill.className = 'view-cursor-pill';
@@ -1125,7 +1149,7 @@ const initSite = () => {
                 left: mouseX - radius
             };
 
-            const overlapRect = Array.from(statCursorTargets).map((target) => {
+            const overlapRect = statCursorTargets.map((target) => {
                 const rect = target.getBoundingClientRect();
                 return {
                     top: Math.max(dotRect.top, rect.top),
@@ -1152,6 +1176,7 @@ const initSite = () => {
         };
 
         const renderCursor = () => {
+            cursorFrame = 0;
             pillX += (mouseX - pillX) * 0.22;
             pillY += (mouseY - pillY) * 0.22;
 
@@ -1164,7 +1189,14 @@ const initSite = () => {
                     : 0.72;
             cursorPill.style.transform = `translate3d(${pillX + 28}px, ${pillY + 18}px, 0) translate(-50%, -50%) scale(${pillScale})`;
 
-            window.requestAnimationFrame(renderCursor);
+            if (cursorPill.classList.contains('is-visible') && (Math.abs(mouseX - pillX) > 0.4 || Math.abs(mouseY - pillY) > 0.4)) {
+                requestCursorRender();
+            }
+        };
+
+        const requestCursorRender = () => {
+            if (cursorFrame) return;
+            cursorFrame = window.requestAnimationFrame(renderCursor);
         };
 
         window.addEventListener('mousemove', (event) => {
@@ -1174,6 +1206,7 @@ const initSite = () => {
 
             document.body.classList.toggle('view-cursor-active', Boolean(activeCursorTarget));
             cursorPill.classList.toggle('is-visible', Boolean(activeCursorTarget));
+            requestCursorRender();
         }, { passive: true });
 
         window.addEventListener('message', (event) => {
@@ -1187,10 +1220,12 @@ const initSite = () => {
                 activeCursorTarget = data.active ? freePluginPortal : null;
                 document.body.classList.toggle('view-cursor-active', Boolean(data.active));
                 cursorPill.classList.toggle('is-visible', Boolean(data.active));
+                requestCursorRender();
             }
 
             if (data.type === 'free-plugin-cursor-press') {
                 cursorPill.classList.toggle('is-pressed', Boolean(data.pressed));
+                requestCursorRender();
             }
 
         });
@@ -1199,20 +1234,24 @@ const initSite = () => {
             target.addEventListener('mouseenter', () => {
                 document.body.classList.add('view-cursor-active');
                 cursorPill.classList.add('is-visible');
+                requestCursorRender();
             });
             target.addEventListener('mouseleave', () => {
                 document.body.classList.remove('view-cursor-active');
                 cursorPill.classList.remove('is-visible', 'is-pressed');
+                requestCursorRender();
             });
             target.addEventListener('mousedown', () => {
                 cursorPill.classList.add('is-pressed');
+                requestCursorRender();
             });
             target.addEventListener('mouseup', () => {
                 cursorPill.classList.remove('is-pressed');
+                requestCursorRender();
             });
         });
 
-        renderCursor();
+        requestCursorRender();
     }
 
     const modal = document.getElementById('portfolio-modal');
