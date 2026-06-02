@@ -78,6 +78,7 @@ test('category hover expands in place without outline and drawer collapses back 
   assert.match(html, /--hover-scale/);
   assert.match(html, /border:\s*1px solid transparent/);
   assert.match(html, /scale\(calc\(var\(--scale, 1\) \* var\(--hover-scale, 1\)\)\)/);
+  assert.match(html, /\.category:hover,\s*\.category:focus-visible\s*\{[^}]*z-index:\s*24\s*;/s);
   assert.match(html, /drawerOriginWidth/);
   assert.match(html, /scrollbar-width:\s*none/);
   assert.match(html, /::-webkit-scrollbar/);
@@ -91,6 +92,20 @@ test('background cursor field follows pointer movement', () => {
   assert.match(html, /startCursorFieldLoop/);
   assert.match(html, /Math\.sin/);
   assert.match(html, /pointermove/);
+});
+
+test('free plugin page reuses the parent home cursor instead of creating a second cursor', () => {
+  assert.doesNotMatch(html, /document\.createElement\('div'\)/);
+  assert.doesNotMatch(html, /className = 'view-cursor-dot'/);
+  assert.doesNotMatch(html, /function renderViewCursor/);
+  assert.match(html, /--hidden-cursor/);
+  assert.match(html, /cursor:\s*var\(--hidden-cursor\)\s*!important/);
+  assert.match(html, /\.stage\.is-complete\s*\{[^}]*cursor:\s*grab\s*!important/s);
+  assert.match(html, /\.stage\.is-complete\.is-dragging\s*\{[^}]*cursor:\s*grabbing\s*!important/s);
+  assert.match(html, /function syncParentCursor/);
+  assert.match(html, /window\.parent\.postMessage/);
+  assert.match(html, /type:\s*'free-plugin-cursor'/);
+  assert.match(html, /event\.target\?\.closest\?\.\('\.category, \.plugin-row, \.site-back, \.trigger'\)/);
 });
 
 test('static css grid is hidden so only the animated canvas grid remains', () => {
@@ -125,4 +140,9 @@ test('runner blink triggers staggered row then column grid reveal', () => {
   assert.match(html, /\/ 900/);
   assert.match(html, /\/ 940/);
   assert.doesNotMatch(html, /revealHead = lerp\(start, end, easeOutExpo\(progress\)\)/);
+});
+
+test('category cards do not re-position after the reveal completes', () => {
+  assert.match(html, /stage\.classList\.add\('is-complete'\);\s*state\.running = false;\s*drawFrame\(9999\);\s*startCursorFieldLoop\(\);/);
+  assert.doesNotMatch(html, /stage\.classList\.add\('is-complete'\);\s*state\.running = false;\s*positionCategories\(\);/);
 });
