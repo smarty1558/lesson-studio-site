@@ -468,7 +468,7 @@
     <nav class="nav" aria-label="주요 메뉴">
       <div class="brand">OMUS | OTAKU MUSIC LESSON STUDIO</div>
       <div class="nav-actions">
-        <a class="site-back" href="./index.html" target="_top" data-home-back>홈페이지로 돌아가기</a>
+        <a class="site-back" href="./index.html" target="_top">홈페이지로 돌아가기</a>
         <button class="trigger" id="start" type="button">무료 플러그인</button>
       </div>
     </nav>
@@ -480,7 +480,7 @@
   </main>
 
   <section class="stage" id="stage" aria-label="무료 플러그인 카테고리 맵">
-    <a class="stage-back" href="./index.html" target="_top" data-home-back>홈페이지로 돌아가기</a>
+    <a class="stage-back" href="./index.html" target="_top">홈페이지로 돌아가기</a>
     <div class="grid"></div>
     <canvas id="map"></canvas>
     <div class="hud" aria-hidden="true">
@@ -510,7 +510,6 @@
     const home = document.getElementById('home');
     const start = document.getElementById('start');
     const stage = document.getElementById('stage');
-    const homeBackLinks = [...document.querySelectorAll('[data-home-back]')];
     const canvas = document.getElementById('map');
     const ctx = canvas.getContext('2d');
     const drawer = document.getElementById('drawer');
@@ -1360,25 +1359,6 @@
     resize();
 
     const params = new URLSearchParams(window.location.search);
-
-    homeBackLinks.forEach((homeBack) => {
-      homeBack.addEventListener('click', (event) => {
-        if (!params.has('embed')) return;
-
-        event.preventDefault();
-        window.parent.postMessage({ type: 'free-plugin-go-home' }, '*');
-        window.setTimeout(() => {
-          window.top.location.href = './index.html';
-        }, 260);
-      });
-    });
-
-    window.addEventListener('message', (event) => {
-      if (event.origin !== window.location.origin) return;
-      if (event.data?.type !== 'free-plugin-force-home') return;
-      event.preventDefault();
-      window.location.href = './index.html';
-    });
 
     if (params.has('autostart')) {
       requestAnimationFrame(startTransition);

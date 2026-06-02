@@ -969,34 +969,8 @@ const initSite = () => {
             freePluginPortal.classList.add('is-active');
         });
     };
-    const closeFreePluginPortal = () => {
-        if (!freePluginPortal || !freePluginFrame) return;
-
-        freePluginPortal.classList.remove('is-active');
-        appShell?.classList.remove('is-free-plugin-launching');
-        document.body.classList.remove('free-plugin-portal-open', 'view-cursor-active');
-        window.setTimeout(() => {
-            freePluginPortal.hidden = true;
-            freePluginFrame.src = '';
-        }, 180);
-    };
-    const isFreePluginFrameMessage = (event) => (
-        event.source === freePluginFrame?.contentWindow
-        || event.origin === window.location.origin
-        || event.origin === 'null'
-    );
-
     freePluginLaunchers.forEach((launcher) => {
         launcher.addEventListener('click', openFreePluginPortal);
-    });
-
-    window.addEventListener('message', (event) => {
-        const data = event.data;
-        if (!data || typeof data !== 'object') return;
-        if (data.type !== 'free-plugin-go-home') return;
-        if (!isFreePluginFrameMessage(event)) return;
-
-        closeFreePluginPortal();
     });
 
     const contactForm = document.getElementById('contact-form');
@@ -1219,11 +1193,6 @@ const initSite = () => {
                 cursorPill.classList.toggle('is-pressed', Boolean(data.pressed));
             }
 
-            if (data.type === 'free-plugin-go-home') {
-                cursorPill.classList.remove('is-visible', 'is-pressed');
-                activeCursorTarget = null;
-                window.location.href = './index.html';
-            }
         });
 
         cursorTargets.forEach((target) => {
