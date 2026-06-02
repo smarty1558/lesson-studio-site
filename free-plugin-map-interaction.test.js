@@ -143,6 +143,6 @@ test('runner blink triggers staggered row then column grid reveal', () => {
 });
 
 test('category cards do not re-position after the reveal completes', () => {
-  assert.match(html, /stage\.classList\.add\('is-complete'\);\s*state\.running = false;\s*drawFrame\(9999\);\s*startCursorFieldLoop\(\);/);
+  assert.match(html, /stage\.classList\.add\('is-complete'\);\s*homeReload\?\.classList\.add\('is-visible'\);\s*state\.running = false;\s*drawFrame\(9999\);\s*startCursorFieldLoop\(\);/);
   assert.doesNotMatch(html, /stage\.classList\.add\('is-complete'\);\s*state\.running = false;\s*positionCategories\(\);/);
 });

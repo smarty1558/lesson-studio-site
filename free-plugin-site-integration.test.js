@@ -52,7 +52,10 @@ test('free plugin page is branded as part of the studio site', () => {
     assert.match(freePluginSource, /<title>무료 플러그인 \| OMUS<\/title>/);
     assert.match(freePluginSource, /<div class="brand">OMUS \| OTAKU MUSIC LESSON STUDIO<\/div>/);
     assert.match(freePluginSource, /<button class="home-reload" type="button" onclick="window\.top\.location\.href='\.\/index\.html'">홈페이지로 돌아가기<\/button>/);
-    assert.match(freePluginSource, /\.home-reload\s*\{[^}]*position:\s*fixed;[^}]*top:\s*18px;[^}]*z-index:\s*100;/s);
+    assert.match(freePluginSource, /\.home-reload\s*\{[^}]*position:\s*fixed;[^}]*right:\s*clamp\(18px,\s*3vw,\s*44px\);[^}]*top:\s*18px;[^}]*opacity:\s*0;[^}]*pointer-events:\s*none;/s);
+    assert.match(freePluginSource, /\.home-reload\.is-visible\s*\{[^}]*opacity:\s*1;[^}]*pointer-events:\s*auto;/s);
+    assert.match(freePluginSource, /stage\.classList\.add\('is-complete'\);\s*homeReload\?\.classList\.add\('is-visible'\);/);
+    assert.match(freePluginSource, /homeReload\?\.classList\.remove\('is-visible'\);\s*stage\.classList\.remove\('run', 'is-complete'\);/);
     assert.doesNotMatch(freePluginSource, /class="site-back"|class="stage-back"/);
     assert.doesNotMatch(freePluginSource, /data-home-back|homeBackLinks|free-plugin-go-home/);
     assert.match(freePluginSource, /const params = new URLSearchParams\(window\.location\.search\)/);

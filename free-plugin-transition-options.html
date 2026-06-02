@@ -88,21 +88,30 @@
 
     .home-reload {
       position: fixed;
-      left: 50%;
+      right: clamp(18px, 3vw, 44px);
       top: 18px;
       z-index: 100;
       border: 0;
       background: rgba(251, 251, 247, .92);
       box-shadow: 0 18px 50px rgba(17, 17, 17, .08);
-      transform: translateX(-50%);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px);
       backdrop-filter: blur(12px);
+      transition: opacity 260ms ease, transform 260ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .home-reload.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
     }
 
     .home-reload:hover,
     .trigger:hover {
       background: var(--ink);
       color: var(--paper);
-      transform: translate(-50%, -1px);
+      transform: translateY(-1px);
     }
 
     .hero {
@@ -425,7 +434,6 @@
         right: 16px;
         top: 18px;
         width: auto;
-        transform: none;
       }
       .category {
         min-width: 126px;
@@ -495,6 +503,7 @@
     const home = document.getElementById('home');
     const start = document.getElementById('start');
     const stage = document.getElementById('stage');
+    const homeReload = document.querySelector('.home-reload');
     const canvas = document.getElementById('map');
     const ctx = canvas.getContext('2d');
     const drawer = document.getElementById('drawer');
@@ -1078,6 +1087,7 @@
         requestAnimationFrame(animate);
       } else {
         stage.classList.add('is-complete');
+        homeReload?.classList.add('is-visible');
         state.running = false;
         drawFrame(9999);
         startCursorFieldLoop();
@@ -1086,6 +1096,7 @@
 
     function startTransition() {
       home.classList.add('is-running');
+      homeReload?.classList.remove('is-visible');
       stage.classList.remove('run', 'is-complete');
       stage.classList.add('is-active');
       drawer.classList.remove('is-visible');
