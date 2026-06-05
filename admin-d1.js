@@ -418,7 +418,7 @@ export const renderD1Admin = () => {
 
             try {
                 const data = await apiJson('/api/admin/portfolio', { password: adminPassword });
-                const teacherData = await apiJson('/api/admin/teachers', { password: adminPassword }).catch(() => ({ items: [] }));
+                const teacherData = await apiJson('/api/admin/teachers', { password: adminPassword });
                 items = data.items || [];
                 teacherItems = teacherData.items || [];
                 unlocked = true;
