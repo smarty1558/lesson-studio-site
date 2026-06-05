@@ -11,7 +11,7 @@ export const onRequestGet = async ({ env }) => {
         if (dbError) return dbError;
 
         const result = await env.DB.prepare(`
-            SELECT key, name, role, image_url, summary, specialties, works, note, sort_order
+            SELECT key, name, role, image_url, summary, direction, specialties, works, note, sort_order
             FROM teacher_profiles
             ORDER BY sort_order ASC, key ASC
         `).all();

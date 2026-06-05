@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS teacher_profiles (
   role TEXT,
   image_url TEXT,
   summary TEXT,
+  direction TEXT,
   specialties TEXT DEFAULT '[]',
   works TEXT DEFAULT '[]',
   note TEXT,

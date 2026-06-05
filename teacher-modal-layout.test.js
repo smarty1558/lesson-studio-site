@@ -67,6 +67,14 @@ test('teacher cms profiles hydrate main teacher cards', () => {
     assert.match(js, /\.then\(syncTeacherCardsFromProfiles\)/);
 });
 
+test('teacher cms exposes representative direction separately from class direction', () => {
+    assert.match(adminJs, /name="direction"/);
+    assert.match(adminJs, />대표 방향/);
+    assert.match(adminJs, />Class Direction/);
+    assert.match(js, /<dt>대표 방향<\/dt>\s*<dd>\$\{profile\.direction \|\| profile\.note\}<\/dd>/);
+    assert.match(js, /<strong>Class Direction<\/strong>\s*<p>\$\{profile\.note\}<\/p>/);
+});
+
 test('admin uses saved teacher names for portfolio assignment labels', () => {
     assert.match(adminJs, /const getTeacherChoiceOptions = \(\) => teacherOptions\.map/);
     assert.match(adminJs, /teacherProfileForKey\(teacherItems,\s*key,\s*index\)/);

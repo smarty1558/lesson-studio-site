@@ -1375,7 +1375,7 @@ const initSite = () => {
                 <dl class="teacher-profile-facts">
                     <div>
                         <dt>대표 방향</dt>
-                        <dd>${profile.note}</dd>
+                        <dd>${profile.direction || profile.note}</dd>
                     </div>
                     <div>
                         <dt>대표 작업</dt>

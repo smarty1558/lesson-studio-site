@@ -208,6 +208,7 @@ const readTeacherProfileForm = (form) => {
         role: String(formData.get('role') || '').trim(),
         imageUrl: String(formData.get('imageUrl') || '').trim(),
         summary: String(formData.get('summary') || '').trim(),
+        direction: String(formData.get('direction') || '').trim(),
         specialties: String(formData.get('specialties') || '').trim(),
         works: String(formData.get('works') || '').trim(),
         note: String(formData.get('note') || '').trim(),
@@ -511,13 +512,16 @@ export const renderD1Admin = () => {
                     <label class="admin-field-wide">Summary
                         <textarea name="summary" rows="3">${escapeHtml(profile.summary)}</textarea>
                     </label>
+                    <label class="admin-field-wide">대표 방향
+                        <textarea name="direction" rows="3">${escapeHtml(profile.direction || '')}</textarea>
+                    </label>
                     <label>Specialties
                         <input name="specialties" value="${escapeHtml(teacherListValue(profile.specialties))}" placeholder="Anime Vocal, Topline">
                     </label>
                     <label>Works
                         <input name="works" value="${escapeHtml(teacherListValue(profile.works))}" placeholder="Opening Demo, Student Work">
                     </label>
-                    <label class="admin-field-wide">Bottom Note
+                    <label class="admin-field-wide">Class Direction
                         <textarea name="note" rows="3">${escapeHtml(profile.note)}</textarea>
                     </label>
                     <button type="submit" class="admin-primary">Save Teacher</button>
