@@ -5,6 +5,7 @@ import { resolve, dirname } from 'node:path';
 const rootDir = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+    root: rootDir,
     build: {
         rollupOptions: {
             input: {

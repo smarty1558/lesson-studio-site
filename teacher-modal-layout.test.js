@@ -40,6 +40,13 @@ test('teacher details use a dedicated modal separate from the portfolio modal', 
     assert.doesNotMatch(js, /openModal\(artistCard\.dataset\.teacher,\s*'teacher'\)/);
 });
 
+test('teacher modal hides profile image when short screens cannot fit content', () => {
+    assert.match(css, /@media \(max-height:\s*720px\)/);
+    assert.match(css, /@media \(max-height:\s*720px\)[\s\S]*\.teacher-profile-visual\s*\{[^}]*display:\s*none\s*;/);
+    assert.match(css, /@media \(max-height:\s*720px\)[\s\S]*\.teacher-profile-card\s*\{[^}]*grid-template-columns:\s*1fr\s*;/);
+    assert.match(css, /@media \(max-height:\s*720px\)[\s\S]*\.teacher-profile-copy\s*\{[^}]*justify-content:\s*flex-start\s*;/);
+});
+
 test('portfolio modals prewarm markup and media before click animations', () => {
     assert.match(js, /preparedPortfolioViews:\s*new Map\(\)/);
     assert.match(js, /const preparePortfolioView = async/);
