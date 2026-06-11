@@ -47,6 +47,11 @@ test('teacher modal hides profile image when short screens cannot fit content', 
     assert.match(css, /@media \(max-height:\s*720px\)[\s\S]*\.teacher-profile-copy\s*\{[^}]*justify-content:\s*flex-start\s*;/);
 });
 
+test('portfolio and teacher detail text preserves CMS line breaks', () => {
+    assert.match(css, /\.expanded-copy dd,\s*\.expanded-copy p\s*\{[^}]*white-space:\s*pre-line\s*;/s);
+    assert.match(css, /\.teacher-profile-copy p,\s*\.teacher-profile-facts dd,\s*\.teacher-profile-note p\s*\{[^}]*white-space:\s*pre-line\s*;/s);
+});
+
 test('portfolio modals prewarm markup and media before click animations', () => {
     assert.match(js, /preparedPortfolioViews:\s*new Map\(\)/);
     assert.match(js, /const preparePortfolioView = async/);

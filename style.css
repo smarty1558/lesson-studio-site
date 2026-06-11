@@ -1656,6 +1656,12 @@ textarea:focus {
     line-height: 1.55;
 }
 
+.teacher-profile-copy p,
+.teacher-profile-facts dd,
+.teacher-profile-note p {
+    white-space: pre-line;
+}
+
 .teacher-panel-action {
     display: inline-flex;
     align-items: center;
@@ -3007,6 +3013,11 @@ textarea:focus {
     color: #475569;
     font-size: 1.03rem;
     line-height: 1.7;
+}
+
+.expanded-copy dd,
+.expanded-copy p {
+    white-space: pre-line;
 }
 
 .portfolio-credit-line {
