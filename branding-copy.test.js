@@ -28,7 +28,7 @@ test('public branding uses the otaku music studio name and subtitle', () => {
 });
 
 test('hero and student works copy keep the requested line breaks', () => {
-    assert.match(indexSource, /게임 BGM, 애니송, J-Pop 감성, Sound Design까지\.<br>\s*좋아하는 세계관을 직접 음악으로 만들게 하는 1:1 레슨 스튜디오입니다\.<br>\s*온라인 또는 오프라인, 원하는 방향으로 레슨 방식을 선택할 수 있습니다\./);
+    assert.match(indexSource, /게임 BGM, 애니송, J-Pop 감성, Sound Design까지\.<br>\s*서브컬처 작곡 레슨과 게임음악 작곡 레슨을 통해 좋아하는 세계관을 직접 음악으로 만들게 하는 1:1 레슨 스튜디오입니다\.<br>\s*온라인 또는 오프라인, 원하는 방향으로 레슨 방식을 선택할 수 있습니다\./);
     assert.match(indexSource, /수업의 끝은<br><span>취향이 박힌 포트폴리오입니다<\/span>/);
     assert.match(indexSource, /OMUS의 선생님들의 작업 데모, 포트폴리오입니다\./);
     assert.doesNotMatch(indexSource, /결과물/);
@@ -54,7 +54,7 @@ test('student works section avoids heavy animated blur layers while scrolling', 
 
 test('classes copy and ordering match the requested course lineup', () => {
     assert.match(indexSource, /오타쿠 감각으로 수업을 고르세요/);
-    assert.match(indexSource, /J-POP, 게임, 애니메이션, 서브컬처, 버튜버 감성/);
+    assert.match(indexSource, /J-POP 작곡 레슨, 서브컬처 작곡 레슨, 게임음악 작곡 레슨/);
     assert.match(indexSource, /data-course="jpop"[\s\S]*data-course="game"[\s\S]*data-course="anime"[\s\S]*data-course="sound"/);
     assert.match(styleSource, /\.courses \.section-header\s*\{[^}]*width:\s*min\(1040px,\s*100%\)\s*;/s);
     assert.match(styleSource, /\.courses \.section-header h2,\s*\.courses \.section-header p\s*\{[^}]*white-space:\s*nowrap\s*;/s);
