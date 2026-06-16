@@ -9,8 +9,8 @@ const contactApiSource = readFileSync(new URL('./functions/api/contact.js', impo
 const visibleBrandingSource = [indexSource, mainSource, contactApiSource].join('\n');
 
 test('public branding uses the otaku music studio name and subtitle', () => {
-    assert.match(indexSource, /<title>OMUS : J-pop · 서브컬쳐 · 애니송 · 게임음악 작곡 \/ 미디 1:1 레슨 \| 성인대상<\/title>/);
-    assert.match(indexSource, /<meta name="description" content="OMUS : J-pop · 서브컬쳐 · 애니송 · 게임음악 작곡 \/ 미디 1:1 레슨 \| 성인대상">/);
+    assert.match(indexSource, /<title>OMUS : J-pop · 서브컬처 · 애니송 · 게임음악 작곡 \/ 미디 1:1 레슨 \| 성인대상<\/title>/);
+    assert.match(indexSource, /<meta name="description" content="OMUS : J-pop · 서브컬처 · 애니송 · 게임음악 작곡 \/ 미디 1:1 레슨 \| 성인대상">/);
     assert.match(indexSource, /<span class="logo-main">OMUS \| 오타쿠 뮤직 스튜디오<\/span>/);
     assert.match(indexSource, /오타쿠 뮤직 스튜디오/);
     assert.match(indexSource, /<div class="intro-mark">OMUS<\/div>/);
@@ -19,7 +19,7 @@ test('public branding uses the otaku music studio name and subtitle', () => {
     assert.doesNotMatch(indexSource, /당신의 음악이 켜지는 중/);
     assert.match(mainSource, /오타쿠 뮤직 스튜디오 CMS/);
     assert.match(contactApiSource, /오타쿠 뮤직 스튜디오 상담 문의/);
-    assert.match(indexSource, /J-Pop · 서브컬쳐 · 애니송 · 제이팝 · 게임음악 작곡\/미디 1:1 레슨 \| 성인 대상/);
+    assert.match(indexSource, /J-Pop · 서브컬처 · 애니송 · 제이팝 · 게임음악 작곡\/미디 1:1 레슨 \| 성인 대상/);
     assert.doesNotMatch(visibleBrandingSource, /OMUS \| 오타쿠 뮤직 레슨 스튜디오/);
     assert.doesNotMatch(visibleBrandingSource, /오타쿠 뮤직 레슨 스튜디오/);
     assert.doesNotMatch(visibleBrandingSource, /제이팝 게임음악 레슨 스튜디오/);
@@ -55,8 +55,8 @@ test('classes copy and ordering match the requested course lineup', () => {
     assert.match(indexSource, /data-course="jpop"[\s\S]*data-course="game"[\s\S]*data-course="anime"[\s\S]*data-course="sound"/);
     assert.match(styleSource, /\.courses \.section-header\s*\{[^}]*width:\s*min\(1040px,\s*100%\)\s*;/s);
     assert.match(styleSource, /\.courses \.section-header h2,\s*\.courses \.section-header p\s*\{[^}]*white-space:\s*nowrap\s*;/s);
-    assert.match(indexSource, /<h3>J-POP · 보카로<\/h3>/);
-    assert.match(mainSource, /jpop:\s*'J-POP · 보카로'/);
+    assert.match(indexSource, /<h3>J-POP · 서브컬처<\/h3>/);
+    assert.match(mainSource, /jpop:\s*'J-POP · 서브컬처'/);
     assert.match(indexSource, /<h3>게임 BGM<\/h3>/);
     assert.match(indexSource, /<h3>애니메이션 · 영화 OST<\/h3>/);
 });

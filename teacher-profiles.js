@@ -16,7 +16,7 @@ export const teacherProfiles = {
         name: '이도윤',
         role: 'Producer',
         image: './instructor-producer-cover.png',
-        summary: 'J-POP, 밴드 사운드, 서브컬쳐 작곡을 실제 발매 가능한 구조와 믹스 감각으로 끌고 갑니다.',
+        summary: 'J-POP, 밴드 사운드, 서브컬처 작곡을 실제 발매 가능한 구조와 믹스 감각으로 끌고 갑니다.',
         specialties: ['J-POP', 'Band Sound', 'Arrangement'],
         works: ['Blue Hour J-POP', 'Studio Band Demo', 'Opening Song Guide'],
         note: '멜로디와 편곡의 밀도를 동시에 올리는 프로듀싱 흐름을 만듭니다.'

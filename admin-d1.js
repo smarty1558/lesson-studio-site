@@ -14,7 +14,7 @@ const teacherOptions = [
 ];
 
 const targetOptions = [
-    ['jpop', 'J-POP · 보카로'],
+    ['jpop', 'J-POP · 서브컬처'],
     ['game', '게임 BGM'],
     ['anime', '애니메이션 · 영화 OST'],
     ['sound', 'Sound Design']
