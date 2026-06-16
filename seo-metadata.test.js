@@ -6,6 +6,7 @@ const indexSource = readFileSync(new URL('./index.html', import.meta.url), 'utf8
 const freePluginSource = readFileSync(new URL('./free-plugin-transition-options.html', import.meta.url), 'utf8');
 const robotsSource = readFileSync(new URL('./public/robots.txt', import.meta.url), 'utf8');
 const sitemapSource = readFileSync(new URL('./public/sitemap.xml', import.meta.url), 'utf8');
+const headersSource = readFileSync(new URL('./public/_headers', import.meta.url), 'utf8');
 
 test('main page exposes production seo metadata', () => {
     assert.match(indexSource, /<link rel="canonical" href="https:\/\/otakumusicstudio\.com\/">/);
@@ -32,4 +33,9 @@ test('robots and sitemap point search engines to the production domain', () => {
     assert.match(robotsSource, /Sitemap: https:\/\/otakumusicstudio\.com\/sitemap\.xml/);
     assert.match(sitemapSource, /<loc>https:\/\/otakumusicstudio\.com\/<\/loc>/);
     assert.match(sitemapSource, /<loc>https:\/\/otakumusicstudio\.com\/free-plugin-transition-options\.html<\/loc>/);
+});
+
+test('html responses are served as utf-8 on cloudflare pages', () => {
+    assert.match(headersSource, /\/\s*\n\s*Content-Type: text\/html; charset=utf-8/);
+    assert.match(headersSource, /\/\*\.html\s*\n\s*Content-Type: text\/html; charset=utf-8/);
 });
