@@ -49,7 +49,7 @@ test('home cursor receives pointer updates from the embedded free plugin preview
 });
 
 test('free plugin page is branded as part of the studio site', () => {
-    assert.match(freePluginSource, /<title>무료 플러그인 \| OMUS<\/title>/);
+    assert.match(freePluginSource, /<title>무료 음악 플러그인 추천 \| OMUS 오타쿠 뮤직 스튜디오<\/title>/);
     assert.match(freePluginSource, /<div class="brand">OMUS \| OTAKU MUSIC LESSON STUDIO<\/div>/);
     assert.match(freePluginSource, /<button class="home-reload" type="button" onclick="window\.top\.location\.href='\.\/index\.html'">홈페이지로 돌아가기<\/button>/);
     assert.match(freePluginSource, /\.home-reload\s*\{[^}]*position:\s*fixed;[^}]*right:\s*clamp\(18px,\s*3vw,\s*44px\);[^}]*top:\s*18px;[^}]*opacity:\s*0;[^}]*pointer-events:\s*none;/s);

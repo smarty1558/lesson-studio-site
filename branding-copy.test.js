@@ -9,8 +9,8 @@ const contactApiSource = readFileSync(new URL('./functions/api/contact.js', impo
 const visibleBrandingSource = [indexSource, mainSource, contactApiSource].join('\n');
 
 test('public branding uses the otaku music studio name and subtitle', () => {
-    assert.match(indexSource, /<title>OMUS : J-pop · 서브컬처 · 애니송 · 게임음악 작곡 \/ 미디 1:1 레슨 \| 성인대상<\/title>/);
-    assert.match(indexSource, /<meta name="description" content="OMUS : J-pop · 서브컬처 · 애니송 · 게임음악 작곡 \/ 미디 1:1 레슨 \| 성인대상">/);
+    assert.match(indexSource, /<title>OMUS 오타쿠 뮤직 스튜디오 \| J-POP · 서브컬처 · 게임음악 작곡 미디 1:1 레슨<\/title>/);
+    assert.match(indexSource, /<meta name="description" content="OMUS 오타쿠 뮤직 스튜디오는 성인을 위한 J-POP, 서브컬처, 애니송, 게임음악 작곡과 미디 1:1 레슨을 제공합니다\. 온라인과 오프라인 상담 신청이 가능합니다\.">/);
     assert.match(indexSource, /<span class="logo-main">OMUS \| 오타쿠 뮤직 스튜디오<\/span>/);
     assert.match(indexSource, /오타쿠 뮤직 스튜디오/);
     assert.match(indexSource, /<div class="intro-mark">OMUS<\/div>/);
