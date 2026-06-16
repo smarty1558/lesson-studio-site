@@ -4805,6 +4805,38 @@ textarea:focus {
         border-radius: 26px;
     }
 
+    .modal-content:not(.detail-mode):not(.teacher-mode) {
+        min-height: calc(100dvh - 20px);
+        max-height: calc(100dvh - 20px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 56px 14px 14px;
+    }
+
+    .modal-content:not(.detail-mode):not(.teacher-mode) .modal-header {
+        width: 100%;
+        flex: 0 0 auto;
+        margin: 0 auto 16px;
+    }
+
+    .modal-content:not(.detail-mode):not(.teacher-mode) .portfolio-gallery {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        gap: 12px;
+        overflow: auto;
+        padding-right: 4px;
+    }
+
+    .modal-content:not(.detail-mode):not(.teacher-mode) .portfolio-item {
+        min-width: 0;
+        padding: 6px;
+        border-radius: 14px;
+    }
+
     .modal-content.detail-mode {
         display: grid;
         grid-template-columns: 1fr;
