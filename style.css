@@ -684,6 +684,11 @@ body.site-ready .site-shell {
     overflow-wrap: anywhere;
 }
 
+.stat-item-mixing h3 {
+    font-size: clamp(1.2rem, 1.65vw, 1.55rem);
+    white-space: nowrap;
+}
+
 .stat-item p {
     margin-top: 14px;
     color: var(--text-muted);
