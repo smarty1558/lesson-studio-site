@@ -561,7 +561,7 @@ const renderStandaloneAdminPage = () => {
                             </label>
                         </div>
                         <label>설명
-                            <textarea name="detail" rows="5" placeholder="결과물의 방향과 작업 과정을 적어주세요."></textarea>
+                            <textarea name="detail" rows="5" placeholder="포트폴리오의 방향과 작업 과정을 적어주세요."></textarea>
                         </label>
                         <label>태그
                             <input name="points" placeholder="jpop, indie, game">
@@ -1281,7 +1281,7 @@ const initSite = () => {
     const titleMap = {
         jpop: 'J-POP · 서브컬처',
         game: '게임 BGM',
-        anime: '애니메이션 · 영화 OST',
+        anime: '애니메이션<br>영화 OST',
         sound: 'Sound Design'
     };
     const teacherTitleMap = {
@@ -1417,7 +1417,7 @@ const initSite = () => {
             imageUrl,
             credits,
             tags,
-            cta: '이런 결과물 상담하기',
+            cta: '이런 포트폴리오 상담하기',
             ...item,
             format: credits,
             detail: description,
@@ -2062,7 +2062,7 @@ const initSite = () => {
                             <label>Audio URL<input name="audioUrl" placeholder="https://.../demo.mp3"></label>
                             <label>외부 링크<input name="externalUrl" placeholder="SoundCloud, Melon, Drive 등"></label>
                         </div>
-                        <label>설명<textarea name="detail" rows="5" placeholder="결과물의 방향과 작업 과정을 적어주세요."></textarea></label>
+                        <label>설명<textarea name="detail" rows="5" placeholder="포트폴리오의 방향과 작업 과정을 적어주세요."></textarea></label>
                         <label>태그<input name="points" placeholder="jpop, indie, game"></label>
                         <button type="submit" class="admin-primary">포트폴리오 모달 추가</button>
                     </form>
@@ -2310,7 +2310,7 @@ const initSite = () => {
             ? (teacherTitleMap[key] || '강사진 포트폴리오')
             : (titleMap[key] || '수강생');
 
-        modalTitle.innerHTML = `${title} <span class="text-purple">결과물</span>`;
+        modalTitle.innerHTML = `${title} <span class="text-purple">포트폴리오</span>`;
         document.getElementById('portfolio-expanded-panel')?.remove();
 
         gallery.innerHTML = '';
@@ -2512,7 +2512,7 @@ const initSite = () => {
             const tags = renderPortfolioTags(enriched.tags, enriched.category);
             const isAlreadyOpen = expandedPanel.classList.contains('is-open');
             expandedPanel.dataset.portfolioInterestTitle = enriched.title;
-            const contextLabel = `${title} 결과물`;
+            const contextLabel = `${title} 포트폴리오`;
 
             if (detailKicker) {
                 detailKicker.textContent = contextLabel;

@@ -1,4 +1,4 @@
-import { mergeTeacherProfile } from './teacher-profile-utils.js';
+﻿import { mergeTeacherProfile } from './teacher-profile-utils.js';
 
 export const teacherProfiles = {
     kim: {
@@ -39,7 +39,7 @@ export const teacherProfiles = {
         summary: '곡의 방향, 사운드 콘셉트, 포트폴리오 완성도를 함께 설계하는 크리에이티브 디렉팅을 담당합니다.',
         specialties: ['Creative Direction', 'Portfolio', 'Subculture Sound'],
         works: ['OSUM Portfolio Guide', 'Hybrid OST Direction', 'Creator Sound Kit'],
-        note: '학생의 취향을 결과물의 언어로 바꾸는 큰 방향 설정에 강합니다.'
+        note: '학생의 취향을 포트폴리오의 언어로 바꾸는 큰 방향 설정에 강합니다.'
     }
 };
 
@@ -48,7 +48,7 @@ export const getTeacherProfile = (key) => teacherProfiles[key] || {
     name: 'OSUM 강사',
     role: 'Instructor',
     image: './portfolio-default-cover.png',
-    summary: 'OSUM의 수업 결과물을 함께 완성하는 강사입니다.',
+    summary: 'OSUM의 수업 포트폴리오를 함께 완성하는 강사입니다.',
     specialties: ['Portfolio', 'Production'],
     works: ['Student Portfolio'],
     note: '상담을 통해 맞는 수업 방향을 안내합니다.'
