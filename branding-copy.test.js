@@ -61,6 +61,14 @@ test('classes copy and ordering match the requested course lineup', () => {
     assert.match(indexSource, /<h3>애니메이션 · 영화 OST<\/h3>/);
 });
 
+test('intro cards include mixing and mastering without changing the section layout', () => {
+    assert.match(indexSource, /<h3>Mixing \/ Mastering<\/h3>/);
+    assert.match(indexSource, /MR \+ 보컬 믹싱/);
+    assert.match(indexSource, /전문적인 믹싱/);
+    assert.match(styleSource, /\.stats \.grid\s*\{[^}]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)\s*;/s);
+    assert.match(styleSource, /@media \(max-width:\s*1080px\)[\s\S]*\.stats \.grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)\s*;/);
+});
+
 test('class cards align descriptions, tags, and portfolio buttons consistently', () => {
     assert.match(styleSource, /\.course-card h3\s*\{[^}]*min-height:\s*64px\s*;/s);
     assert.match(styleSource, /\.course-card p\s*\{[^}]*min-height:\s*112px\s*;/s);
