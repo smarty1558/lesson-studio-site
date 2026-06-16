@@ -1278,6 +1278,15 @@ const initSite = () => {
 
         modalContent?.classList.remove('teacher-mode', 'teacher-works-active');
     };
+    const resetCoursePortfolioScroll = () => {
+        if (!gallery) return;
+        gallery.scrollTop = 0;
+        gallery.scrollLeft = 0;
+        if (modalContent) {
+            modalContent.scrollTop = 0;
+            modalContent.scrollLeft = 0;
+        }
+    };
     const titleMap = {
         jpop: 'J-POP · 서브컬처',
         game: '게임 BGM',
@@ -2333,6 +2342,9 @@ const initSite = () => {
         const { data, portfolioMarkup } = prepared;
 
         gallery.innerHTML = portfolioMarkup;
+        if (!isTeacher) {
+            resetCoursePortfolioScroll();
+        }
 
         if (!isTeacher) {
             modal.classList.add('active');

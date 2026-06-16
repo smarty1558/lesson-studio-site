@@ -61,6 +61,13 @@ test('portfolio modals prewarm markup and media before click animations', () => 
     assert.match(js, /preparePortfolioView\('course', key\)/);
 });
 
+test('course portfolio modal resets reused gallery scroll before each class opens', () => {
+    assert.match(js, /const resetCoursePortfolioScroll = \(\) => \{/);
+    assert.match(js, /gallery\.scrollTop = 0;/);
+    assert.match(js, /gallery\.scrollLeft = 0;/);
+    assert.match(js, /if \(!isTeacher\) \{\s*resetCoursePortfolioScroll\(\);\s*\}/);
+});
+
 test('admin renders portfolio and teacher cms as separate tabs', () => {
     assert.match(adminJs, /let activeAdminTab = 'portfolio'/);
     assert.match(adminJs, /data-admin-tab="portfolio"/);
