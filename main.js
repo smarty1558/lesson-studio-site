@@ -1288,9 +1288,9 @@ const initSite = () => {
         }
     };
     const titleMap = {
-        jpop: 'J-POP · 서브컬처<br>포트폴리오',
+        jpop: 'J-POP · 서브컬처',
         game: '게임 BGM',
-        anime: '애니메이션 · 영화<br>포트폴리오',
+        anime: '애니메이션 · 영화',
         sound: 'Sound Design'
     };
     const teacherTitleMap = {
@@ -2319,7 +2319,7 @@ const initSite = () => {
             ? (teacherTitleMap[key] || '강사진 포트폴리오')
             : (titleMap[key] || '수강생');
 
-        modalTitle.innerHTML = `${title} <span class="text-purple">포트폴리오</span>`;
+        modalTitle.innerHTML = `${title}<br><span class="text-purple">포트폴리오</span>`;
         document.getElementById('portfolio-expanded-panel')?.remove();
 
         gallery.innerHTML = '';
