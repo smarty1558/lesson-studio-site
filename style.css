@@ -685,8 +685,7 @@ body.site-ready .site-shell {
 }
 
 .stat-item-mixing h3 {
-    font-size: clamp(1.2rem, 1.65vw, 1.55rem);
-    white-space: nowrap;
+    font-size: clamp(1.65rem, 2.35vw, 2.45rem);
 }
 
 .stat-item p {

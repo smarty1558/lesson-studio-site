@@ -63,11 +63,12 @@ test('classes copy and ordering match the requested course lineup', () => {
 
 test('intro cards include mixing and mastering without changing the section layout', () => {
     assert.match(indexSource, /<div class="stat-item stat-item-mixing">/);
-    assert.match(indexSource, /<h3>Mixing \/ Mastering<\/h3>/);
+    assert.match(indexSource, /<h3>Mixing<br>Mastering<\/h3>/);
     assert.match(indexSource, /MR \+ 보컬 믹싱부터 전문 믹싱과 마스터링까지 균형 있게 설계/);
     assert.doesNotMatch(indexSource, /다듬습니다/);
     assert.match(styleSource, /\.stats \.grid\s*\{[^}]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)\s*;/s);
-    assert.match(styleSource, /\.stat-item-mixing h3\s*\{[^}]*font-size:\s*clamp\(1\.2rem,\s*1\.65vw,\s*1\.55rem\)\s*;[^}]*white-space:\s*nowrap\s*;/s);
+    assert.match(styleSource, /\.stat-item-mixing h3\s*\{[^}]*font-size:\s*clamp\(1\.65rem,\s*2\.35vw,\s*2\.45rem\)\s*;/s);
+    assert.doesNotMatch(styleSource, /\.stat-item-mixing h3\s*\{[^}]*white-space:\s*nowrap\s*;/s);
     assert.match(styleSource, /@media \(max-width:\s*1080px\)[\s\S]*\.stats \.grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)\s*;/);
 });
 
