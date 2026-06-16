@@ -239,6 +239,14 @@ test('course portfolio modal uses tall two-column gallery on narrow screens', ()
     assert.doesNotMatch(css, /\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\)\s*\{[^}]*overflow:\s*hidden\s*;/);
 });
 
+test('teacher works modal fills available height on narrow screens', () => {
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.teacher-dedicated-content\.teacher-works-active:not\(\.teacher-work-detail-mode\)\s*\{[^}]*min-height:\s*calc\(100dvh - 20px\)\s*;[^}]*display:\s*flex\s*;[^}]*flex-direction:\s*column\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.teacher-dedicated-content\.teacher-works-active:not\(\.teacher-work-detail-mode\) #teacher-modal-body,[\s\S]*\{[^}]*flex:\s*1 1 auto\s*;[^}]*min-height:\s*0\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.teacher-dedicated-content\.teacher-works-active:not\(\.teacher-work-detail-mode\) \.teacher-dedicated-portfolio\s*\{[^}]*flex:\s*1 1 auto\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.teacher-dedicated-content\.teacher-works-active:not\(\.teacher-work-detail-mode\) \.teacher-dedicated-portfolio[\s\S]*\{[^}]*display:\s*flex\s*;[^}]*flex-direction:\s*column\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.teacher-dedicated-content\.teacher-works-active:not\(\.teacher-work-detail-mode\) \.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*flex:\s*1 1 auto\s*;[^}]*max-height:\s*none\s*;/);
+});
+
 test('dedicated teacher modal animates between variable detail and works sizes', () => {
     const contentRule = getRuleBody('.teacher-dedicated-content');
 

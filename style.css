@@ -4940,6 +4940,35 @@ textarea:focus {
         transform: none;
     }
 
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) {
+        min-height: calc(100dvh - 20px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) #teacher-modal-body,
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) .teacher-dedicated-stage,
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) .teacher-panel-track,
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) .teacher-dedicated-works-panel {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) .teacher-dedicated-works-panel,
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) .teacher-dedicated-portfolio {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) .teacher-dedicated-portfolio {
+        flex: 1 1 auto;
+    }
+
+    .teacher-dedicated-content.teacher-works-active:not(.teacher-work-detail-mode) .teacher-dedicated-portfolio .portfolio-gallery {
+        flex: 1 1 auto;
+        max-height: none;
+    }
+
     .modal-content.teacher-mode.detail-mode .teacher-works-panel {
         display: flex;
         flex-direction: column;
