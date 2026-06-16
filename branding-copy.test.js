@@ -60,9 +60,11 @@ test('classes copy and ordering match the requested course lineup', () => {
     assert.match(styleSource, /\.courses \.section-header h2,\s*\.courses \.section-header p\s*\{[^}]*white-space:\s*nowrap\s*;/s);
     assert.match(indexSource, /<h3>J-POP · 서브컬처<\/h3>/);
     assert.match(mainSource, /jpop:\s*'J-POP · 서브컬처'/);
+    assert.match(mainSource, /jpop:\s*'J-POP · 서브컬처<br>포트폴리오'/);
     assert.match(indexSource, /<h3>게임 BGM<\/h3>/);
     assert.match(indexSource, /<h3>애니메이션 · 영화 OST<\/h3>/);
-    assert.match(mainSource, /anime:\s*'애니메이션<br>영화 OST'/);
+    assert.match(indexSource, /<span>애니메이션 · 영화<br>포트폴리오<\/span>/);
+    assert.match(mainSource, /anime:\s*'애니메이션 · 영화<br>포트폴리오'/);
     assert.match(mainSource, /modalTitle\.innerHTML = `\$\{title\} <span class="text-purple">포트폴리오<\/span>`;/);
 });
 

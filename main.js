@@ -1288,9 +1288,9 @@ const initSite = () => {
         }
     };
     const titleMap = {
-        jpop: 'J-POP · 서브컬처',
+        jpop: 'J-POP · 서브컬처<br>포트폴리오',
         game: '게임 BGM',
-        anime: '애니메이션<br>영화 OST',
+        anime: '애니메이션 · 영화<br>포트폴리오',
         sound: 'Sound Design'
     };
     const teacherTitleMap = {
