@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 
 const indexSource = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
 const freePluginSource = readFileSync(new URL('./free-plugin-transition-options.html', import.meta.url), 'utf8');
@@ -9,6 +9,9 @@ const sitemapSource = readFileSync(new URL('./public/sitemap.xml', import.meta.u
 const headersSource = readFileSync(new URL('./public/_headers', import.meta.url), 'utf8');
 
 test('main page exposes production seo metadata', () => {
+    assert.match(indexSource, /<link rel="icon" type="image\/png" sizes="32x32" href="\/favicon-32\.png">/);
+    assert.match(indexSource, /<link rel="icon" type="image\/png" sizes="192x192" href="\/favicon-192\.png">/);
+    assert.match(indexSource, /<link rel="apple-touch-icon" sizes="180x180" href="\/apple-touch-icon\.png">/);
     assert.match(indexSource, /<link rel="canonical" href="https:\/\/otakumusicstudio\.com\/">/);
     assert.match(indexSource, /<meta name="robots" content="index, follow">/);
     assert.match(indexSource, /<meta property="og:site_name" content="OMUS 오타쿠 뮤직 스튜디오">/);
@@ -31,6 +34,8 @@ test('main page body includes target lesson search phrases', () => {
 
 test('free plugin page exposes its own seo metadata', () => {
     assert.match(freePluginSource, /<title>무료 음악 플러그인 추천 \| OMUS 오타쿠 뮤직 스튜디오<\/title>/);
+    assert.match(freePluginSource, /<link rel="icon" type="image\/png" sizes="32x32" href="\/favicon-32\.png">/);
+    assert.match(freePluginSource, /<link rel="icon" type="image\/png" sizes="192x192" href="\/favicon-192\.png">/);
     assert.match(freePluginSource, /<link rel="canonical" href="https:\/\/otakumusicstudio\.com\/free-plugin-transition-options\.html">/);
     assert.match(freePluginSource, /<meta property="og:url" content="https:\/\/otakumusicstudio\.com\/free-plugin-transition-options\.html">/);
     assert.match(freePluginSource, /"@type": "WebPage"/);
@@ -47,4 +52,11 @@ test('robots and sitemap point search engines to the production domain', () => {
 test('html responses are served as utf-8 on cloudflare pages', () => {
     assert.match(headersSource, /\/\s*\n\s*Content-Type: text\/html; charset=utf-8/);
     assert.match(headersSource, /\/\*\.html\s*\n\s*Content-Type: text\/html; charset=utf-8/);
+});
+
+test('favicon image assets are available for browsers and search results', () => {
+    assert.ok(statSync(new URL('./public/favicon.png', import.meta.url)).size > 0);
+    assert.ok(statSync(new URL('./public/favicon-32.png', import.meta.url)).size > 0);
+    assert.ok(statSync(new URL('./public/favicon-192.png', import.meta.url)).size > 0);
+    assert.ok(statSync(new URL('./public/apple-touch-icon.png', import.meta.url)).size > 0);
 });
