@@ -233,9 +233,10 @@ test('portfolio grids show four cards per row on desktop', () => {
 });
 
 test('course portfolio modal uses tall two-column gallery on narrow screens', () => {
-    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\)\s*\{[^}]*min-height:\s*calc\(100dvh - 20px\)\s*;[^}]*max-height:\s*calc\(100dvh - 20px\)\s*;[^}]*display:\s*flex\s*;[^}]*flex-direction:\s*column\s*;/);
-    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\) \.portfolio-gallery\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)\s*;[^}]*flex:\s*1 1 auto\s*;[^}]*max-height:\s*none\s*;/);
-    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\) \.portfolio-item\s*\{[^}]*min-width:\s*0\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\):not\(\.teacher-dedicated-content\)\s*\{[^}]*min-height:\s*calc\(100dvh - 20px\)\s*;[^}]*max-height:\s*calc\(100dvh - 20px\)\s*;[^}]*display:\s*flex\s*;[^}]*flex-direction:\s*column\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\):not\(\.teacher-dedicated-content\) \.portfolio-gallery\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)\s*;[^}]*flex:\s*1 1 auto\s*;[^}]*max-height:\s*none\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\):not\(\.teacher-dedicated-content\) \.portfolio-item\s*\{[^}]*min-width:\s*0\s*;/);
+    assert.doesNotMatch(css, /\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\)\s*\{[^}]*overflow:\s*hidden\s*;/);
 });
 
 test('dedicated teacher modal animates between variable detail and works sizes', () => {

@@ -4805,7 +4805,7 @@ textarea:focus {
         border-radius: 26px;
     }
 
-    .modal-content:not(.detail-mode):not(.teacher-mode) {
+    .modal-content:not(.detail-mode):not(.teacher-mode):not(.teacher-dedicated-content) {
         min-height: calc(100dvh - 20px);
         max-height: calc(100dvh - 20px);
         display: flex;
@@ -4814,13 +4814,13 @@ textarea:focus {
         padding: 56px 14px 14px;
     }
 
-    .modal-content:not(.detail-mode):not(.teacher-mode) .modal-header {
+    .modal-content:not(.detail-mode):not(.teacher-mode):not(.teacher-dedicated-content) .modal-header {
         width: 100%;
         flex: 0 0 auto;
         margin: 0 auto 16px;
     }
 
-    .modal-content:not(.detail-mode):not(.teacher-mode) .portfolio-gallery {
+    .modal-content:not(.detail-mode):not(.teacher-mode):not(.teacher-dedicated-content) .portfolio-gallery {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         flex: 1 1 auto;
@@ -4831,7 +4831,7 @@ textarea:focus {
         padding-right: 4px;
     }
 
-    .modal-content:not(.detail-mode):not(.teacher-mode) .portfolio-item {
+    .modal-content:not(.detail-mode):not(.teacher-mode):not(.teacher-dedicated-content) .portfolio-item {
         min-width: 0;
         padding: 6px;
         border-radius: 14px;
