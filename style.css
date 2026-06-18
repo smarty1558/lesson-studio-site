@@ -641,7 +641,8 @@ body.site-ready .site-shell {
 .courses,
 .free-plugin-spotlight,
 .portfolio-strip,
-.cta-section {
+.cta-section,
+.faq-section {
     padding: clamp(72px, 9vw, 120px) 0;
 }
 
@@ -1336,6 +1337,67 @@ textarea:focus {
 .contact-form .btn {
     width: 100%;
     margin-top: 18px;
+}
+
+.faq-section {
+    padding-top: clamp(34px, 5vw, 72px);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(245, 248, 255, 0.72));
+}
+
+.faq-layout {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1fr);
+    gap: clamp(28px, 5vw, 72px);
+    align-items: start;
+}
+
+.faq-heading {
+    position: sticky;
+    top: 96px;
+}
+
+.faq-heading h2 {
+    margin: 18px 0 0;
+    font-size: clamp(2rem, 4vw, 3.8rem);
+    line-height: 1.08;
+    font-weight: 900;
+}
+
+.faq-heading p {
+    margin: 18px 0 0;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.75;
+}
+
+.faq-list {
+    display: grid;
+    gap: 14px;
+}
+
+.faq-item {
+    border: 1px solid rgba(124, 67, 255, 0.18);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.74);
+    padding: clamp(20px, 3vw, 28px);
+    box-shadow: 0 20px 60px rgba(64, 82, 128, 0.08);
+}
+
+.faq-item h3 {
+    margin: 0;
+    color: var(--text-main);
+    font-size: clamp(1.05rem, 1.8vw, 1.32rem);
+    line-height: 1.42;
+    font-weight: 900;
+}
+
+.faq-item p {
+    margin: 12px 0 0;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+    font-weight: 600;
 }
 
 .footer {
@@ -4414,13 +4476,23 @@ textarea:focus {
     .courses,
     .free-plugin-spotlight,
     .portfolio-strip,
-    .cta-section {
+    .cta-section,
+    .faq-section {
         padding: 68px 0;
     }
 
     .section-header {
         margin-bottom: 34px;
         text-align: left;
+    }
+
+    .faq-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .faq-heading {
+        position: static;
     }
 
     .courses .section-header h2,
@@ -4648,8 +4720,18 @@ textarea:focus {
     .artists,
     .courses,
     .free-plugin-spotlight,
-    .cta-section {
+    .cta-section,
+    .faq-section {
         padding: 54px 0;
+    }
+
+    .faq-list {
+        gap: 12px;
+    }
+
+    .faq-item {
+        border-radius: 16px;
+        padding: 18px;
     }
 
     .free-plugin-spotlight-inner {

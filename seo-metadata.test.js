@@ -32,6 +32,18 @@ test('main page body includes target lesson search phrases', () => {
     assert.match(indexSource, /미디 레슨/);
 });
 
+test('homepage includes seo faq content and structured data', () => {
+    assert.match(indexSource, /<section id="faq" class="faq-section" aria-labelledby="faq-title">/);
+    assert.match(indexSource, /<h2 id="faq-title">자주 묻는 질문<\/h2>/);
+    assert.match(indexSource, /JPOP 레슨은 어떤 수업인가요\?/);
+    assert.match(indexSource, /서브컬처 작곡 레슨은 일반 작곡 레슨과 뭐가 다른가요\?/);
+    assert.match(indexSource, /게임음악 작곡 레슨에서는 무엇을 배우나요\?/);
+    assert.match(indexSource, /미디 레슨을 처음 시작해도 괜찮나요\?/);
+    assert.match(indexSource, /"@type": "FAQPage"/);
+    assert.match(indexSource, /"@type": "Question"/);
+    assert.match(indexSource, /"@type": "Answer"/);
+});
+
 test('free plugin page exposes its own seo metadata', () => {
     assert.match(freePluginSource, /<title>무료 음악 플러그인 추천 \| OMUS 오타쿠 뮤직 스튜디오<\/title>/);
     assert.match(freePluginSource, /<link rel="icon" type="image\/png" sizes="32x32" href="\/favicon-32\.png">/);
