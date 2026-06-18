@@ -72,3 +72,38 @@ test('contact API sends inquiry email to the site owner by default', async () =>
         globalThis.fetch = originalFetch;
     }
 });
+
+test('contact API sends inquiry email to multiple configured recipients', async () => {
+    const fetchCalls = [];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (...args) => {
+        fetchCalls.push(args);
+        return new Response(JSON.stringify({ id: 'email-1' }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' }
+        });
+    };
+
+    try {
+        const response = await onRequestPost({
+            request: makeRequest({
+                name: 'Kim',
+                phone: '010-0000-0000',
+                email: 'student@example.com',
+                course: 'jpop',
+                lessonMode: 'online',
+                message: 'Send this to both inboxes.'
+            }),
+            env: {
+                RESEND_API_KEY: 'test-key',
+                CONTACT_TO_EMAIL: 'owner@example.com, academy@example.com'
+            }
+        });
+        const sentPayload = JSON.parse(fetchCalls[0][1].body);
+
+        assert.equal(response.status, 200);
+        assert.deepEqual(sentPayload.to, ['owner@example.com', 'academy@example.com']);
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+});

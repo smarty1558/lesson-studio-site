@@ -17,6 +17,11 @@ const normalizeContactPayload = (payload = {}) => ({
     portfolioInterest: String(payload.portfolioInterest || '').trim()
 });
 
+const normalizeRecipientEmails = (value) => String(value || defaultContactEmail)
+    .split(/[;,]/)
+    .map((email) => email.trim())
+    .filter(Boolean);
+
 const buildContactEmailText = (payload) => [
     '[오타쿠 뮤직 스튜디오 상담 문의]',
     '',
@@ -46,7 +51,7 @@ export const onRequestPost = async ({ request, env }) => {
         return sendFailure('상담 메일 수신 설정이 아직 완료되지 않았습니다.', 503);
     }
 
-    const toEmail = env.CONTACT_TO_EMAIL || defaultContactEmail;
+    const toEmails = normalizeRecipientEmails(env.CONTACT_TO_EMAIL);
     const fromEmail = env.CONTACT_FROM_EMAIL || 'Lesson Studio <onboarding@resend.dev>';
     const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -56,7 +61,7 @@ export const onRequestPost = async ({ request, env }) => {
         },
         body: JSON.stringify({
             from: fromEmail,
-            to: [toEmail],
+            to: toEmails,
             reply_to: payload.email,
             subject: `[오타쿠 뮤직 스튜디오 상담 문의] ${payload.name} - ${payload.course}`,
             text: buildContactEmailText(payload)
