@@ -88,3 +88,8 @@ test('class cards align descriptions, tags, and portfolio buttons consistently',
     assert.match(styleSource, /\.course-tags\s*\{[^}]*min-height:\s*74px\s*;/s);
     assert.match(styleSource, /\.btn-portfolio\s*\{[^}]*margin-top:\s*auto\s*;/s);
 });
+
+test('mobile call cta uses the studio phone number', () => {
+    assert.match(indexSource, /<a href="tel:01025998821">전화<\/a>/);
+    assert.doesNotMatch(indexSource, /tel:01000000000/);
+});
