@@ -4951,6 +4951,15 @@ textarea:focus {
         padding-top: 64px;
     }
 
+    .modal-content.detail-mode:not(.teacher-mode):not(.teacher-dedicated-content) {
+        min-height: calc(100dvh - 20px);
+        max-height: calc(100dvh - 20px);
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+        padding: 56px 14px 14px;
+    }
+
     .modal-content.teacher-mode,
     .modal-content.teacher-mode.detail-mode,
     .teacher-dedicated-content {
@@ -5166,6 +5175,15 @@ textarea:focus {
         justify-content: flex-start;
     }
 
+    .modal-content.detail-mode:not(.teacher-mode):not(.teacher-dedicated-content) .portfolio-detail-kicker {
+        order: 0;
+        width: calc(100% - 58px);
+        max-width: calc(100% - 58px);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
     .modal-content.detail-mode .modal-header {
         max-height: 0;
         margin: 0;
@@ -5187,6 +5205,14 @@ textarea:focus {
         overflow-x: auto;
         overflow-y: hidden;
         padding: 0 0 4px;
+    }
+
+    .modal-content.detail-mode:not(.teacher-mode):not(.teacher-dedicated-content) .portfolio-gallery {
+        order: 1;
+        width: 100%;
+        flex: 0 0 auto;
+        max-height: 88px;
+        overflow-x: auto;
     }
 
     .modal-content.detail-mode .portfolio-item {
@@ -5226,12 +5252,29 @@ textarea:focus {
         gap: 14px;
     }
 
+    .modal-content.detail-mode:not(.teacher-mode):not(.teacher-dedicated-content) .portfolio-expanded-panel,
+    .modal-content.detail-mode:not(.teacher-mode):not(.teacher-dedicated-content) .portfolio-expanded-panel.is-open {
+        order: 2;
+        width: 100%;
+    }
+
     .portfolio-expanded-panel.is-open {
         height: calc(100dvh - 142px);
         min-height: 610px;
         margin-top: -4px;
         padding: 14px;
         border-radius: 24px;
+    }
+
+    .modal-content.detail-mode:not(.teacher-mode):not(.teacher-dedicated-content) .portfolio-expanded-panel.is-open {
+        order: 2;
+        width: 100%;
+        flex: 1 1 auto;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        margin-top: 0;
+        overflow: auto;
     }
 
     .expanded-media-frame {

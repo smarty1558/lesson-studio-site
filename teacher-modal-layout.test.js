@@ -239,6 +239,13 @@ test('course portfolio modal uses tall two-column gallery on narrow screens', ()
     assert.doesNotMatch(css, /\.modal-content:not\(\.detail-mode\):not\(\.teacher-mode\)\s*\{[^}]*overflow:\s*hidden\s*;/);
 });
 
+test('course portfolio detail follows teacher works layout on narrow screens', () => {
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content\.detail-mode:not\(\.teacher-mode\):not\(\.teacher-dedicated-content\)\s*\{[^}]*min-height:\s*calc\(100dvh - 20px\)\s*;[^}]*display:\s*flex\s*;[^}]*flex-direction:\s*column\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content\.detail-mode:not\(\.teacher-mode\):not\(\.teacher-dedicated-content\) \.portfolio-gallery\s*\{[^}]*order:\s*1\s*;[^}]*width:\s*100%\s*;[^}]*max-height:\s*88px\s*;[^}]*overflow-x:\s*auto\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content\.detail-mode:not\(\.teacher-mode\):not\(\.teacher-dedicated-content\) \.portfolio-expanded-panel\.is-open\s*\{[^}]*order:\s*2\s*;[^}]*width:\s*100%\s*;[^}]*min-height:\s*0\s*;[^}]*max-height:\s*none\s*;/);
+    assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.modal-content\.detail-mode:not\(\.teacher-mode\):not\(\.teacher-dedicated-content\) \.portfolio-detail-kicker\s*\{[^}]*white-space:\s*nowrap\s*;[^}]*text-overflow:\s*ellipsis\s*;/);
+});
+
 test('teacher works modal fills available height on narrow screens', () => {
     assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.teacher-dedicated-content\.teacher-works-active:not\(\.teacher-work-detail-mode\)\s*\{[^}]*min-height:\s*calc\(100dvh - 20px\)\s*;[^}]*display:\s*flex\s*;[^}]*flex-direction:\s*column\s*;/);
     assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.teacher-dedicated-content\.teacher-works-active:not\(\.teacher-work-detail-mode\) #teacher-modal-body,[\s\S]*\{[^}]*flex:\s*1 1 auto\s*;[^}]*min-height:\s*0\s*;/);
