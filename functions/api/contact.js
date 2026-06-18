@@ -5,7 +5,7 @@ import {
 } from '../_shared/portfolio-utils.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const defaultContactEmail = 'smarty1558@gmail.com';
+const defaultContactEmail = 'smarty1558@gmail.com, omusinform@gmail.com, smarty1558910@gmail.com';
 
 const normalizeContactPayload = (payload = {}) => ({
     name: String(payload.name || '').trim(),

@@ -26,7 +26,7 @@ test('contact API requires a valid reply email and message detail', async () => 
     assert.equal(json.success, false);
 });
 
-test('contact API sends inquiry email to the site owner by default', async () => {
+test('contact API sends inquiry email to the default studio recipients', async () => {
     const fetchCalls = [];
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (...args) => {
@@ -59,7 +59,7 @@ test('contact API sends inquiry email to the site owner by default', async () =>
         assert.equal(response.status, 200);
         assert.equal(json.success, true);
         assert.equal(fetchCalls[0][0], 'https://api.resend.com/emails');
-        assert.equal(sentPayload.to[0], 'smarty1558@gmail.com');
+        assert.deepEqual(sentPayload.to, ['smarty1558@gmail.com', 'omusinform@gmail.com', 'smarty1558910@gmail.com']);
         assert.equal(sentPayload.reply_to, 'student@example.com');
         assert.match(sentPayload.text, /이름: Kim/);
         assert.match(sentPayload.text, /연락처: 010-0000-0000/);
