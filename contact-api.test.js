@@ -26,7 +26,27 @@ test('contact API requires a valid reply email and message detail', async () => 
     assert.equal(json.success, false);
 });
 
-test('contact API sends inquiry email to the default studio recipients', async () => {
+test('contact API requires configured recipient emails', async () => {
+    const response = await onRequestPost({
+        request: makeRequest({
+            name: 'Kim',
+            phone: '010-0000-0000',
+            email: 'student@example.com',
+            course: 'jpop',
+            lessonMode: 'online',
+            message: 'I want to ask about vocal direction.'
+        }),
+        env: {
+            RESEND_API_KEY: 'test-key'
+        }
+    });
+    const json = await response.json();
+
+    assert.equal(response.status, 503);
+    assert.equal(json.success, false);
+});
+
+test('contact API sends inquiry email to configured studio recipients', async () => {
     const fetchCalls = [];
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (...args) => {
@@ -50,7 +70,8 @@ test('contact API sends inquiry email to the default studio recipients', async (
             }),
             env: {
                 RESEND_API_KEY: 'test-key',
-                CONTACT_FROM_EMAIL: 'OSUM <contact@example.com>'
+                CONTACT_FROM_EMAIL: 'OSUM <contact@example.com>',
+                CONTACT_TO_EMAIL: 'smarty1558@gmail.com, omusinform@gmail.com, smarty1558910@gmail.com'
             }
         });
         const json = await response.json();
@@ -103,6 +124,41 @@ test('contact API sends inquiry email to multiple configured recipients', async 
 
         assert.equal(response.status, 200);
         assert.deepEqual(sentPayload.to, ['owner@example.com', 'academy@example.com']);
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+});
+
+test('contact API tolerates env-style CONTACT_TO_EMAIL values from dashboard mistakes', async () => {
+    const fetchCalls = [];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (...args) => {
+        fetchCalls.push(args);
+        return new Response(JSON.stringify({ id: 'email-1' }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' }
+        });
+    };
+
+    try {
+        const response = await onRequestPost({
+            request: makeRequest({
+                name: 'Kim',
+                phone: '010-0000-0000',
+                email: 'student@example.com',
+                course: 'jpop',
+                lessonMode: 'online',
+                message: 'Dashboard value included the key name.'
+            }),
+            env: {
+                RESEND_API_KEY: 'test-key',
+                CONTACT_TO_EMAIL: 'CONTACT_TO_EMAIL=smarty1558@gmail.com, omusinform@gmail.com'
+            }
+        });
+        const sentPayload = JSON.parse(fetchCalls[0][1].body);
+
+        assert.equal(response.status, 200);
+        assert.deepEqual(sentPayload.to, ['smarty1558@gmail.com', 'omusinform@gmail.com']);
     } finally {
         globalThis.fetch = originalFetch;
     }

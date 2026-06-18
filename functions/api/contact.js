@@ -5,7 +5,6 @@ import {
 } from '../_shared/portfolio-utils.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const defaultContactEmail = 'smarty1558@gmail.com, omusinform@gmail.com, smarty1558910@gmail.com';
 
 const normalizeContactPayload = (payload = {}) => ({
     name: String(payload.name || '').trim(),
@@ -17,7 +16,8 @@ const normalizeContactPayload = (payload = {}) => ({
     portfolioInterest: String(payload.portfolioInterest || '').trim()
 });
 
-const normalizeRecipientEmails = (value) => String(value || defaultContactEmail)
+const normalizeRecipientEmails = (value) => String(value || '')
+    .replace(/^CONTACT_TO_EMAIL\s*=\s*/i, '')
     .split(/[;,]/)
     .map((email) => email.trim())
     .filter(Boolean);
@@ -52,6 +52,10 @@ export const onRequestPost = async ({ request, env }) => {
     }
 
     const toEmails = normalizeRecipientEmails(env.CONTACT_TO_EMAIL);
+    if (!toEmails.length) {
+        return sendFailure('상담 메일 수신 주소가 설정되지 않았습니다.', 503);
+    }
+
     const fromEmail = env.CONTACT_FROM_EMAIL || 'Lesson Studio <onboarding@resend.dev>';
     const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -69,6 +73,13 @@ export const onRequestPost = async ({ request, env }) => {
     });
 
     if (!response.ok) {
+        const resendError = await response.text().catch(() => '');
+        console.error('Resend contact email failed', {
+            status: response.status,
+            to: toEmails,
+            from: fromEmail,
+            body: resendError
+        });
         return sendFailure('상담 문의 메일 전송에 실패했습니다.', 502);
     }
 
