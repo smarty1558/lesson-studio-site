@@ -4609,6 +4609,13 @@ textarea:focus {
         height: 58px;
         padding: 0 14px;
         border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .logo {
+        min-width: 0;
+        max-width: 100%;
+        flex: 1 1 auto;
     }
 
     .logo-sub {
@@ -4620,7 +4627,10 @@ textarea:focus {
     }
 
     .logo-main {
-        font-size: 1.5rem;
+        max-width: 100%;
+        font-size: clamp(1.02rem, 4.8vw, 1.22rem);
+        line-height: 1.04;
+        white-space: nowrap;
     }
 
     .hero {
@@ -4818,6 +4828,19 @@ textarea:focus {
 
     .work-list {
         justify-content: flex-start;
+        gap: 8px;
+    }
+
+    .work-list span {
+        max-width: 100%;
+        padding: 6px 9px;
+        font-size: clamp(0.68rem, 3vw, 0.78rem);
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+
+    .work-list span br {
+        display: none;
     }
 
     .cta-card {

@@ -93,3 +93,10 @@ test('mobile call cta uses the studio phone number', () => {
     assert.match(indexSource, /<a href="tel:01025998821">전화<\/a>/);
     assert.doesNotMatch(indexSource, /tel:01000000000/);
 });
+
+test('mobile header and portfolio chips stay inside the viewport', () => {
+    assert.match(styleSource, /@media \(max-width:\s*760px\)[\s\S]*\.logo\s*\{[^}]*min-width:\s*0\s*;[^}]*max-width:\s*100%\s*;/);
+    assert.match(styleSource, /@media \(max-width:\s*760px\)[\s\S]*\.logo-main\s*\{[^}]*font-size:\s*clamp\(1\.02rem,\s*4\.8vw,\s*1\.22rem\)\s*;[^}]*white-space:\s*nowrap\s*;/);
+    assert.match(styleSource, /@media \(max-width:\s*760px\)[\s\S]*\.work-list span\s*\{[^}]*white-space:\s*nowrap\s*;/);
+    assert.match(styleSource, /@media \(max-width:\s*760px\)[\s\S]*\.work-list span br\s*\{[^}]*display:\s*none\s*;/);
+});
