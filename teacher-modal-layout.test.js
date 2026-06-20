@@ -40,6 +40,22 @@ test('teacher details use a dedicated modal separate from the portfolio modal', 
     assert.doesNotMatch(js, /openModal\(artistCard\.dataset\.teacher,\s*'teacher'\)/);
 });
 
+test('browser back steps through portfolio modal views before closing the modal', () => {
+    assert.match(js, /const pushModalHistoryState = \(type,\s*view = 'root'\) =>/);
+    assert.match(js, /window\.history\.pushState\(\{\s*\.\.\.currentState,\s*omusModal:\s*type,\s*omusModalView:\s*view,\s*omusModalId:\s*modalHistoryId\s*\},\s*'',\s*window\.location\.href\);/s);
+    assert.match(js, /modalHistoryStack\.push\(\{\s*id:\s*modalHistoryId,\s*type,\s*view\s*\}\);/);
+    assert.match(js, /const requestModalHistoryClose = \(\) =>/);
+    assert.match(js, /const requestModalHistoryStepBack = \(view\) =>/);
+    assert.match(js, /window\.addEventListener\('popstate',\s*\(\) => \{[\s\S]*const poppedState = modalHistoryStack\.pop\(\);[\s\S]*case 'course-detail':[\s\S]*activeCourseDetailReturn\?\.\(\{ fromHistory:\s*true \}\);[\s\S]*case 'teacher-work-detail':[\s\S]*activeTeacherWorkDetailReturn\?\.\(\{ fromHistory:\s*true \}\);[\s\S]*case 'teacher-works':[\s\S]*setDedicatedTeacherMode\('detail'\);/);
+    assert.match(js, /const closeModal = \(options = \{\}\) => \{[\s\S]*if \(!options\.fromHistory && requestModalHistoryClose\(\)\) return;/);
+    assert.match(js, /const closeTeacherModal = \(options = \{\}\) => \{[\s\S]*if \(!options\.fromHistory && requestModalHistoryClose\(\)\) return;/);
+    assert.match(js, /pushModalHistoryState\('course'\);/);
+    assert.match(js, /pushModalHistoryState\('course',\s*'course-detail'\);/);
+    assert.match(js, /pushModalHistoryState\('teacher'\);/);
+    assert.match(js, /pushModalHistoryState\('teacher',\s*'teacher-works'\);/);
+    assert.match(js, /pushModalHistoryState\('teacher',\s*'teacher-work-detail'\);/);
+});
+
 test('teacher modal hides profile image when short screens cannot fit content', () => {
     assert.match(css, /@media \(max-height:\s*720px\)/);
     assert.match(css, /@media \(max-height:\s*720px\)[\s\S]*\.teacher-profile-visual\s*\{[^}]*display:\s*none\s*;/);

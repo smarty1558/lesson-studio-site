@@ -1269,6 +1269,57 @@ const initSite = () => {
     let isModalClosing = false;
     let modalOpenToken = 0;
     let teacherOpenToken = 0;
+    let modalHistoryId = 0;
+    let modalHistoryStack = [];
+    let isClosingFromHistory = false;
+    let isClosingEntireModalFromHistory = false;
+    let activeCourseDetailReturn = null;
+    let activeTeacherWorkDetailReturn = null;
+
+    const hasActiveModalLayer = () => (
+        modal?.classList.contains('active')
+        || teacherModal?.classList.contains('active')
+    );
+
+    const pushModalHistoryState = (type, view = 'root') => {
+        if (!window.history?.pushState || isClosingFromHistory) return;
+
+        modalHistoryId += 1;
+        const currentState = window.history.state && typeof window.history.state === 'object'
+            ? window.history.state
+            : {};
+        window.history.pushState({ ...currentState, omusModal: type, omusModalView: view, omusModalId: modalHistoryId }, '', window.location.href);
+        modalHistoryStack.push({ id: modalHistoryId, type, view });
+    };
+
+    const requestModalHistoryStepBack = (view) => {
+        if (isClosingFromHistory) return false;
+
+        const currentState = modalHistoryStack.at(-1);
+        if (!currentState || currentState.view !== view) return false;
+
+        try {
+            window.history.back();
+            return true;
+        } catch {
+            modalHistoryStack.pop();
+            return false;
+        }
+    };
+
+    const requestModalHistoryClose = () => {
+        if (!modalHistoryStack.length || isClosingFromHistory) return false;
+
+        try {
+            isClosingEntireModalFromHistory = true;
+            window.history.go(-modalHistoryStack.length);
+            return true;
+        } catch {
+            modalHistoryStack = [];
+            isClosingEntireModalFromHistory = false;
+            return false;
+        }
+    };
     const restoreTeacherModalLayout = () => {
         const stage = modalContent?.querySelector('.teacher-modal-stage');
         if (stage && gallery && modalContent) {
@@ -2171,8 +2222,9 @@ const initSite = () => {
         }, 220);
     };
 
-    const closeTeacherModal = () => {
+    const closeTeacherModal = (options = {}) => {
         if (!teacherModal?.classList.contains('active')) return;
+        if (!options.fromHistory && requestModalHistoryClose()) return;
 
         teacherOpenToken += 1;
         teacherModal.classList.add('is-dismissing');
@@ -2183,6 +2235,7 @@ const initSite = () => {
             teacherModal.setAttribute('aria-hidden', 'true');
             teacherModalContent?.classList.remove('teacher-works-active', 'is-shutting-down', 'teacher-view-switching', 'teacher-view-ready', 'detail-mode', 'teacher-work-detail-mode');
             if (teacherModalBody) teacherModalBody.innerHTML = '';
+            activeTeacherWorkDetailReturn = null;
             document.body.style.overflow = modal?.classList.contains('active') ? 'hidden' : '';
         }, 260);
     };
@@ -2209,6 +2262,7 @@ const initSite = () => {
         teacherModal.classList.remove('is-dismissing');
         teacherModal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+        pushModalHistoryState('teacher');
 
         teacherModalBody.innerHTML = `
             <div class="teacher-modal-stage teacher-dedicated-stage">
@@ -2236,7 +2290,15 @@ const initSite = () => {
         setDedicatedTeacherMode('detail', { immediate: true });
 
         teacherModalBody.querySelectorAll('[data-dedicated-teacher-panel]').forEach((button) => {
-            button.addEventListener('click', () => setDedicatedTeacherMode(button.dataset.dedicatedTeacherPanel));
+            button.addEventListener('click', () => {
+                const nextMode = button.dataset.dedicatedTeacherPanel;
+                if (nextMode === 'works' && !teacherModalContent.classList.contains('teacher-works-active')) {
+                    pushModalHistoryState('teacher', 'teacher-works');
+                } else if (nextMode === 'detail' && requestModalHistoryStepBack('teacher-works')) {
+                    return;
+                }
+                setDedicatedTeacherMode(nextMode);
+            });
         });
 
         const worksGallery = teacherModalBody.querySelector('.teacher-works-gallery');
@@ -2256,11 +2318,15 @@ const initSite = () => {
                 worksGallery?.classList.remove('is-returning');
             }, 280);
         };
+        activeTeacherWorkDetailReturn = closeTeacherWorkDetail;
         const openTeacherWorkDetail = (item, itemIndex) => {
             worksGallery?.querySelectorAll('.portfolio-item.active, .portfolio-item.is-sending').forEach((activeItem) => {
                 activeItem.classList.remove('active', 'is-sending');
             });
             item.classList.add('active', 'is-sending');
+            if (!teacherModalContent?.classList.contains('teacher-work-detail-mode')) {
+                pushModalHistoryState('teacher', 'teacher-work-detail');
+            }
             teacherModal?.classList.add('detail-active');
             teacherModalContent?.classList.add('detail-mode', 'teacher-work-detail-mode');
             teacherModalContent?.classList.remove('teacher-view-switching', 'teacher-view-ready');
@@ -2289,6 +2355,7 @@ const initSite = () => {
             const back = event.target.closest('.portfolio-back');
             if (back) {
                 event.preventDefault();
+                if (requestModalHistoryStepBack('teacher-work-detail')) return;
                 closeTeacherWorkDetail();
                 return;
             }
@@ -2353,6 +2420,7 @@ const initSite = () => {
             isModalClosing = false;
             modal.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
+            pushModalHistoryState('course');
         }
 
         if (isTeacher && modalContent && gallery) {
@@ -2390,6 +2458,7 @@ const initSite = () => {
             isModalClosing = false;
             modal.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
+            pushModalHistoryState('teacher');
 
             stage.addEventListener('click', (event) => {
                 const panelButton = event.target.closest('[data-teacher-panel]');
@@ -2581,6 +2650,33 @@ const initSite = () => {
             });
         };
 
+        activeCourseDetailReturn = () => {
+            expandedPanel.classList.remove('is-arriving');
+            expandedPanel.classList.add('is-closing');
+            modalContent?.classList.remove('is-restoring');
+            gallery.classList.remove('is-returning');
+            modalContent?.classList.remove('is-reopening');
+            modalContent?.classList.add('is-collapsing');
+
+            window.setTimeout(() => {
+                modal?.classList.remove('detail-active');
+                modalContent?.classList.remove('detail-mode', 'is-restoring', 'is-collapsing');
+                gallery.classList.remove('is-returning');
+                expandedPanel.classList.remove('is-open', 'is-closing', 'is-switching', 'is-arriving');
+                expandedPanel.innerHTML = '';
+                if (detailKicker) {
+                    detailKicker.textContent = '';
+                }
+                gallery.querySelectorAll('.portfolio-item.active, .portfolio-item.is-sending').forEach((activeItem) => {
+                    activeItem.classList.remove('active', 'is-sending');
+                });
+
+                window.requestAnimationFrame(() => {
+                    modalContent?.classList.add('is-reopening');
+                });
+            }, 250);
+        };
+
         if (!modal.classList.contains('active')) {
             modal.classList.add('active');
             modal.classList.remove('is-dismissing');
@@ -2608,6 +2704,9 @@ const initSite = () => {
                 });
 
                 item.classList.add('active', 'is-sending');
+                if (!modalContent?.classList.contains('detail-mode')) {
+                    pushModalHistoryState('course', 'course-detail');
+                }
                 modal?.classList.add('detail-active');
                 modalContent?.classList.remove('is-reopening');
                 modalContent?.classList.add('detail-mode');
@@ -2629,36 +2728,15 @@ const initSite = () => {
             }
 
             if (event.target.closest('.portfolio-back')) {
-                expandedPanel.classList.remove('is-arriving');
-                expandedPanel.classList.add('is-closing');
-                modalContent?.classList.remove('is-restoring');
-                gallery.classList.remove('is-returning');
-                modalContent?.classList.remove('is-reopening');
-                modalContent?.classList.add('is-collapsing');
-
-                window.setTimeout(() => {
-                    modal?.classList.remove('detail-active');
-                    modalContent?.classList.remove('detail-mode', 'is-restoring', 'is-collapsing');
-                    gallery.classList.remove('is-returning');
-                    expandedPanel.classList.remove('is-open', 'is-closing', 'is-switching', 'is-arriving');
-                    expandedPanel.innerHTML = '';
-                    if (detailKicker) {
-                        detailKicker.textContent = '';
-                    }
-                    gallery.querySelectorAll('.portfolio-item.active, .portfolio-item.is-sending').forEach((activeItem) => {
-                        activeItem.classList.remove('active', 'is-sending');
-                    });
-
-                    window.requestAnimationFrame(() => {
-                        modalContent?.classList.add('is-reopening');
-                    });
-                }, 250);
+                if (requestModalHistoryStepBack('course-detail')) return;
+                activeCourseDetailReturn();
             }
         });
     };
 
-    const closeModal = () => {
+    const closeModal = (options = {}) => {
         if (!modal?.classList.contains('active') || isModalClosing) return;
+        if (!options.fromHistory && requestModalHistoryClose()) return;
 
         modalOpenToken += 1;
         isModalClosing = true;
@@ -2674,9 +2752,49 @@ const initSite = () => {
             document.getElementById('portfolio-detail-kicker')?.remove();
             document.body.style.overflow = '';
             document.getElementById('portfolio-expanded-panel')?.remove();
+            activeCourseDetailReturn = null;
             isModalClosing = false;
         }, 320);
     };
+
+    window.addEventListener('popstate', () => {
+        if (!modalHistoryStack.length) return;
+
+        if (!hasActiveModalLayer() || isClosingEntireModalFromHistory) {
+            modalHistoryStack = [];
+            isClosingFromHistory = true;
+            closeModal({ fromHistory: true });
+            closeTeacherModal({ fromHistory: true });
+            window.setTimeout(() => {
+                isClosingFromHistory = false;
+                isClosingEntireModalFromHistory = false;
+            }, 0);
+            return;
+        }
+
+        isClosingFromHistory = true;
+        const poppedState = modalHistoryStack.pop();
+
+        switch (poppedState?.view) {
+            case 'course-detail':
+                activeCourseDetailReturn?.({ fromHistory: true });
+                break;
+            case 'teacher-work-detail':
+                activeTeacherWorkDetailReturn?.({ fromHistory: true });
+                break;
+            case 'teacher-works':
+                setDedicatedTeacherMode('detail');
+                break;
+            default:
+                closeModal({ fromHistory: true });
+                closeTeacherModal({ fromHistory: true });
+                break;
+        }
+
+        window.setTimeout(() => {
+            isClosingFromHistory = false;
+        }, 0);
+    });
 
     document.addEventListener('click', (event) => {
         const portfolioButton = event.target.closest('.btn-portfolio');
