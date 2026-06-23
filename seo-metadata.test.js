@@ -47,9 +47,10 @@ test('homepage includes seo faq content and structured data', () => {
 test('homepage includes location section with naver map link', () => {
     assert.match(indexSource, /<section id="location" class="location-section" aria-labelledby="location-title">/);
     assert.match(indexSource, /<h2 id="location-title">찾아오시는 길<\/h2>/);
-    assert.match(indexSource, /src="https:\/\/naver\.me\/GuCakPWt"/);
+    assert.match(indexSource, /수원역 7, 8번 출구에서 도보 약 10분 거리입니다/);
+    assert.match(indexSource, /src="\/location-suwon-station-route\.png"/);
     assert.match(indexSource, /href="https:\/\/naver\.me\/GuCakPWt"/);
-    assert.match(indexSource, /네이버 지도에서 보기/);
+    assert.match(indexSource, /네이버 지도에서 길찾기/);
 });
 
 test('free plugin page exposes its own seo metadata', () => {
