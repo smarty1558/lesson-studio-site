@@ -95,11 +95,14 @@ test('admin renders portfolio and teacher cms as separate tabs', () => {
 
 test('teacher cms profiles hydrate main teacher cards', () => {
     assert.match(js, /const syncTeacherCardsFromProfiles = async/);
+    assert.match(js, /const syncContactTeacherOptionsFromProfiles = async/);
     assert.match(js, /\.artist-card\[data-teacher\]/);
     assert.match(js, /roleTarget\)\s*roleTarget\.textContent = profile\.role/);
     assert.match(js, /nameTarget\)\s*nameTarget\.textContent = profile\.name/);
     assert.match(js, /summaryTarget\)\s*summaryTarget\.textContent = profile\.summary/);
-    assert.match(js, /\.then\(syncTeacherCardsFromProfiles\)/);
+    assert.match(js, /option\.textContent = profile\.name/);
+    assert.match(js, /syncTeacherCardsFromProfiles\(\)/);
+    assert.match(js, /syncContactTeacherOptionsFromProfiles\(\)/);
 });
 
 test('teacher cms exposes representative direction separately from class direction', () => {

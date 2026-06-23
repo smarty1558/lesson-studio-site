@@ -1431,6 +1431,31 @@ const initSite = () => {
         }));
     };
 
+    const syncContactTeacherOptionsFromProfiles = async () => {
+        const select = contactForm?.querySelector('[name="teacher"]');
+        if (!select) return;
+
+        const selectedValue = select.value;
+        const profiles = await Promise.all(teacherDataKeys.map((key) => loadTeacherProfile(key)));
+        select.innerHTML = '';
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '선생님을 선택해주세요';
+        select.appendChild(placeholder);
+
+        profiles.forEach((profile) => {
+            const option = document.createElement('option');
+            option.value = profile.key;
+            option.textContent = profile.name;
+            select.appendChild(option);
+        });
+
+        if (selectedValue && profiles.some((profile) => profile.key === selectedValue)) {
+            select.value = selectedValue;
+        }
+    };
+
     const renderTeacherProfileMarkup = (profile) => `
         <section class="teacher-profile-card">
             <div class="teacher-profile-visual" style="background-image: url('${profile.image}')"></div>
@@ -1822,7 +1847,10 @@ const initSite = () => {
             ...teacherDataKeys.map((key) => loadTeacherProfile(key)),
             ...teacherDataKeys.map((key) => loadPortfolioItems('teacher', key)),
             ...courseDataKeys.map((key) => loadPortfolioItems('course', key))
-        ]).then(syncTeacherCardsFromProfiles).catch(() => {});
+        ]).then(() => Promise.all([
+            syncTeacherCardsFromProfiles(),
+            syncContactTeacherOptionsFromProfiles()
+        ])).catch(() => {});
 
         return siteDataCache.preloadPromise;
     };
