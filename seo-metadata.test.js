@@ -44,6 +44,14 @@ test('homepage includes seo faq content and structured data', () => {
     assert.match(indexSource, /"@type": "Answer"/);
 });
 
+test('homepage includes location section with naver map link', () => {
+    assert.match(indexSource, /<section id="location" class="location-section" aria-labelledby="location-title">/);
+    assert.match(indexSource, /<h2 id="location-title">찾아오시는 길<\/h2>/);
+    assert.match(indexSource, /src="https:\/\/naver\.me\/GuCakPWt"/);
+    assert.match(indexSource, /href="https:\/\/naver\.me\/GuCakPWt"/);
+    assert.match(indexSource, /네이버 지도에서 보기/);
+});
+
 test('free plugin page exposes its own seo metadata', () => {
     assert.match(freePluginSource, /<title>무료 음악 플러그인 추천 \| OMUS 오타쿠 뮤직 스튜디오<\/title>/);
     assert.match(freePluginSource, /<link rel="icon" type="image\/png" sizes="32x32" href="\/favicon-32\.png">/);
