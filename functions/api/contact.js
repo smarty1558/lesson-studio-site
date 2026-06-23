@@ -11,7 +11,11 @@ const normalizeContactPayload = (payload = {}) => ({
     phone: String(payload.phone || '').trim(),
     email: String(payload.email || '').trim(),
     course: String(payload.course || '').trim(),
+    courseLabel: String(payload.courseLabel || '').trim(),
     lessonMode: String(payload.lessonMode || '').trim(),
+    lessonModeLabel: String(payload.lessonModeLabel || '').trim(),
+    teacher: String(payload.teacher || '').trim(),
+    teacherLabel: String(payload.teacherLabel || '').trim(),
     message: String(payload.message || '').trim(),
     portfolioInterest: String(payload.portfolioInterest || '').trim()
 });
@@ -22,24 +26,36 @@ const normalizeRecipientEmails = (value) => String(value || '')
     .map((email) => email.trim())
     .filter(Boolean);
 
-const buildContactEmailText = (payload) => [
-    '[오타쿠 뮤직 스튜디오 상담 문의]',
-    '',
-    `이름: ${payload.name}`,
-    `연락처: ${payload.phone}`,
-    `이메일: ${payload.email}`,
-    `희망 수업: ${payload.course}`,
-    `수업 방식: ${payload.lessonMode}`,
-    payload.portfolioInterest ? `이런 스타일 배우기: ${payload.portfolioInterest}` : '',
-    '',
-    '문의 내용:',
-    payload.message
-].filter((line) => line !== '').join('\n');
+const getContactDisplayValues = (payload) => ({
+    course: payload.courseLabel || payload.course,
+    lessonMode: payload.lessonModeLabel || payload.lessonMode,
+    teacher: payload.teacher ? (payload.teacherLabel || payload.teacher) : '미선택',
+    phone: payload.phone || '-'
+});
+
+const buildContactEmailText = (payload) => {
+    const display = getContactDisplayValues(payload);
+
+    return [
+        '[오타쿠 뮤직 스튜디오 상담 문의]',
+        '',
+        `이름: ${payload.name}`,
+        `연락처: ${display.phone}`,
+        `이메일: ${payload.email}`,
+        `희망 수업: ${display.course}`,
+        `수업 방식: ${display.lessonMode}`,
+        `희망 선생님: ${display.teacher}`,
+        payload.portfolioInterest ? `이런 스타일 배우기: ${payload.portfolioInterest}` : '',
+        '',
+        '문의 내용:',
+        payload.message
+    ].filter((line) => line !== '').join('\n');
+};
 
 export const onRequestPost = async ({ request, env }) => {
     const payload = normalizeContactPayload(await readJson(request));
 
-    if (!payload.name || !payload.phone || !payload.course || !payload.lessonMode || !payload.message) {
+    if (!payload.name || !payload.course || !payload.lessonMode || !payload.message) {
         return sendFailure('필수 상담 정보를 모두 입력해주세요.', 400);
     }
 
@@ -56,6 +72,7 @@ export const onRequestPost = async ({ request, env }) => {
         return sendFailure('상담 메일 수신 주소가 설정되지 않았습니다.', 503);
     }
 
+    const display = getContactDisplayValues(payload);
     const fromEmail = env.CONTACT_FROM_EMAIL || 'Lesson Studio <onboarding@resend.dev>';
     const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -67,7 +84,7 @@ export const onRequestPost = async ({ request, env }) => {
             from: fromEmail,
             to: toEmails,
             reply_to: payload.email,
-            subject: `[오타쿠 뮤직 스튜디오 상담 문의] ${payload.name} - ${payload.course}`,
+            subject: `[오타쿠 뮤직 스튜디오 상담 문의] ${payload.name} - ${display.course}`,
             text: buildContactEmailText(payload)
         })
     });

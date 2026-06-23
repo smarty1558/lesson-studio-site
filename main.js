@@ -1038,6 +1038,11 @@ const initSite = () => {
         }, 760);
     };
 
+    const getSelectedOptionText = (form, name) => {
+        const select = form?.querySelector(`[name="${name}"]`);
+        return select?.selectedOptions?.[0]?.textContent?.trim() || '';
+    };
+
     if (contactForm) {
         contactForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -1060,7 +1065,11 @@ const initSite = () => {
                         phone: formData.get('phone'),
                         email: formData.get('email'),
                         course: formData.get('course'),
+                        courseLabel: getSelectedOptionText(contactForm, 'course'),
                         lessonMode: formData.get('lessonMode'),
+                        lessonModeLabel: getSelectedOptionText(contactForm, 'lessonMode'),
+                        teacher: formData.get('teacher'),
+                        teacherLabel: getSelectedOptionText(contactForm, 'teacher'),
                         message: formData.get('message'),
                         portfolioInterest: activePortfolioInterest?.title || activePortfolioInterest?.text || ''
                     })

@@ -334,34 +334,35 @@
                         <p>서브컬처 작곡, 제이팝 작곡, 게임 BGM, 미디 레슨 중 지금 목표에 가장 잘 맞는 수업 흐름을 제안합니다.</p>
                         <div class="portfolio-interest-slot" data-portfolio-interest aria-live="polite"></div>
                         <form id="contact-form" class="contact-form">
+                            <p class="required-guide"><b aria-hidden="true">*</b> 표시는 필수 선택/작성 항목입니다.</p>
                             <div class="form-group">
                                 <label>
-                                    <span>이름</span>
+                                    <span>이름 <b aria-hidden="true">*</b></span>
                                     <input type="text" name="name" placeholder="홍길동" required>
                                 </label>
                                 <label>
                                     <span>연락처</span>
-                                    <input type="tel" name="phone" placeholder="010-0000-0000" required>
+                                    <input type="tel" name="phone" placeholder="010-0000-0000">
                                 </label>
                                 <label>
-                                    <span>이메일</span>
+                                    <span>이메일 <b aria-hidden="true">*</b></span>
                                     <input type="email" name="email" placeholder="reply@example.com" required>
                                 </label>
                             </div>
                             <div class="form-row course-mode-row">
                                 <label>
-                                    <span>희망 수업</span>
+                                    <span>희망 수업 <b aria-hidden="true">*</b></span>
                                     <select name="course" required>
                                         <option value="">수업을 선택해주세요</option>
-                                        <option value="jpop">J-POP · 서브컬처</option>
+                                        <option value="jpop">jpop 작곡 / 미디 레슨</option>
                                         <option value="game">게임 BGM</option>
                                         <option value="anime">애니메이션 · 영화 OST</option>
                                         <option value="sound">Sound Design</option>
-                                        <option value="subculture">서브컬처 작곡 / 미디</option>
+                                        <option value="mixing">믹싱 / 마스터링</option>
                                     </select>
                                 </label>
                                 <label>
-                                    <span>수업 방식</span>
+                                    <span>수업 방식 <b aria-hidden="true">*</b></span>
                                     <select name="lessonMode" required>
                                         <option value="">방식을 선택해주세요</option>
                                         <option value="online">온라인</option>
@@ -369,8 +370,20 @@
                                     </select>
                                 </label>
                             </div>
+                            <div class="form-row teacher-select-row">
+                                <label>
+                                    <span>희망 선생님</span>
+                                    <select name="teacher">
+                                        <option value="">선생님을 선택해주세요</option>
+                                        <option value="kim">김정환</option>
+                                        <option value="lee">박학민 / B@kamin</option>
+                                        <option value="han">한수민</option>
+                                        <option value="cho">조은오</option>
+                                    </select>
+                                </label>
+                            </div>
                             <label>
-                                <span>문의 내용</span>
+                                <span>문의 내용 <b aria-hidden="true">*</b></span>
                                 <textarea name="message" rows="5" placeholder="배우고 싶은 방향, 현재 고민, 가능한 시간대 등을 자유롭게 적어주세요." required></textarea>
                             </label>
                             <button type="submit" class="btn btn-yellow">상담 신청 보내기</button>
@@ -455,6 +468,10 @@
     <script type="module" src="./main.js?v=20260525-preview-labels"></script>
     <script type="module">
         const contactForm = document.getElementById('contact-form');
+        const getSelectedOptionText = (form, name) => {
+            const select = form?.querySelector(`[name="${name}"]`);
+            return select?.selectedOptions?.[0]?.textContent?.trim() || '';
+        };
 
         contactForm?.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -480,7 +497,11 @@
                         phone: formData.get('phone'),
                         email: formData.get('email'),
                         course: formData.get('course'),
+                        courseLabel: getSelectedOptionText(contactForm, 'course'),
                         lessonMode: formData.get('lessonMode'),
+                        lessonModeLabel: getSelectedOptionText(contactForm, 'lessonMode'),
+                        teacher: formData.get('teacher'),
+                        teacherLabel: getSelectedOptionText(contactForm, 'teacher'),
                         message: formData.get('message'),
                         portfolioInterest: document.querySelector('[data-portfolio-interest]')?.textContent?.replace('삭제', '').trim() || ''
                     })

@@ -1288,6 +1288,19 @@ body.view-cursor-active .view-cursor-dot {
     margin-top: 14px;
 }
 
+.required-guide {
+    margin: 0 0 14px;
+    color: #64748b;
+    font-size: 0.92rem;
+    font-weight: 800;
+    text-align: left;
+}
+
+label b,
+.required-guide b {
+    color: var(--primary-dark);
+}
+
 label {
     display: grid;
     gap: 8px;

@@ -61,10 +61,14 @@ test('contact API sends inquiry email to configured studio recipients', async ()
         const response = await onRequestPost({
             request: makeRequest({
                 name: 'Kim',
-                phone: '010-0000-0000',
+                phone: '',
                 email: 'student@example.com',
                 course: 'jpop',
+                courseLabel: 'jpop 작곡 / 미디 레슨',
                 lessonMode: 'online',
+                lessonModeLabel: '온라인',
+                teacher: 'lee',
+                teacherLabel: '박학민 / B@kamin',
                 message: 'I want to ask about vocal direction.',
                 portfolioInterest: 'Sugar Rush Opening'
             }),
@@ -83,12 +87,53 @@ test('contact API sends inquiry email to configured studio recipients', async ()
         assert.deepEqual(sentPayload.to, ['smarty1558@gmail.com', 'omusinform@gmail.com', 'smarty1558910@gmail.com']);
         assert.equal(sentPayload.reply_to, 'student@example.com');
         assert.match(sentPayload.text, /이름: Kim/);
-        assert.match(sentPayload.text, /연락처: 010-0000-0000/);
+        assert.match(sentPayload.text, /연락처: -/);
         assert.match(sentPayload.text, /이메일: student@example.com/);
-        assert.match(sentPayload.text, /희망 수업: jpop/);
-        assert.match(sentPayload.text, /수업 방식: online/);
+        assert.match(sentPayload.text, /희망 수업: jpop 작곡 \/ 미디 레슨/);
+        assert.doesNotMatch(sentPayload.text, /희망 수업: jpop\n/);
+        assert.match(sentPayload.text, /수업 방식: 온라인/);
+        assert.match(sentPayload.text, /희망 선생님: 박학민 \/ B@kamin/);
         assert.match(sentPayload.text, /I want to ask about vocal direction/);
         assert.match(sentPayload.text, /이런 스타일 배우기: Sugar Rush Opening/);
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+});
+
+test('contact API keeps optional phone and teacher fields optional', async () => {
+    const fetchCalls = [];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (...args) => {
+        fetchCalls.push(args);
+        return new Response(JSON.stringify({ id: 'email-optional' }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' }
+        });
+    };
+
+    try {
+        const response = await onRequestPost({
+            request: makeRequest({
+                name: 'Kim',
+                email: 'student@example.com',
+                course: 'mixing',
+                courseLabel: '믹싱 / 마스터링',
+                lessonMode: 'offline',
+                lessonModeLabel: '오프라인',
+                message: 'I want mixing feedback.'
+            }),
+            env: {
+                RESEND_API_KEY: 'test-key',
+                CONTACT_TO_EMAIL: 'owner@example.com'
+            }
+        });
+        const sentPayload = JSON.parse(fetchCalls[0][1].body);
+
+        assert.equal(response.status, 200);
+        assert.match(sentPayload.text, /연락처: -/);
+        assert.match(sentPayload.text, /희망 수업: 믹싱 \/ 마스터링/);
+        assert.match(sentPayload.text, /수업 방식: 오프라인/);
+        assert.match(sentPayload.text, /희망 선생님: 미선택/);
     } finally {
         globalThis.fetch = originalFetch;
     }
