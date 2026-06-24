@@ -6,7 +6,7 @@ const indexSource = readFileSync(new URL('./index.html', import.meta.url), 'utf8
 const mainSource = readFileSync(new URL('./main.js', import.meta.url), 'utf8');
 
 test('consulting form collects reply email and inquiry detail', () => {
-    assert.match(indexSource, /<span>이름 <b aria-hidden="true">\*<\/b><\/span>[\s\S]*<input[^>]*name="name"[^>]*required/);
+    assert.match(indexSource, /<span>이름 또는 활동명 <b aria-hidden="true">\*<\/b><\/span>[\s\S]*<input[^>]*name="name"[^>]*required/);
     assert.match(indexSource, /<span>연락처<\/span>[\s\S]*<input type="tel" name="phone"/);
     assert.doesNotMatch(indexSource, /<input[^>]*name="phone"[^>]*required/);
     assert.match(indexSource, /<span>이메일 <b aria-hidden="true">\*<\/b><\/span>[\s\S]*<input[^>]*type="email"[^>]*name="email"[^>]*required/);
@@ -16,6 +16,7 @@ test('consulting form collects reply email and inquiry detail', () => {
     assert.match(indexSource, /<option value="">수업을 선택해주세요<\/option>/);
     assert.match(indexSource, /<option value="jpop">jpop 작곡 \/ 미디 레슨<\/option>/);
     assert.match(indexSource, /<option value="subculture">서브컬처 작곡 \/ 미디 레슨<\/option>/);
+    assert.match(indexSource, /<option value="singer-songwriter">싱어송라이터\(보컬작곡\)<\/option>/);
     assert.match(indexSource, /<option value="mixing">믹싱 \/ 마스터링<\/option>/);
     assert.match(indexSource, /<span>수업 방식 <b aria-hidden="true">\*<\/b><\/span>[\s\S]*<select[^>]*name="lessonMode"[^>]*required/);
     assert.match(indexSource, /<option value="">방식을 선택해주세요<\/option>/);
