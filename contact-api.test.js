@@ -67,8 +67,6 @@ test('contact API sends inquiry email to configured studio recipients', async ()
                 courseLabel: 'jpop 작곡 / 미디 레슨',
                 lessonMode: 'online',
                 lessonModeLabel: '온라인',
-                teacher: 'lee',
-                teacherLabel: '박학민 / B@kamin',
                 message: 'I want to ask about vocal direction.',
                 portfolioInterest: 'Sugar Rush Opening'
             }),
@@ -92,7 +90,7 @@ test('contact API sends inquiry email to configured studio recipients', async ()
         assert.match(sentPayload.text, /희망 수업: jpop 작곡 \/ 미디 레슨/);
         assert.doesNotMatch(sentPayload.text, /희망 수업: jpop\n/);
         assert.match(sentPayload.text, /수업 방식: 온라인/);
-        assert.match(sentPayload.text, /희망 선생님: 박학민 \/ B@kamin/);
+        assert.doesNotMatch(sentPayload.text, /희망 선생님/);
         assert.match(sentPayload.text, /I want to ask about vocal direction/);
         assert.match(sentPayload.text, /이런 스타일 배우기: Sugar Rush Opening/);
     } finally {
@@ -100,7 +98,7 @@ test('contact API sends inquiry email to configured studio recipients', async ()
     }
 });
 
-test('contact API keeps optional phone and teacher fields optional', async () => {
+test('contact API keeps optional phone field optional', async () => {
     const fetchCalls = [];
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (...args) => {
@@ -133,7 +131,7 @@ test('contact API keeps optional phone and teacher fields optional', async () =>
         assert.match(sentPayload.text, /연락처: -/);
         assert.match(sentPayload.text, /희망 수업: 믹싱 \/ 마스터링/);
         assert.match(sentPayload.text, /수업 방식: 오프라인/);
-        assert.match(sentPayload.text, /희망 선생님: 미선택/);
+        assert.doesNotMatch(sentPayload.text, /희망 선생님/);
     } finally {
         globalThis.fetch = originalFetch;
     }

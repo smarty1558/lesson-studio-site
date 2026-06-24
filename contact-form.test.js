@@ -21,18 +21,16 @@ test('consulting form collects reply email and inquiry detail', () => {
     assert.match(indexSource, /<option value="">방식을 선택해주세요<\/option>/);
     assert.match(indexSource, /<option value="online">온라인<\/option>/);
     assert.match(indexSource, /<option value="offline">오프라인<\/option>/);
-    assert.match(indexSource, /<span>희망 선생님<\/span>[\s\S]*<select name="teacher"/);
-    assert.match(indexSource, /<select name="teacher">\s*<option value="">선생님을 선택해주세요<\/option>\s*<\/select>/);
+    assert.doesNotMatch(indexSource, /<span>희망 선생님<\/span>/);
+    assert.doesNotMatch(indexSource, /<select name="teacher"/);
     assert.doesNotMatch(indexSource, /<option value="lee">박학민 \/ B@kamin<\/option>/);
     assert.doesNotMatch(indexSource, /<select[^>]*name="teacher"[^>]*required/);
     assert.match(indexSource, /<span>문의 내용 <b aria-hidden="true">\*<\/b><\/span>[\s\S]*<textarea[\s\S]*name="message"[\s\S]*required/);
 });
 
-test('consulting form teacher options are hydrated from CMS teacher profile names', () => {
-    assert.match(mainSource, /const syncContactTeacherOptionsFromProfiles = async \(\) =>/);
-    assert.match(mainSource, /const profiles = await Promise\.all\(teacherDataKeys\.map\(\(key\) => loadTeacherProfile\(key\)\)\);/);
-    assert.match(mainSource, /option\.textContent = profile\.name;/);
-    assert.match(mainSource, /syncContactTeacherOptionsFromProfiles\(\)/);
+test('consulting form does not expose a teacher preference field', () => {
+    assert.doesNotMatch(mainSource, /syncContactTeacherOptionsFromProfiles/);
+    assert.doesNotMatch(mainSource, /querySelector\('\[name="teacher"\]'\)/);
 });
 
 test('consulting form submits contact payload to the contact API', () => {
@@ -41,7 +39,7 @@ test('consulting form submits contact payload to the contact API', () => {
     assert.match(mainSource, /getSelectedOptionText\(contactForm,\s*'course'\)/);
     assert.match(mainSource, /formData\.get\('lessonMode'\)/);
     assert.match(mainSource, /getSelectedOptionText\(contactForm,\s*'lessonMode'\)/);
-    assert.match(mainSource, /formData\.get\('teacher'\)/);
-    assert.match(mainSource, /getSelectedOptionText\(contactForm,\s*'teacher'\)/);
+    assert.doesNotMatch(mainSource, /formData\.get\('teacher'\)/);
+    assert.doesNotMatch(mainSource, /getSelectedOptionText\(contactForm,\s*'teacher'\)/);
     assert.match(mainSource, /formData\.get\('message'\)/);
 });

@@ -1068,8 +1068,6 @@ const initSite = () => {
                         courseLabel: getSelectedOptionText(contactForm, 'course'),
                         lessonMode: formData.get('lessonMode'),
                         lessonModeLabel: getSelectedOptionText(contactForm, 'lessonMode'),
-                        teacher: formData.get('teacher'),
-                        teacherLabel: getSelectedOptionText(contactForm, 'teacher'),
                         message: formData.get('message'),
                         portfolioInterest: activePortfolioInterest?.title || activePortfolioInterest?.text || ''
                     })
@@ -1429,31 +1427,6 @@ const initSite = () => {
             if (nameTarget) nameTarget.textContent = profile.name;
             if (summaryTarget) summaryTarget.textContent = profile.summary;
         }));
-    };
-
-    const syncContactTeacherOptionsFromProfiles = async () => {
-        const select = contactForm?.querySelector('[name="teacher"]');
-        if (!select) return;
-
-        const selectedValue = select.value;
-        const profiles = await Promise.all(teacherDataKeys.map((key) => loadTeacherProfile(key)));
-        select.innerHTML = '';
-
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = '선생님을 선택해주세요';
-        select.appendChild(placeholder);
-
-        profiles.forEach((profile) => {
-            const option = document.createElement('option');
-            option.value = profile.key;
-            option.textContent = profile.name;
-            select.appendChild(option);
-        });
-
-        if (selectedValue && profiles.some((profile) => profile.key === selectedValue)) {
-            select.value = selectedValue;
-        }
     };
 
     const renderTeacherProfileMarkup = (profile) => `
@@ -1848,8 +1821,7 @@ const initSite = () => {
             ...teacherDataKeys.map((key) => loadPortfolioItems('teacher', key)),
             ...courseDataKeys.map((key) => loadPortfolioItems('course', key))
         ]).then(() => Promise.all([
-            syncTeacherCardsFromProfiles(),
-            syncContactTeacherOptionsFromProfiles()
+            syncTeacherCardsFromProfiles()
         ])).catch(() => {});
 
         return siteDataCache.preloadPromise;

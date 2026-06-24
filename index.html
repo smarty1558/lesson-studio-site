@@ -371,14 +371,6 @@
                                     </select>
                                 </label>
                             </div>
-                            <div class="form-row teacher-select-row">
-                                <label>
-                                    <span>희망 선생님</span>
-                                    <select name="teacher">
-                                        <option value="">선생님을 선택해주세요</option>
-                                    </select>
-                                </label>
-                            </div>
                             <label>
                                 <span>문의 내용 <b aria-hidden="true">*</b></span>
                                 <textarea name="message" rows="5" placeholder="배우고 싶은 방향, 현재 고민, 가능한 시간대 등을 자유롭게 적어주세요." required></textarea>
@@ -514,8 +506,6 @@
                         courseLabel: getSelectedOptionText(contactForm, 'course'),
                         lessonMode: formData.get('lessonMode'),
                         lessonModeLabel: getSelectedOptionText(contactForm, 'lessonMode'),
-                        teacher: formData.get('teacher'),
-                        teacherLabel: getSelectedOptionText(contactForm, 'teacher'),
                         message: formData.get('message'),
                         portfolioInterest: document.querySelector('[data-portfolio-interest]')?.textContent?.replace('삭제', '').trim() || ''
                     })

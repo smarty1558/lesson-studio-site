@@ -14,8 +14,6 @@ const normalizeContactPayload = (payload = {}) => ({
     courseLabel: String(payload.courseLabel || '').trim(),
     lessonMode: String(payload.lessonMode || '').trim(),
     lessonModeLabel: String(payload.lessonModeLabel || '').trim(),
-    teacher: String(payload.teacher || '').trim(),
-    teacherLabel: String(payload.teacherLabel || '').trim(),
     message: String(payload.message || '').trim(),
     portfolioInterest: String(payload.portfolioInterest || '').trim()
 });
@@ -29,7 +27,6 @@ const normalizeRecipientEmails = (value) => String(value || '')
 const getContactDisplayValues = (payload) => ({
     course: payload.courseLabel || payload.course,
     lessonMode: payload.lessonModeLabel || payload.lessonMode,
-    teacher: payload.teacher ? (payload.teacherLabel || payload.teacher) : '미선택',
     phone: payload.phone || '-'
 });
 
@@ -44,7 +41,6 @@ const buildContactEmailText = (payload) => {
         `이메일: ${payload.email}`,
         `희망 수업: ${display.course}`,
         `수업 방식: ${display.lessonMode}`,
-        `희망 선생님: ${display.teacher}`,
         payload.portfolioInterest ? `이런 스타일 배우기: ${payload.portfolioInterest}` : '',
         '',
         '문의 내용:',
