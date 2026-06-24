@@ -39,6 +39,8 @@ test('homepage includes seo faq content and structured data', () => {
     assert.match(indexSource, /서브컬처 작곡 레슨은 일반 작곡 레슨과 뭐가 다른가요\?/);
     assert.match(indexSource, /게임음악 작곡 레슨에서는 무엇을 배우나요\?/);
     assert.match(indexSource, /미디 레슨을 처음 시작해도 괜찮나요\?/);
+    assert.match(indexSource, /믹싱과 마스터링도 배울 수 있나요\?/);
+    assert.match(indexSource, /싱어송라이터 보컬작곡 수업은 어떻게 진행되나요\?/);
     assert.match(indexSource, /"@type": "FAQPage"/);
     assert.match(indexSource, /"@type": "Question"/);
     assert.match(indexSource, /"@type": "Answer"/);
