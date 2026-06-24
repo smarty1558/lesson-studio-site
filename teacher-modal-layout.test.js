@@ -103,6 +103,14 @@ test('teacher cms profiles hydrate main teacher cards', () => {
     assert.doesNotMatch(js, /syncContactTeacherOptionsFromProfiles/);
 });
 
+test('static teacher fallback copy matches public teacher names for crawlers', () => {
+    assert.match(html, /<h3>김정환 \/ YUMU<\/h3>/);
+    assert.match(html, /<h3>B@kamin<\/h3>/);
+    assert.match(html, /<h3>Kev1<\/h3>/);
+    assert.match(html, /<h3>은오 \/ Eunoh<\/h3>/);
+    assert.doesNotMatch(html, /이서윤|한유나|조은오/);
+});
+
 test('teacher cms exposes representative direction separately from class direction', () => {
     assert.match(adminJs, /name="direction"/);
     assert.match(adminJs, />대표 방향/);

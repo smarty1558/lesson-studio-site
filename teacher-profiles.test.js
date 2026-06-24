@@ -9,7 +9,7 @@ test('returns teacher profile details for the selected teacher key', () => {
     const profile = getTeacherProfile('kim');
 
     assert.equal(profile.key, 'kim');
-    assert.equal(profile.name, '김정환');
+    assert.equal(profile.name, '김정환 / YUMU');
     assert.ok(profile.specialties.includes('Anime Vocal'));
     assert.ok(profile.works.length >= 2);
 });

@@ -452,10 +452,10 @@ const renderStandaloneAdminPage = () => {
             sound: 'Sound Design'
         },
         teacher: {
-            kim: '김정환 포트폴리오',
-            lee: '이서윤 포트폴리오',
-            han: '한유나 포트폴리오',
-            cho: '조은오 포트폴리오'
+            kim: '김정환 / YUMU 포트폴리오',
+            lee: 'B@kamin 포트폴리오',
+            han: 'Kev1 포트폴리오',
+            cho: '은오 / Eunoh 포트폴리오'
         }
     };
 
@@ -686,10 +686,10 @@ const renderUnifiedAdminPage = () => {
         soundDesign: 'Sound Design'
     };
     const teacherOptions = {
-        kim: '김정환',
-        lee: '이서윤',
-        han: '한유나',
-        cho: '조은오'
+        kim: '김정환 / YUMU',
+        lee: 'B@kamin',
+        han: 'Kev1',
+        cho: '은오 / Eunoh'
     };
 
     const readItems = () => {
@@ -1352,10 +1352,10 @@ const initSite = () => {
         sound: 'Sound Design'
     };
     const teacherTitleMap = {
-        kim: '김정환 포트폴리오',
-        lee: '이서윤 포트폴리오',
-        han: '한유나 포트폴리오',
-        cho: '조은오 포트폴리오'
+        kim: '김정환 / YUMU 포트폴리오',
+        lee: 'B@kamin 포트폴리오',
+        han: 'Kev1 포트폴리오',
+        cho: '은오 / Eunoh 포트폴리오'
     };
 
     const fetchWithTimeout = async (url, options = {}, timeoutMs = 4500) => {
@@ -1506,10 +1506,10 @@ const initSite = () => {
             sound: 'Sound Design'
         },
         teacher: {
-            kim: '김정환 포트폴리오',
-            lee: '이서윤 포트폴리오',
-            han: '한유나 포트폴리오',
-            cho: '조은오 포트폴리오'
+            kim: '김정환 / YUMU 포트폴리오',
+            lee: 'B@kamin 포트폴리오',
+            han: 'Kev1 포트폴리오',
+            cho: '은오 / Eunoh 포트폴리오'
         }
     };
 
@@ -1521,10 +1521,10 @@ const initSite = () => {
             sound: 'Sound Design'
         },
         teacher: {
-            kim: '김정환',
-            lee: '이서윤',
-            han: '한유나',
-            cho: '조은오'
+            kim: '김정환 / YUMU',
+            lee: 'B@kamin',
+            han: 'Kev1',
+            cho: '은오 / Eunoh'
         }
     };
 

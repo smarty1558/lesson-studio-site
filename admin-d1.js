@@ -7,10 +7,10 @@ const escapeHtml = (value = '') => String(value)
     .replaceAll('"', '&quot;');
 
 const teacherOptions = [
-    ['kim', '김정환'],
-    ['lee', '이서윤'],
-    ['han', '한유나'],
-    ['cho', '조은오']
+    ['kim', '김정환 / YUMU'],
+    ['lee', 'B@kamin'],
+    ['han', 'Kev1'],
+    ['cho', '은오 / Eunoh']
 ];
 
 const targetOptions = [
