@@ -1624,6 +1624,45 @@ textarea:focus {
     color: white;
 }
 
+.kakao-float {
+    position: fixed;
+    right: 22px;
+    bottom: 24px;
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 999px;
+    background: #FEE500;
+    color: #391B1B;
+    font-size: 0.92rem;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 12px 28px rgba(57, 27, 27, 0.24);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kakao-float:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgba(57, 27, 27, 0.3);
+}
+
+.kakao-float:active {
+    transform: translateY(0) scale(0.97);
+}
+
+.kakao-float:focus-visible {
+    outline: 3px solid rgba(57, 27, 27, 0.4);
+    outline-offset: 3px;
+}
+
+.kakao-float-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
 .modal {
     position: fixed;
     inset: 0;
@@ -4683,6 +4722,11 @@ textarea:focus {
 
     .mobile-cta {
         display: grid;
+    }
+
+    .kakao-float {
+        right: 16px;
+        bottom: 128px;
     }
 }
 
