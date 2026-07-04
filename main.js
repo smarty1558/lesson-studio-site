@@ -890,6 +890,23 @@ const initSite = () => {
         return;
     }
 
+    const heroVideo = document.querySelector('.hero-video');
+    let isBodyScrollLocked = false;
+    // 모달 오버레이의 backdrop blur가 재생 중인 영상을 매 프레임 다시 그리지 않도록 잠금 중에는 정지
+    heroVideo?.addEventListener('playing', () => {
+        if (isBodyScrollLocked) heroVideo.pause();
+    });
+    const setBodyScrollLock = (locked) => {
+        isBodyScrollLocked = locked;
+        document.body.style.overflow = locked ? 'hidden' : '';
+        if (!heroVideo) return;
+        if (locked) {
+            heroVideo.pause();
+        } else if (heroVideo.paused) {
+            heroVideo.play().catch(() => {});
+        }
+    };
+
     bindAudioPreviewVolume();
     const audioPreviewObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
@@ -963,6 +980,7 @@ const initSite = () => {
     const freePluginFrame = freePluginPortal?.querySelector('[data-free-plugin-frame]');
     const freePluginLaunchers = document.querySelectorAll('[data-free-plugin-launch]');
     const appShell = document.getElementById('app');
+    const isFreePluginPortalOpen = () => Boolean(freePluginPortal && !freePluginPortal.hidden);
     const openFreePluginPortal = (event) => {
         if (!freePluginPortal || !freePluginFrame) return;
 
@@ -975,7 +993,49 @@ const initSite = () => {
         window.requestAnimationFrame(() => {
             freePluginPortal.classList.add('is-active');
         });
+
+        // 뒤로가기로 포털을 닫을 수 있도록 히스토리 항목 추가
+        if (window.history?.pushState && !window.history.state?.omusFreePlugin) {
+            const currentState = window.history.state && typeof window.history.state === 'object'
+                ? window.history.state
+                : {};
+            window.history.pushState({ ...currentState, omusFreePlugin: true }, '', window.location.href);
+        }
     };
+    const dismissFreePluginPortal = () => {
+        if (!isFreePluginPortalOpen()) return;
+        freePluginPortal.classList.remove('is-active');
+        document.body.classList.remove('free-plugin-portal-open');
+        appShell?.classList.remove('is-free-plugin-launching');
+        window.setTimeout(() => {
+            freePluginPortal.hidden = true;
+            if (freePluginFrame) freePluginFrame.removeAttribute('src');
+        }, 220);
+    };
+    const closeFreePluginPortal = () => {
+        if (!isFreePluginPortalOpen()) return;
+        if (window.history.state?.omusFreePlugin) {
+            window.history.back();
+            return;
+        }
+        dismissFreePluginPortal();
+    };
+    // 포털이 열린 채 새로고침하면 남는 잔여 히스토리 플래그 제거
+    if (window.history?.replaceState && window.history.state?.omusFreePlugin) {
+        const { omusFreePlugin, ...restState } = window.history.state;
+        window.history.replaceState(restState, '', window.location.href);
+    }
+    window.addEventListener('popstate', () => {
+        if (isFreePluginPortalOpen() && !window.history.state?.omusFreePlugin) {
+            dismissFreePluginPortal();
+        }
+    });
+    window.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin) return;
+        if (event.data && typeof event.data === 'object' && event.data.type === 'free-plugin-exit') {
+            closeFreePluginPortal();
+        }
+    });
     freePluginLaunchers.forEach((launcher) => {
         launcher.addEventListener('click', openFreePluginPortal);
     });
@@ -2245,7 +2305,7 @@ const initSite = () => {
             teacherModalContent?.classList.remove('teacher-works-active', 'is-shutting-down', 'teacher-view-switching', 'teacher-view-ready', 'detail-mode', 'teacher-work-detail-mode');
             if (teacherModalBody) teacherModalBody.innerHTML = '';
             activeTeacherWorkDetailReturn = null;
-            document.body.style.overflow = modal?.classList.contains('active') ? 'hidden' : '';
+            setBodyScrollLock(Boolean(modal?.classList.contains('active')));
         }, 260);
     };
 
@@ -2270,7 +2330,7 @@ const initSite = () => {
         teacherModal.classList.add('active');
         teacherModal.classList.remove('is-dismissing');
         teacherModal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
+        setBodyScrollLock(true);
         pushModalHistoryState('teacher');
 
         teacherModalBody.innerHTML = `
@@ -2428,7 +2488,7 @@ const initSite = () => {
             modalContent?.classList.remove('is-shutting-down');
             isModalClosing = false;
             modal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
+            setBodyScrollLock(true);
             pushModalHistoryState('course');
         }
 
@@ -2466,7 +2526,7 @@ const initSite = () => {
             modalContent.classList.remove('is-shutting-down');
             isModalClosing = false;
             modal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
+            setBodyScrollLock(true);
             pushModalHistoryState('teacher');
 
             stage.addEventListener('click', (event) => {
@@ -2692,7 +2752,7 @@ const initSite = () => {
             modalContent?.classList.remove('is-shutting-down');
             isModalClosing = false;
             modal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
+            setBodyScrollLock(true);
         }
 
         gallery.querySelectorAll('.portfolio-item').forEach((item) => {
@@ -2759,7 +2819,7 @@ const initSite = () => {
             restoreTeacherModalLayout();
             gallery?.classList.remove('is-returning');
             document.getElementById('portfolio-detail-kicker')?.remove();
-            document.body.style.overflow = '';
+            setBodyScrollLock(false);
             document.getElementById('portfolio-expanded-panel')?.remove();
             activeCourseDetailReturn = null;
             isModalClosing = false;

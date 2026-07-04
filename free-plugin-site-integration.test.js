@@ -32,12 +32,18 @@ test('free plugin navigation opens an in-page portal instead of leaving the home
     assert.match(mainSource, /free-plugin-transition-options\.html\?autostart=1&embed=1/);
     assert.match(mainSource, /is-free-plugin-launching/);
     assert.doesNotMatch(mainSource, /free-plugin-go-home/);
-    assert.doesNotMatch(mainSource, /closeFreePluginPortal/);
     assert.doesNotMatch(mainSource, /is-frame-ready/);
     assert.match(styleSource, /\.free-plugin-portal\s*\{[^}]*position:\s*fixed;[^}]*z-index:\s*2600;/s);
     assert.match(styleSource, /\.site-shell\.is-free-plugin-launching\s*\{[^}]*opacity:\s*0\s*;[^}]*translateX\(-22vw\)/s);
     assert.doesNotMatch(styleSource, /\.free-plugin-portal iframe\s*\{[^}]*opacity:\s*0\s*;/s);
     assert.doesNotMatch(styleSource, /\.free-plugin-portal\.is-frame-ready iframe/);
+});
+
+test('browser back button closes the free plugin portal instead of leaving the site', () => {
+    assert.match(mainSource, /omusFreePlugin: true/);
+    assert.match(mainSource, /window\.history\.pushState\(\{ \.\.\.currentState, omusFreePlugin: true \}/);
+    assert.match(mainSource, /isFreePluginPortalOpen\(\) && !window\.history\.state\?\.omusFreePlugin/);
+    assert.match(mainSource, /event\.data\.type === 'free-plugin-exit'/);
 });
 
 test('home cursor receives pointer updates from the embedded free plugin preview', () => {
@@ -51,7 +57,9 @@ test('home cursor receives pointer updates from the embedded free plugin preview
 test('free plugin page is branded as part of the studio site', () => {
     assert.match(freePluginSource, /<title>무료 음악 플러그인 추천 \| OMUS 오타쿠 뮤직 스튜디오<\/title>/);
     assert.match(freePluginSource, /<div class="brand">OMUS \| OTAKU MUSIC LESSON STUDIO<\/div>/);
-    assert.match(freePluginSource, /<button class="home-reload" type="button" onclick="window\.top\.location\.href='\.\/index\.html'">홈페이지로 돌아가기<\/button>/);
+    assert.match(freePluginSource, /<button class="home-reload" type="button"[^>]*>홈페이지로 돌아가기<\/button>/);
+    assert.match(freePluginSource, /window\.parent\.postMessage\(\{ type: 'free-plugin-exit' \}, window\.location\.origin\)/);
+    assert.match(freePluginSource, /window\.location\.href = '\.\/index\.html'/);
     assert.match(freePluginSource, /\.home-reload\s*\{[^}]*position:\s*fixed;[^}]*right:\s*clamp\(18px,\s*3vw,\s*44px\);[^}]*top:\s*18px;[^}]*opacity:\s*0;[^}]*pointer-events:\s*none;/s);
     assert.match(freePluginSource, /\.home-reload\.is-visible\s*\{[^}]*opacity:\s*1;[^}]*pointer-events:\s*auto;/s);
     assert.match(freePluginSource, /stage\.classList\.add\('is-complete'\);\s*homeReload\?\.classList\.add\('is-visible'\);/);
