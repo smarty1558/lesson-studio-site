@@ -24,6 +24,19 @@ const normalizeRecipientEmails = (value) => String(value || '')
     .map((email) => email.trim())
     .filter(Boolean);
 
+const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+
+const getRecipientEmails = (payload, env) => {
+    const specialApplicantEmails = normalizeRecipientEmails(env.CONTACT_SPECIAL_FROM_EMAILS)
+        .map(normalizeEmail);
+    const isSpecialApplicant = specialApplicantEmails.includes(normalizeEmail(payload.email));
+    const recipientValue = isSpecialApplicant
+        ? (env.CONTACT_SPECIAL_TO_EMAIL || env.CONTACT_TO_EMAIL)
+        : env.CONTACT_TO_EMAIL;
+
+    return normalizeRecipientEmails(recipientValue);
+};
+
 const getContactDisplayValues = (payload) => ({
     course: payload.courseLabel || payload.course,
     lessonMode: payload.lessonModeLabel || payload.lessonMode,
@@ -63,7 +76,7 @@ export const onRequestPost = async ({ request, env }) => {
         return sendFailure('상담 메일 수신 설정이 아직 완료되지 않았습니다.', 503);
     }
 
-    const toEmails = normalizeRecipientEmails(env.CONTACT_TO_EMAIL);
+    const toEmails = getRecipientEmails(payload, env);
     if (!toEmails.length) {
         return sendFailure('상담 메일 수신 주소가 설정되지 않았습니다.', 503);
     }

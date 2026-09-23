@@ -98,6 +98,78 @@ test('contact API sends inquiry email to configured studio recipients', async ()
     }
 });
 
+test('contact API routes a matching applicant email to the special recipient', async () => {
+    const fetchCalls = [];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (...args) => {
+        fetchCalls.push(args);
+        return new Response(JSON.stringify({ id: 'email-special' }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' }
+        });
+    };
+
+    try {
+        const response = await onRequestPost({
+            request: makeRequest({
+                name: 'Bakam in',
+                email: '  BAKAMIN98@GMAIL.COM ',
+                course: 'jpop',
+                lessonMode: 'online',
+                message: 'Route this inquiry to the special inbox.'
+            }),
+            env: {
+                RESEND_API_KEY: 'test-key',
+                CONTACT_TO_EMAIL: 'smarty1558@gmail.com',
+                CONTACT_SPECIAL_TO_EMAIL: 'omusinform@gmail.com',
+                CONTACT_SPECIAL_FROM_EMAILS: 'bakamin98@gmail.com, haveosumtime@gmail.com'
+            }
+        });
+        const sentPayload = JSON.parse(fetchCalls[0][1].body);
+
+        assert.equal(response.status, 200);
+        assert.deepEqual(sentPayload.to, ['omusinform@gmail.com']);
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+});
+
+test('contact API routes a non-matching applicant email to the default recipient', async () => {
+    const fetchCalls = [];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (...args) => {
+        fetchCalls.push(args);
+        return new Response(JSON.stringify({ id: 'email-default' }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' }
+        });
+    };
+
+    try {
+        const response = await onRequestPost({
+            request: makeRequest({
+                name: 'Student',
+                email: 'student@example.com',
+                course: 'jpop',
+                lessonMode: 'online',
+                message: 'Route this inquiry to the default inbox.'
+            }),
+            env: {
+                RESEND_API_KEY: 'test-key',
+                CONTACT_TO_EMAIL: 'smarty1558@gmail.com',
+                CONTACT_SPECIAL_TO_EMAIL: 'omusinform@gmail.com',
+                CONTACT_SPECIAL_FROM_EMAILS: 'bakamin98@gmail.com, haveosumtime@gmail.com'
+            }
+        });
+        const sentPayload = JSON.parse(fetchCalls[0][1].body);
+
+        assert.equal(response.status, 200);
+        assert.deepEqual(sentPayload.to, ['smarty1558@gmail.com']);
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+});
+
 test('contact API keeps optional phone field optional', async () => {
     const fetchCalls = [];
     const originalFetch = globalThis.fetch;
