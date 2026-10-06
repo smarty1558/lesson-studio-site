@@ -24,11 +24,19 @@ test('teacher page controls live inside the active panel instead of edge tabs', 
     const closeRule = getRuleBody('.modal-close');
 
     assert.doesNotMatch(js, /class="teacher-tab/);
-    assert.match(js, /class="teacher-panel-action" data-dedicated-teacher-panel="works"/);
-    assert.match(js, /class="teacher-panel-action teacher-panel-action-secondary" data-dedicated-teacher-panel="detail"/);
+    assert.doesNotMatch(js, /data-dedicated-teacher-panel/);
     assert.match(actionRule, /min-height:\s*46px\s*;/);
     assert.match(actionRule, /width:\s*fit-content\s*;/);
     assert.match(closeRule, /z-index:\s*30\s*;/);
+});
+
+test('teacher profile modal is description-only and has no personal works entry', () => {
+    assert.doesNotMatch(js, /대표작 보기/);
+    assert.doesNotMatch(js, /data-teacher-panel="works"/);
+    assert.doesNotMatch(js, /Representative Works/);
+    assert.doesNotMatch(js, /teacher-work-detail|'teacher-works'/);
+    assert.doesNotMatch(js, /preparePortfolioView\('teacher'/);
+    assert.doesNotMatch(js, /loadPortfolioItems\('teacher'/);
 });
 
 test('teacher details use a dedicated modal separate from the portfolio modal', () => {
@@ -46,14 +54,12 @@ test('browser back steps through portfolio modal views before closing the modal'
     assert.match(js, /modalHistoryStack\.push\(\{\s*id:\s*modalHistoryId,\s*type,\s*view\s*\}\);/);
     assert.match(js, /const requestModalHistoryClose = \(\) =>/);
     assert.match(js, /const requestModalHistoryStepBack = \(view\) =>/);
-    assert.match(js, /window\.addEventListener\('popstate',\s*\(\) => \{[\s\S]*const poppedState = modalHistoryStack\.pop\(\);[\s\S]*case 'course-detail':[\s\S]*activeCourseDetailReturn\?\.\(\{ fromHistory:\s*true \}\);[\s\S]*case 'teacher-work-detail':[\s\S]*activeTeacherWorkDetailReturn\?\.\(\{ fromHistory:\s*true \}\);[\s\S]*case 'teacher-works':[\s\S]*setDedicatedTeacherMode\('detail'\);/);
+    assert.match(js, /window\.addEventListener\('popstate',\s*\(\) => \{[\s\S]*const poppedState = modalHistoryStack\.pop\(\);[\s\S]*case 'course-detail':[\s\S]*activeCourseDetailReturn\?\.\(\{ fromHistory:\s*true \}\);[\s\S]*default:[\s\S]*closeModal\(\{ fromHistory:\s*true \}\);[\s\S]*closeTeacherModal\(\{ fromHistory:\s*true \}\);/);
     assert.match(js, /const closeModal = \(options = \{\}\) => \{[\s\S]*if \(!options\.fromHistory && requestModalHistoryClose\(\)\) return;/);
     assert.match(js, /const closeTeacherModal = \(options = \{\}\) => \{[\s\S]*if \(!options\.fromHistory && requestModalHistoryClose\(\)\) return;/);
     assert.match(js, /pushModalHistoryState\('course'\);/);
     assert.match(js, /pushModalHistoryState\('course',\s*'course-detail'\);/);
     assert.match(js, /pushModalHistoryState\('teacher'\);/);
-    assert.match(js, /pushModalHistoryState\('teacher',\s*'teacher-works'\);/);
-    assert.match(js, /pushModalHistoryState\('teacher',\s*'teacher-work-detail'\);/);
 });
 
 test('teacher modal hides profile image when short screens cannot fit content', () => {
@@ -73,7 +79,7 @@ test('portfolio modals prewarm markup and media before click animations', () => 
     assert.match(js, /const preparePortfolioView = async/);
     assert.match(js, /decodePortfolioImages/);
     assert.match(js, /requestIdleCallback/);
-    assert.match(js, /preparePortfolioView\('teacher', key\)/);
+    assert.match(js, /preparePortfolioView\('union', TEACHER_WORKS_KEY\)/);
     assert.match(js, /preparePortfolioView\('course', key\)/);
 });
 
@@ -81,7 +87,7 @@ test('course portfolio modal resets reused gallery scroll before each class open
     assert.match(js, /const resetCoursePortfolioScroll = \(\) => \{/);
     assert.match(js, /gallery\.scrollTop = 0;/);
     assert.match(js, /gallery\.scrollLeft = 0;/);
-    assert.match(js, /if \(!isTeacher\) \{\s*resetCoursePortfolioScroll\(\);\s*\}/);
+    assert.match(js, /gallery\.innerHTML = portfolioMarkup;\s*resetCoursePortfolioScroll\(\);/);
 });
 
 test('admin renders portfolio and teacher cms as separate tabs', () => {
@@ -222,22 +228,30 @@ test('site preloads teacher and portfolio data before hiding intro loader', () =
     assert.match(js, /portfolioByTarget:\s*new Map\(\)/);
 });
 
-test('teacher works opens as a grid before entering detail mode', () => {
-    const teacherWorksMarkup = js.slice(
-        js.indexOf('const renderPortfolioCardMarkup ='),
-        js.indexOf('const decodePortfolioImages =', js.indexOf('const renderPortfolioCardMarkup ='))
-    );
+test('teacher works section is a separate union area that reuses the shared portfolio modal', () => {
+    assert.match(html, /<section id="teacher-works" class="teacher-works-section"/);
+    assert.match(html, /<h2 id="teacher-works-title">OMUS 강사진 작업물<\/h2>/);
+    assert.match(html, /OMUS 강사진이 참여한 다양한 음악과 사운드 작업을 만나보세요\./);
+    assert.ok(html.indexOf('id="teachers"') < html.indexOf('id="teacher-works"'));
+    assert.ok(html.indexOf('id="teacher-works"') < html.indexOf('id="portfolio"'));
+    assert.doesNotMatch(html.slice(html.indexOf('id="teacher-works"'), html.indexOf('id="portfolio"')), /data-teacher=/);
+    assert.match(js, /loadPortfolioItems\('union', TEACHER_WORKS_KEY\)/);
+    assert.match(js, /getTeacherUnionPortfolioItems\(items\)\s*:\s*getTeacherUnionFallbackItems\(\)/);
+    assert.match(js, /const TEACHER_WORKS_EMPTY = '공개된 강사진 작업물이 아직 없습니다\.';/);
+    assert.match(js, /openModal\(TEACHER_WORKS_KEY, 'union'/);
+    assert.match(js, /<a href="#contact" class="portfolio-detail-cta">이런 스타일 배우기<\/a>/);
+});
 
-    assert.doesNotMatch(js, /teacher-works-detail is-open/);
-    assert.match(js, /teacher-work-detail-active/);
-    assert.match(js, /portfolio-back/);
-    assert.match(js, /renderPortfolioCardMarkup\(item,\s*index,\s*'data-teacher-work-index'\)/);
-    assert.match(teacherWorksMarkup, /<div class="frame-inner[^>]*>\s*<div class="play-overlay">\s*<div class="play-icon">\+<\/div>/);
-    assert.match(css, /\.teacher-dedicated-portfolio\s*\{\s*display:\s*block\s*;/);
-    assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*display:\s*grid\s*;/s);
-    assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)\s*;/s);
-    assert.match(css, /\.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*overflow:\s*auto\s*;/s);
-    assert.match(css, /\.teacher-dedicated-content\.teacher-work-detail-mode \.teacher-dedicated-portfolio\s*\{[^}]*grid-template-columns:\s*78px minmax\(0,\s*1fr\)\s*;/s);
+test('teacher assignment notice appears in teachers, works and contact sections before form input', () => {
+    const note = '담당 선생님은 상담을 통해 배우고 싶은 음악, 현재 수준, 수업 일정 등을 확인한 뒤 배정됩니다.';
+    const sliceOf = (from, to) => html.slice(html.indexOf(from), html.indexOf(to));
+
+    assert.ok(sliceOf('id="teachers"', 'id="teacher-works"').includes(note));
+    assert.ok(sliceOf('id="teacher-works"', 'id="portfolio"').includes(note));
+    const contact = sliceOf('id="contact"', 'id="faq"');
+    assert.ok(contact.includes(note));
+    assert.ok(contact.indexOf(note) < contact.indexOf('<form'));
+    assert.doesNotMatch(contact, /name="teacher/);
 });
 
 test('portfolio detail side list stays compact and expands item on desktop hover', () => {
@@ -279,12 +293,9 @@ test('teacher works modal fills available height on narrow screens', () => {
     assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*\.teacher-dedicated-content\.teacher-works-active:not\(\.teacher-work-detail-mode\) \.teacher-dedicated-portfolio \.portfolio-gallery\s*\{[^}]*flex:\s*1 1 auto\s*;[^}]*max-height:\s*none\s*;/);
 });
 
-test('dedicated teacher modal animates between variable detail and works sizes', () => {
+test('dedicated teacher modal keeps its animated sizing for the description view', () => {
     const contentRule = getRuleBody('.teacher-dedicated-content');
 
     assert.doesNotMatch(contentRule, /height:\s*min\(760px/);
     assert.match(contentRule, /transition:\s*[\s\S]*width 0\.44s/);
-    assert.match(js, /teacher-view-switching/);
-    assert.match(css, /\.teacher-dedicated-content\.teacher-view-switching #teacher-modal-body/);
-    assert.match(css, /\.teacher-dedicated-content\.teacher-view-ready #teacher-modal-body/);
 });

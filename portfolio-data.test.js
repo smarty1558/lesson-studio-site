@@ -54,3 +54,24 @@ test('matches J-POP course independently from anime course keys', () => {
 test('default portfolio data exposes a J-POP course target', () => {
     assert.ok(getPortfolioItemsForTarget('course', 'jpop').length > 0);
 });
+
+test('teacher union dedupes by id, keeps same-title works, drops hidden and unlinked items', async () => {
+    const { getTeacherUnionPortfolioItems, getTeacherUnionFallbackItems } = await import('./portfolio-data.js');
+    const items = [
+        { id: 'a', title: 'Same', teacherKeys: ['kim', 'lee'], visible: true },
+        { id: 'a', title: 'Same', teacherKeys: ['lee'], visible: true },
+        { id: 'b', title: 'Same', teacherKeys: ['han'], visible: true },
+        { id: 'c', title: 'Hidden', teacherKeys: ['cho'], visible: false },
+        { id: 'd', title: 'Student', teacherKeys: [], visible: true },
+        { id: 'e', title: 'Meta', metadata: { teacherKeys: ['kim'] }, visible: true },
+        { title: 'No id 1', teacherKey: 'kim' },
+        { title: 'No id 2', teacherKey: 'kim' }
+    ];
+
+    assert.deepEqual(
+        getTeacherUnionPortfolioItems(items).map((item) => item.title),
+        ['Same', 'Same', 'Meta', 'No id 1', 'No id 2']
+    );
+    assert.deepEqual(getTeacherUnionPortfolioItems([]), []);
+    assert.ok(getTeacherUnionFallbackItems().length > 0);
+});

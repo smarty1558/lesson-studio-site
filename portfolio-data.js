@@ -96,3 +96,34 @@ export const portfolioItemMatchesTarget = (item, type, key) => {
 
 export const getPortfolioItemsForTarget = (type, key, items = portfolioItems) => getVisibleSortedPortfolioItems(items)
     .filter((item) => portfolioItemMatchesTarget(item, type, key));
+
+const toKeys = (value) => (Array.isArray(value) ? value : String(value || '').split(','))
+    .map((key) => String(key).trim())
+    .filter(Boolean);
+
+export const hasTeacherLink = (item = {}) => (
+    toKeys(item.teacherKeys).length > 0
+    || toKeys(item.metadata?.teacherKeys).length > 0
+    || toKeys(item.teacherKey).length > 0
+);
+
+// Union of every public work linked to at least one teacher, de-duplicated by stable id.
+// Input order (sortOrder/date) is preserved; items without an id are never merged by title.
+export const getTeacherUnionPortfolioItems = (items = []) => {
+    const seenIds = new Set();
+
+    return items.filter((item) => {
+        if (!item || item.visible === false || !hasTeacherLink(item)) return false;
+
+        const id = item.id ? String(item.id) : '';
+        if (!id) return true;
+        if (seenIds.has(id)) return false;
+
+        seenIds.add(id);
+        return true;
+    });
+};
+
+export const getTeacherUnionFallbackItems = (items = portfolioItems) => getTeacherUnionPortfolioItems(
+    getVisibleSortedPortfolioItems(items)
+);

@@ -5,10 +5,13 @@ import {
 } from './portfolio-interest.js';
 import {
     getTeacherProfile,
-    getTeacherProfileWithOverride,
-    getTeacherProfileViewState
+    getTeacherProfileWithOverride
 } from './teacher-profiles.js';
-import { getPortfolioItemsForTarget } from './portfolio-data.js';
+import {
+    getPortfolioItemsForTarget,
+    getTeacherUnionFallbackItems,
+    getTeacherUnionPortfolioItems
+} from './portfolio-data.js';
 
 const uploadTesterMarkup = '';
 const DEFAULT_PORTFOLIO_IMAGE = new URL('./portfolio-default-cover.png', import.meta.url).href;
@@ -1266,6 +1269,8 @@ const initSite = () => {
     const gallery = document.getElementById('portfolio-gallery');
     const modalHeader = modal?.querySelector('.modal-header');
     const modalTitle = document.getElementById('modal-title');
+    const modalDesc = document.getElementById('modal-desc');
+    const defaultModalDesc = modalDesc?.textContent || '';
     const closeBtn = document.querySelector('.modal-close');
     const overlay = document.querySelector('.modal-overlay');
     const teacherModal = document.getElementById('teacher-modal');
@@ -1281,7 +1286,6 @@ const initSite = () => {
     let isClosingFromHistory = false;
     let isClosingEntireModalFromHistory = false;
     let activeCourseDetailReturn = null;
-    let activeTeacherWorkDetailReturn = null;
 
     const hasActiveModalLayer = () => (
         modal?.classList.contains('active')
@@ -1327,15 +1331,6 @@ const initSite = () => {
             return false;
         }
     };
-    const restoreTeacherModalLayout = () => {
-        const stage = modalContent?.querySelector('.teacher-modal-stage');
-        if (stage && gallery && modalContent) {
-            modalContent.appendChild(gallery);
-            stage.remove();
-        }
-
-        modalContent?.classList.remove('teacher-mode', 'teacher-works-active');
-    };
     const resetCoursePortfolioScroll = () => {
         if (!gallery) return;
         gallery.scrollTop = 0;
@@ -1357,6 +1352,9 @@ const initSite = () => {
         han: 'Kev1 포트폴리오',
         cho: '은오 / Eunoh 포트폴리오'
     };
+    const TEACHER_WORKS_KEY = 'omus-teacher-works';
+    const TEACHER_WORKS_TITLE = 'OMUS 강사진 작업물';
+    const TEACHER_WORKS_EMPTY = '공개된 강사진 작업물이 아직 없습니다.';
 
     const fetchWithTimeout = async (url, options = {}, timeoutMs = 4500) => {
         const controller = new AbortController();
@@ -1453,19 +1451,9 @@ const initSite = () => {
                     <strong>Class Direction</strong>
                     <p>${profile.note}</p>
                 </div>
-                <button type="button" class="teacher-panel-action" data-dedicated-teacher-panel="works" data-teacher-panel="works" aria-label="대표작 보기">
-                    대표작 보기
-                </button>
             </div>
         </section>
     `;
-
-    const setTeacherModalMode = (mode) => {
-        const state = getTeacherProfileViewState(mode);
-        modalContent?.classList.toggle('teacher-works-active', state.isWorks);
-        modalContent?.querySelector('[data-teacher-panel="detail"]')?.setAttribute('aria-pressed', state.isWorks ? 'false' : 'true');
-        modalContent?.querySelector('[data-teacher-panel="works"]')?.setAttribute('aria-pressed', state.isWorks ? 'true' : 'false');
-    };
 
     const enrichPortfolioItem = (item, index) => {
         const fallbackCredits = index % 3 === 0 ? '음원 데모' : index % 3 === 1 ? '영상 싱크' : '제작 패키지';
@@ -1726,9 +1714,14 @@ const initSite = () => {
         }
 
         const items = await loadAllPortfolioItems();
-        const filtered = items
-            ? items.filter((item) => itemMatchesTarget(item, type, key))
-            : getPortfolioItemsForTarget(type, key);
+        let filtered;
+        if (type === 'union') {
+            filtered = items ? getTeacherUnionPortfolioItems(items) : getTeacherUnionFallbackItems();
+        } else {
+            filtered = items
+                ? items.filter((item) => itemMatchesTarget(item, type, key))
+                : getPortfolioItemsForTarget(type, key);
+        }
 
         siteDataCache.portfolioByTarget.set(cacheKey, filtered);
         return filtered;
@@ -1782,21 +1775,15 @@ const initSite = () => {
 
         const preparedPromise = (async () => {
             const data = await loadPortfolioItems(type, key);
-            const profile = type === 'teacher' ? await loadTeacherProfile(key) : null;
             const portfolioMarkup = data.length
                 ? data.map((item, index) => renderPortfolioCardMarkup(item, index, 'data-portfolio-index')).join('')
-                : '<p class="portfolio-empty">No visible portfolio items yet.</p>';
-            const teacherWorksMarkup = data.length
-                ? data.map((item, index) => renderPortfolioCardMarkup(item, index, 'data-teacher-work-index')).join('')
-                : '<p class="portfolio-empty">CMS에 연결된 대표작이 아직 없습니다.</p>';
+                : `<p class="portfolio-empty">${type === 'union' ? TEACHER_WORKS_EMPTY : 'No visible portfolio items yet.'}</p>`;
 
-            decodePortfolioImages(data, profile);
+            decodePortfolioImages(data);
 
             return {
                 data,
-                profile,
-                portfolioMarkup,
-                teacherWorksMarkup
+                portfolioMarkup
             };
         })();
 
@@ -1804,11 +1791,33 @@ const initSite = () => {
         return preparedPromise;
     };
 
+    const TEACHER_WORKS_PREVIEW_LIMIT = 8;
+
+    const renderTeacherWorksPreview = async () => {
+        const grid = document.querySelector('[data-teacher-works-grid]');
+        if (!grid) return;
+
+        const items = await loadPortfolioItems('union', TEACHER_WORKS_KEY);
+        const section = grid.closest('.teacher-works-section');
+
+        if (!items.length) {
+            grid.innerHTML = `<p class="portfolio-empty">${TEACHER_WORKS_EMPTY}</p>`;
+            section?.querySelector('[data-teacher-works-open]')?.setAttribute('hidden', '');
+            return;
+        }
+
+        grid.innerHTML = items
+            .slice(0, TEACHER_WORKS_PREVIEW_LIMIT)
+            .map((item, index) => renderPortfolioCardMarkup(item, index, 'data-union-index'))
+            .join('');
+        section?.querySelector('[data-teacher-works-open]')?.removeAttribute('hidden');
+    };
+
     const schedulePortfolioPrewarm = () => {
         const schedule = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 240));
 
         schedule(() => {
-            teacherDataKeys.forEach((key) => preparePortfolioView('teacher', key));
+            preparePortfolioView('union', TEACHER_WORKS_KEY);
             courseDataKeys.forEach((key) => preparePortfolioView('course', key));
         }, { timeout: 1800 });
     };
@@ -1818,10 +1827,11 @@ const initSite = () => {
 
         siteDataCache.preloadPromise = Promise.all([
             ...teacherDataKeys.map((key) => loadTeacherProfile(key)),
-            ...teacherDataKeys.map((key) => loadPortfolioItems('teacher', key)),
+            loadPortfolioItems('union', TEACHER_WORKS_KEY),
             ...courseDataKeys.map((key) => loadPortfolioItems('course', key))
         ]).then(() => Promise.all([
-            syncTeacherCardsFromProfiles()
+            syncTeacherCardsFromProfiles(),
+            renderTeacherWorksPreview()
         ])).catch(() => {});
 
         return siteDataCache.preloadPromise;
@@ -2190,47 +2200,6 @@ const initSite = () => {
         button.textContent = '강사 상세 보기';
     });
 
-    let teacherModeSwitchTimer = 0;
-    let teacherModeReadyTimer = 0;
-    const setDedicatedTeacherMode = (mode, options = {}) => {
-        const isWorks = mode === 'works';
-        const applyMode = () => {
-            teacherModalContent?.classList.toggle('teacher-works-active', isWorks);
-            teacherModalContent?.classList.remove('detail-mode', 'teacher-work-detail-mode');
-            teacherModal?.classList.remove('detail-active');
-            teacherModalContent?.querySelector('.teacher-dedicated-works-panel')?.classList.remove('teacher-work-detail-active');
-            const worksDetail = teacherModalContent?.querySelector('.teacher-works-detail');
-            if (worksDetail) {
-                worksDetail.classList.remove('is-open');
-                worksDetail.innerHTML = '';
-            }
-            teacherModalContent?.querySelectorAll('.teacher-works-gallery .portfolio-item.active, .teacher-works-gallery .portfolio-item.is-sending').forEach((activeItem) => {
-                activeItem.classList.remove('active', 'is-sending');
-            });
-            teacherModalContent?.querySelector('[data-dedicated-teacher-panel="detail"]')?.setAttribute('aria-pressed', isWorks ? 'false' : 'true');
-            teacherModalContent?.querySelector('[data-dedicated-teacher-panel="works"]')?.setAttribute('aria-pressed', isWorks ? 'true' : 'false');
-        };
-
-        window.clearTimeout(teacherModeSwitchTimer);
-        window.clearTimeout(teacherModeReadyTimer);
-
-        if (options.immediate) {
-            teacherModalContent?.classList.remove('teacher-view-switching', 'teacher-view-ready');
-            applyMode();
-            return;
-        }
-
-        teacherModalContent?.classList.add('teacher-view-switching');
-        teacherModeSwitchTimer = window.setTimeout(() => {
-            applyMode();
-            teacherModalContent?.classList.remove('teacher-view-switching');
-            teacherModalContent?.classList.add('teacher-view-ready');
-            teacherModeReadyTimer = window.setTimeout(() => {
-                teacherModalContent?.classList.remove('teacher-view-ready');
-            }, 260);
-        }, 220);
-    };
-
     const closeTeacherModal = (options = {}) => {
         if (!teacherModal?.classList.contains('active')) return;
         if (!options.fromHistory && requestModalHistoryClose()) return;
@@ -2242,9 +2211,8 @@ const initSite = () => {
         window.setTimeout(() => {
             teacherModal.classList.remove('active', 'is-dismissing');
             teacherModal.setAttribute('aria-hidden', 'true');
-            teacherModalContent?.classList.remove('teacher-works-active', 'is-shutting-down', 'teacher-view-switching', 'teacher-view-ready', 'detail-mode', 'teacher-work-detail-mode');
+            teacherModalContent?.classList.remove('is-shutting-down');
             if (teacherModalBody) teacherModalBody.innerHTML = '';
-            activeTeacherWorkDetailReturn = null;
             document.body.style.overflow = modal?.classList.contains('active') ? 'hidden' : '';
         }, 260);
     };
@@ -2254,19 +2222,18 @@ const initSite = () => {
 
         const openToken = ++teacherOpenToken;
         teacherModalBody.innerHTML = '<p class="portfolio-empty">강사 정보를 불러오는 중입니다...</p>';
-        teacherModalContent.classList.remove('teacher-works-active', 'is-shutting-down', 'teacher-view-switching', 'teacher-view-ready', 'detail-mode', 'teacher-work-detail-mode');
+        teacherModalContent.classList.remove('is-shutting-down');
 
-        let prepared;
+        let profile;
 
         try {
-            prepared = await preparePortfolioView('teacher', key);
+            profile = await loadTeacherProfile(key);
         } catch (error) {
             teacherModalBody.innerHTML = `<p class="portfolio-empty">${error.message || '강사 정보를 불러오지 못했습니다.'}</p>`;
             return;
         }
 
         if (openToken !== teacherOpenToken) return;
-        const { profile, data, teacherWorksMarkup } = prepared;
         teacherModal.classList.add('active');
         teacherModal.classList.remove('is-dismissing');
         teacherModal.setAttribute('aria-hidden', 'false');
@@ -2279,137 +2246,34 @@ const initSite = () => {
                     <section class="teacher-panel teacher-detail-panel">
                         ${renderTeacherProfileMarkup(profile)}
                     </section>
-                    <section class="teacher-panel teacher-works-panel teacher-dedicated-works-panel">
-                        <div class="modal-header teacher-works-heading">
-                            <span class="section-kicker">Representative Works</span>
-                            <h3 id="teacher-modal-title">${profile.name} 대표작</h3>
-                            <button type="button" class="teacher-panel-action teacher-panel-action-secondary" data-dedicated-teacher-panel="detail" data-teacher-panel="detail" aria-label="강사 상세 정보 보기">
-                                강사 상세 정보 보기
-                            </button>
-                        </div>
-                        <div class="teacher-dedicated-portfolio">
-                            <div class="portfolio-gallery teacher-works-gallery">${teacherWorksMarkup}</div>
-                            <div class="portfolio-expanded-panel teacher-works-detail" aria-live="polite"></div>
-                        </div>
-                    </section>
                 </div>
             </div>
         `;
-
-        setDedicatedTeacherMode('detail', { immediate: true });
-
-        teacherModalBody.querySelectorAll('[data-dedicated-teacher-panel]').forEach((button) => {
-            button.addEventListener('click', () => {
-                const nextMode = button.dataset.dedicatedTeacherPanel;
-                if (nextMode === 'works' && !teacherModalContent.classList.contains('teacher-works-active')) {
-                    pushModalHistoryState('teacher', 'teacher-works');
-                } else if (nextMode === 'detail' && requestModalHistoryStepBack('teacher-works')) {
-                    return;
-                }
-                setDedicatedTeacherMode(nextMode);
-            });
-        });
-
-        const worksGallery = teacherModalBody.querySelector('.teacher-works-gallery');
-        const worksDetail = teacherModalBody.querySelector('.teacher-works-detail');
-        const worksPanel = teacherModalBody.querySelector('.teacher-dedicated-works-panel');
-        const closeTeacherWorkDetail = () => {
-            worksPanel?.classList.remove('teacher-work-detail-active');
-            teacherModal?.classList.remove('detail-active');
-            teacherModalContent?.classList.remove('detail-mode', 'teacher-work-detail-mode');
-            worksDetail?.classList.remove('is-open');
-            if (worksDetail) worksDetail.innerHTML = '';
-            worksGallery?.classList.add('is-returning');
-            worksGallery?.querySelectorAll('.portfolio-item.active, .portfolio-item.is-sending').forEach((activeItem) => {
-                activeItem.classList.remove('active', 'is-sending');
-            });
-            window.setTimeout(() => {
-                worksGallery?.classList.remove('is-returning');
-            }, 280);
-        };
-        activeTeacherWorkDetailReturn = closeTeacherWorkDetail;
-        const openTeacherWorkDetail = (item, itemIndex) => {
-            worksGallery?.querySelectorAll('.portfolio-item.active, .portfolio-item.is-sending').forEach((activeItem) => {
-                activeItem.classList.remove('active', 'is-sending');
-            });
-            item.classList.add('active', 'is-sending');
-            if (!teacherModalContent?.classList.contains('teacher-work-detail-mode')) {
-                pushModalHistoryState('teacher', 'teacher-work-detail');
-            }
-            teacherModal?.classList.add('detail-active');
-            teacherModalContent?.classList.add('detail-mode', 'teacher-work-detail-mode');
-            teacherModalContent?.classList.remove('teacher-view-switching', 'teacher-view-ready');
-            worksPanel?.classList.add('teacher-work-detail-active');
-            window.setTimeout(() => {
-                if (worksDetail) {
-                    worksDetail.innerHTML = renderTeacherWorkDetail(data[itemIndex], itemIndex);
-                    worksDetail.classList.add('is-open', 'is-arriving', 'is-glitch-in');
-                    window.setTimeout(() => {
-                        worksDetail.classList.remove('is-arriving', 'is-glitch-in');
-                    }, 720);
-                }
-            }, 180);
-        };
-
-        worksGallery?.querySelectorAll('[data-teacher-work-index]').forEach((item) => {
-            item.addEventListener('click', (event) => {
-                if (event.target.closest('audio, .portfolio-external-link')) return;
-
-                const itemIndex = Number(item.dataset.teacherWorkIndex);
-                openTeacherWorkDetail(item, itemIndex);
-            });
-        });
-
-        teacherModalBody.onclick = (event) => {
-            const back = event.target.closest('.portfolio-back');
-            if (back) {
-                event.preventDefault();
-                if (requestModalHistoryStepBack('teacher-work-detail')) return;
-                closeTeacherWorkDetail();
-                return;
-            }
-
-            const cta = event.target.closest('.portfolio-detail-cta');
-            if (!cta) return;
-
-            event.preventDefault();
-            const activeIndex = Number(worksGallery?.querySelector('.portfolio-item.active')?.dataset.teacherWorkIndex || 0);
-            moveToContactWithPortfolioInterest({
-                title: data[activeIndex]?.title || profile.name
-            });
-            closeTeacherModal();
-        };
     };
 
-    const openModal = async (key, type = 'course') => {
+    const openModal = async (key, type = 'course', options = {}) => {
         const openToken = ++modalOpenToken;
-        const isTeacher = type === 'teacher';
-        restoreTeacherModalLayout();
-        if (isTeacher) {
-            modal.classList.remove('active', 'detail-active', 'is-dismissing');
-            modal.setAttribute('aria-hidden', 'true');
-            modalContent?.classList.add('teacher-preparing');
-            gallery?.classList.add('teacher-gallery-preparing');
-        }
-        const title = isTeacher
-            ? (teacherTitleMap[key] || '강사진 포트폴리오')
-            : (titleMap[key] || '수강생');
+        const isTeacherWorks = type === 'union';
+        const title = isTeacherWorks ? TEACHER_WORKS_TITLE : (titleMap[key] || '수강생');
 
         modalTitle.innerHTML = `${title}<br><span class="text-purple">포트폴리오</span>`;
+        if (isTeacherWorks) {
+            modalTitle.innerHTML = 'OMUS 강사진<br><span class="text-purple">작업물</span>';
+        }
+        if (modalDesc) {
+            modalDesc.textContent = isTeacherWorks
+                ? 'OMUS 강사진이 참여한 다양한 음악과 사운드 작업을 만나보세요.'
+                : defaultModalDesc;
+        }
         document.getElementById('portfolio-expanded-panel')?.remove();
 
         gallery.innerHTML = '';
-        if (isTeacher) {
-            gallery.innerHTML = '';
-        }
 
         let prepared;
 
         try {
-            prepared = await preparePortfolioView(isTeacher ? 'teacher' : 'course', key);
+            prepared = await preparePortfolioView(isTeacherWorks ? 'union' : 'course', key);
         } catch (error) {
-            modalContent?.classList.remove('teacher-preparing');
-            gallery?.classList.remove('teacher-gallery-preparing');
             gallery.innerHTML = `<p class="portfolio-empty">${error.message || '포트폴리오 데이터를 불러오지 못했습니다.'}</p>`;
             return;
         }
@@ -2418,63 +2282,15 @@ const initSite = () => {
         const { data, portfolioMarkup } = prepared;
 
         gallery.innerHTML = portfolioMarkup;
-        if (!isTeacher) {
-            resetCoursePortfolioScroll();
-        }
+        resetCoursePortfolioScroll();
 
-        if (!isTeacher) {
-            modal.classList.add('active');
-            modal.classList.remove('is-dismissing');
-            modalContent?.classList.remove('is-shutting-down');
-            isModalClosing = false;
-            modal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-            pushModalHistoryState('course');
-        }
-
-        if (isTeacher && modalContent && gallery) {
-            const profile = prepared.profile || await loadTeacherProfile(key);
-            if (openToken !== modalOpenToken) return;
-            const state = getTeacherProfileViewState('detail');
-            const stage = document.createElement('div');
-            stage.className = 'teacher-modal-stage';
-            stage.innerHTML = `
-                <div class="teacher-panel-track">
-                    <section class="teacher-panel teacher-detail-panel">
-                        ${renderTeacherProfileMarkup(profile)}
-                    </section>
-                    <section class="teacher-panel teacher-works-panel">
-                        <div class="teacher-works-heading">
-                            <span class="section-kicker">Representative Works</span>
-                            <h3>${profile.name} 대표작품</h3>
-                            <button type="button" class="teacher-panel-action teacher-panel-action-secondary" data-teacher-panel="detail" aria-label="${state.detailLabel}">
-                                ${state.detailLabel}
-                            </button>
-                        </div>
-                        <div class="teacher-portfolio-panel"></div>
-                    </section>
-                </div>
-            `;
-            modalContent.insertBefore(stage, modalHeader || gallery);
-            stage.querySelector('.teacher-portfolio-panel')?.appendChild(gallery);
-            modalContent.classList.add('teacher-mode');
-            setTeacherModalMode('detail');
-            modalContent.classList.remove('teacher-preparing');
-            gallery.classList.remove('teacher-gallery-preparing');
-            modal.classList.add('active');
-            modal.classList.remove('is-dismissing');
-            modalContent.classList.remove('is-shutting-down');
-            isModalClosing = false;
-            modal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-            pushModalHistoryState('teacher');
-
-            stage.addEventListener('click', (event) => {
-                const panelButton = event.target.closest('[data-teacher-panel]');
-                if (!panelButton) return;
-                setTeacherModalMode(panelButton.dataset.teacherPanel);
-            });
-        }
+        modal.classList.add('active');
+        modal.classList.remove('is-dismissing');
+        modalContent?.classList.remove('is-shutting-down');
+        isModalClosing = false;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        pushModalHistoryState('course');
 
         gallery.insertAdjacentHTML('beforebegin', '<div id="portfolio-detail-kicker" class="portfolio-detail-kicker" aria-hidden="true"></div>');
         gallery.insertAdjacentHTML('afterend', '<div id="portfolio-expanded-panel" class="portfolio-expanded-panel" aria-live="polite"></div>');
@@ -2602,7 +2418,7 @@ const initSite = () => {
             const tags = renderPortfolioTags(enriched.tags, enriched.category);
             const isAlreadyOpen = expandedPanel.classList.contains('is-open');
             expandedPanel.dataset.portfolioInterestTitle = enriched.title;
-            const contextLabel = `${title} 포트폴리오`;
+            const contextLabel = isTeacherWorks ? title : `${title} 포트폴리오`;
 
             if (detailKicker) {
                 detailKicker.textContent = contextLabel;
@@ -2741,6 +2557,10 @@ const initSite = () => {
                 activeCourseDetailReturn();
             }
         });
+
+        if (Number.isInteger(options.initialIndex)) {
+            gallery.querySelector(`[data-portfolio-index="${options.initialIndex}"]`)?.click();
+        }
     };
 
     const closeModal = (options = {}) => {
@@ -2756,8 +2576,7 @@ const initSite = () => {
             modal.classList.remove('active', 'detail-active', 'is-dismissing');
             modal.setAttribute('aria-hidden', 'true');
             modalContent?.classList.remove('detail-mode', 'is-restoring', 'is-collapsing', 'is-reopening', 'is-shutting-down');
-            restoreTeacherModalLayout();
-            gallery?.classList.remove('is-returning');
+                gallery?.classList.remove('is-returning');
             document.getElementById('portfolio-detail-kicker')?.remove();
             document.body.style.overflow = '';
             document.getElementById('portfolio-expanded-panel')?.remove();
@@ -2787,12 +2606,6 @@ const initSite = () => {
         switch (poppedState?.view) {
             case 'course-detail':
                 activeCourseDetailReturn?.({ fromHistory: true });
-                break;
-            case 'teacher-work-detail':
-                activeTeacherWorkDetailReturn?.({ fromHistory: true });
-                break;
-            case 'teacher-works':
-                setDedicatedTeacherMode('detail');
                 break;
             default:
                 closeModal({ fromHistory: true });
@@ -2824,6 +2637,21 @@ const initSite = () => {
             return;
         }
 
+        const teacherWorksOpen = event.target.closest('[data-teacher-works-open]');
+
+        if (teacherWorksOpen) {
+            event.preventDefault();
+            openModal(TEACHER_WORKS_KEY, 'union');
+            return;
+        }
+
+        const teacherWorksItem = event.target.closest('.teacher-works-preview [data-union-index]');
+
+        if (teacherWorksItem) {
+            openModal(TEACHER_WORKS_KEY, 'union', { initialIndex: Number(teacherWorksItem.dataset.unionIndex) });
+            return;
+        }
+
         const courseCard = event.target.closest('.course-card');
 
         if (courseCard?.dataset.course) {
@@ -2842,8 +2670,12 @@ const initSite = () => {
     const prewarmPortfolioTarget = (event) => {
         const teacherTarget = event.target.closest('.artist-card[data-teacher], .btn-portfolio[data-teacher]');
         if (teacherTarget?.dataset.teacher) {
-            const key = teacherTarget.dataset.teacher;
-            preparePortfolioView('teacher', key);
+            loadTeacherProfile(teacherTarget.dataset.teacher);
+            return;
+        }
+
+        if (event.target.closest('.teacher-works-section')) {
+            preparePortfolioView('union', TEACHER_WORKS_KEY);
             return;
         }
 
