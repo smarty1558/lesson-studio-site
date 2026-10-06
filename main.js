@@ -1793,24 +1793,34 @@ const initSite = () => {
 
     const TEACHER_WORKS_PREVIEW_LIMIT = 8;
 
+    let teacherWorksExpanded = false;
+
     const renderTeacherWorksPreview = async () => {
         const grid = document.querySelector('[data-teacher-works-grid]');
         if (!grid) return;
 
         const items = await loadPortfolioItems('union', TEACHER_WORKS_KEY);
         const section = grid.closest('.teacher-works-section');
+        const toggle = section?.querySelector('[data-teacher-works-open]');
 
         if (!items.length) {
             grid.innerHTML = `<p class="portfolio-empty">${TEACHER_WORKS_EMPTY}</p>`;
-            section?.querySelector('[data-teacher-works-open]')?.setAttribute('hidden', '');
+            toggle?.setAttribute('hidden', '');
             return;
         }
 
-        grid.innerHTML = items
-            .slice(0, TEACHER_WORKS_PREVIEW_LIMIT)
+        const visibleItems = teacherWorksExpanded ? items : items.slice(0, TEACHER_WORKS_PREVIEW_LIMIT);
+        grid.innerHTML = visibleItems
             .map((item, index) => renderPortfolioCardMarkup(item, index, 'data-union-index'))
             .join('');
-        section?.querySelector('[data-teacher-works-open]')?.removeAttribute('hidden');
+        grid.classList.toggle('is-expanded', teacherWorksExpanded);
+
+        if (toggle) {
+            toggle.textContent = teacherWorksExpanded ? '접기' : `강사진 작업물 더 보기 (${items.length})`;
+            toggle.setAttribute('aria-expanded', String(teacherWorksExpanded));
+            if (items.length <= TEACHER_WORKS_PREVIEW_LIMIT) toggle.setAttribute('hidden', '');
+            else toggle.removeAttribute('hidden');
+        }
     };
 
     const schedulePortfolioPrewarm = () => {
@@ -2641,7 +2651,12 @@ const initSite = () => {
 
         if (teacherWorksOpen) {
             event.preventDefault();
-            openModal(TEACHER_WORKS_KEY, 'union');
+            teacherWorksExpanded = !teacherWorksExpanded;
+            renderTeacherWorksPreview().then(() => {
+                if (!teacherWorksExpanded) {
+                    document.getElementById('teacher-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
             return;
         }
 

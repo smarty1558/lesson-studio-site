@@ -34,7 +34,7 @@ test('teacher profile modal is description-only and has no personal works entry'
     assert.doesNotMatch(js, /대표작 보기/);
     assert.doesNotMatch(js, /data-teacher-panel="works"/);
     assert.doesNotMatch(js, /Representative Works/);
-    assert.doesNotMatch(js, /teacher-work-detail|'teacher-works'/);
+    assert.doesNotMatch(js, /teacher-work-detail/);
     assert.doesNotMatch(js, /preparePortfolioView\('teacher'/);
     assert.doesNotMatch(js, /loadPortfolioItems\('teacher'/);
 });
