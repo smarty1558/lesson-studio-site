@@ -125,6 +125,11 @@
             ]
         }
     </script>
+    <script>
+        if (new URLSearchParams(location.search).get('view') === 'teacher-works') {
+            document.documentElement.classList.add('teacher-works-page');
+        }
+    </script>
 </head>
 <body>
     <div class="intro-loader" aria-hidden="true">
@@ -336,7 +341,8 @@
                     </div>
                     <div class="portfolio-gallery teacher-works-preview" data-teacher-works-grid></div>
                     <div class="teacher-works-actions">
-                        <button type="button" class="btn btn-yellow" data-teacher-works-open aria-expanded="false">강사진 작업물 더 보기</button>
+                        <a class="btn btn-yellow" href="/?view=teacher-works" target="_blank" rel="noopener" data-teacher-works-open>강사진 작업물 더 보기</a>
+                        <a class="btn btn-outline teacher-works-back" href="/#teachers">← 메인으로 돌아가기</a>
                         <p class="assignment-note">담당 선생님은 상담을 통해 배우고 싶은 음악, 현재 수준, 수업 일정 등을 확인한 뒤 배정됩니다.</p>
                     </div>
                 </div>

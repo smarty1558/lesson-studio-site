@@ -5530,3 +5530,25 @@ textarea:focus {
         gap: 12px;
     }
 }
+
+/* Teachers' works as its own page (opened in a new tab via ?view=teacher-works) */
+.teacher-works-back {
+    display: none;
+}
+
+.teacher-works-page .hero,
+.teacher-works-page main > section:not(#teacher-works):not(#contact) {
+    display: none;
+}
+
+.teacher-works-page .teacher-works-section {
+    padding-top: clamp(120px, 14vw, 170px);
+}
+
+.teacher-works-page .teacher-works-back {
+    display: inline-flex;
+}
+
+.teacher-works-actions [hidden] {
+    display: none;
+}

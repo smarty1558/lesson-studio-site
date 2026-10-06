@@ -1793,7 +1793,14 @@ const initSite = () => {
 
     const TEACHER_WORKS_PREVIEW_LIMIT = 8;
 
-    let teacherWorksExpanded = false;
+    const isTeacherWorksPage = document.documentElement.classList.contains('teacher-works-page');
+
+    if (isTeacherWorksPage) {
+        document.title = `${TEACHER_WORKS_TITLE} | OMUS 오타쿠 뮤직 스튜디오`;
+        document.querySelectorAll('.navbar a[href^="#"]').forEach((link) => {
+            link.setAttribute('href', `/${link.getAttribute('href')}`);
+        });
+    }
 
     const renderTeacherWorksPreview = async () => {
         const grid = document.querySelector('[data-teacher-works-grid]');
@@ -1801,25 +1808,21 @@ const initSite = () => {
 
         const items = await loadPortfolioItems('union', TEACHER_WORKS_KEY);
         const section = grid.closest('.teacher-works-section');
-        const toggle = section?.querySelector('[data-teacher-works-open]');
+        const more = section?.querySelector('[data-teacher-works-open]');
 
         if (!items.length) {
             grid.innerHTML = `<p class="portfolio-empty">${TEACHER_WORKS_EMPTY}</p>`;
-            toggle?.setAttribute('hidden', '');
+            more?.setAttribute('hidden', '');
             return;
         }
 
-        const visibleItems = teacherWorksExpanded ? items : items.slice(0, TEACHER_WORKS_PREVIEW_LIMIT);
+        const visibleItems = isTeacherWorksPage ? items : items.slice(0, TEACHER_WORKS_PREVIEW_LIMIT);
         grid.innerHTML = visibleItems
             .map((item, index) => renderPortfolioCardMarkup(item, index, 'data-union-index'))
             .join('');
-        grid.classList.toggle('is-expanded', teacherWorksExpanded);
 
-        if (toggle) {
-            toggle.textContent = teacherWorksExpanded ? '접기' : `강사진 작업물 더 보기 (${items.length})`;
-            toggle.setAttribute('aria-expanded', String(teacherWorksExpanded));
-            if (items.length <= TEACHER_WORKS_PREVIEW_LIMIT) toggle.setAttribute('hidden', '');
-            else toggle.removeAttribute('hidden');
+        if (more && (isTeacherWorksPage || items.length <= TEACHER_WORKS_PREVIEW_LIMIT)) {
+            more.setAttribute('hidden', '');
         }
     };
 
@@ -2644,19 +2647,6 @@ const initSite = () => {
                 openModal(portfolioButton.dataset.course);
             }
 
-            return;
-        }
-
-        const teacherWorksOpen = event.target.closest('[data-teacher-works-open]');
-
-        if (teacherWorksOpen) {
-            event.preventDefault();
-            teacherWorksExpanded = !teacherWorksExpanded;
-            renderTeacherWorksPreview().then(() => {
-                if (!teacherWorksExpanded) {
-                    document.getElementById('teacher-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
             return;
         }
 
