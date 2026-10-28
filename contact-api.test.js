@@ -278,3 +278,45 @@ test('contact API tolerates env-style CONTACT_TO_EMAIL values from dashboard mis
         globalThis.fetch = originalFetch;
     }
 });
+
+test('contact API routes Pyeongtaek visitors to the Pyeongtaek recipient and others to the default', async () => {
+    const originalFetch = globalThis.fetch;
+    const run = async (city) => {
+        const fetchCalls = [];
+        globalThis.fetch = async (...args) => {
+            fetchCalls.push(args);
+            return new Response(JSON.stringify({ id: 'email-geo' }), {
+                status: 200,
+                headers: { 'content-type': 'application/json' }
+            });
+        };
+        const request = makeRequest({
+            name: 'Visitor',
+            email: 'visitor@example.com',
+            course: 'jpop',
+            lessonMode: 'online',
+            message: 'Where am I?'
+        });
+        Object.defineProperty(request, 'cf', { value: { city, region: 'Gyeonggi-do' } });
+        const response = await onRequestPost({
+            request,
+            env: {
+                RESEND_API_KEY: 'test-key',
+                CONTACT_TO_EMAIL: 'smarty1558@gmail.com',
+                CONTACT_PYEONGTAEK_TO_EMAIL: 'omusinform@gmail.com'
+            }
+        });
+        assert.equal(response.status, 200);
+        return JSON.parse(fetchCalls[0][1].body);
+    };
+
+    try {
+        const pyeongtaek = await run('Pyeongtaek');
+        assert.deepEqual(pyeongtaek.to, ['omusinform@gmail.com']);
+        assert.match(pyeongtaek.text, /접속 지역: Pyeongtaek, Gyeonggi-do/);
+        assert.deepEqual((await run('Seoul')).to, ['smarty1558@gmail.com']);
+        assert.deepEqual((await run(undefined)).to, ['smarty1558@gmail.com']);
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+});

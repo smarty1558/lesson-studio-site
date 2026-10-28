@@ -26,7 +26,13 @@ const normalizeRecipientEmails = (value) => String(value || '')
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
 
-const getRecipientEmails = (payload, env) => {
+const isPyeongtaekRequest = (request) => /pyeong\s*-?\s*taek/i.test(String(request?.cf?.city || ''));
+
+const getRecipientEmails = (payload, env, request) => {
+    if (isPyeongtaekRequest(request) && env.CONTACT_PYEONGTAEK_TO_EMAIL) {
+        return normalizeRecipientEmails(env.CONTACT_PYEONGTAEK_TO_EMAIL);
+    }
+
     const specialApplicantEmails = normalizeRecipientEmails(env.CONTACT_SPECIAL_FROM_EMAILS)
         .map(normalizeEmail);
     const isSpecialApplicant = specialApplicantEmails.includes(normalizeEmail(payload.email));
@@ -43,7 +49,7 @@ const getContactDisplayValues = (payload) => ({
     phone: payload.phone || '-'
 });
 
-const buildContactEmailText = (payload) => {
+const buildContactEmailText = (payload, request) => {
     const display = getContactDisplayValues(payload);
 
     return [
@@ -54,6 +60,7 @@ const buildContactEmailText = (payload) => {
         `이메일: ${payload.email}`,
         `희망 수업: ${display.course}`,
         `수업 방식: ${display.lessonMode}`,
+        request?.cf?.city ? `접속 지역: ${request.cf.city}${request.cf.region ? `, ${request.cf.region}` : ''}` : '',
         payload.portfolioInterest ? `이런 스타일 배우기: ${payload.portfolioInterest}` : '',
         '',
         '문의 내용:',
@@ -76,7 +83,7 @@ export const onRequestPost = async ({ request, env }) => {
         return sendFailure('상담 메일 수신 설정이 아직 완료되지 않았습니다.', 503);
     }
 
-    const toEmails = getRecipientEmails(payload, env);
+    const toEmails = getRecipientEmails(payload, env, request);
     if (!toEmails.length) {
         return sendFailure('상담 메일 수신 주소가 설정되지 않았습니다.', 503);
     }
@@ -94,7 +101,7 @@ export const onRequestPost = async ({ request, env }) => {
             to: toEmails,
             reply_to: payload.email,
             subject: `[오타쿠 뮤직 스튜디오 상담 문의] ${payload.name} - ${display.course}`,
-            text: buildContactEmailText(payload)
+            text: buildContactEmailText(payload, request)
         })
     });
 
