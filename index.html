@@ -406,6 +406,7 @@
                                 <span>문의 내용 <b aria-hidden="true">*</b></span>
                                 <textarea name="message" rows="5" placeholder="배우고 싶은 방향, 현재 고민, 가능한 시간대 등을 자유롭게 적어주세요." required></textarea>
                             </label>
+                            <p class="location-consent-note">위치 기반 정보 확인</p>
                             <button type="submit" class="btn btn-yellow">상담 신청 보내기</button>
                         </form>
                     </div>
@@ -501,6 +502,30 @@
             return select?.selectedOptions?.[0]?.textContent?.trim() || '';
         };
 
+        // Ask for the browser location once per page load. Denial, failure or timeout resolve to
+        // null so the inquiry always goes through (the server then falls back to the IP city).
+        let geoRequest = null;
+        const requestBrowserLocation = () => {
+            geoRequest ||= new Promise((resolve) => {
+                if (!navigator.geolocation) return resolve(null);
+                const timer = setTimeout(() => resolve(null), 10000);
+                const finish = (value) => {
+                    clearTimeout(timer);
+                    resolve(value);
+                };
+                try {
+                    navigator.geolocation.getCurrentPosition(
+                        ({ coords }) => finish({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy }),
+                        () => finish(null),
+                        { enableHighAccuracy: false, timeout: 8000, maximumAge: 0 }
+                    );
+                } catch {
+                    finish(null);
+                }
+            });
+            return geoRequest;
+        };
+
         contactForm?.addEventListener('submit', async (event) => {
             event.preventDefault();
             event.stopImmediatePropagation();
@@ -515,6 +540,7 @@
             }
 
             try {
+                const geo = await requestBrowserLocation();
                 const response = await fetch('/api/contact', {
                     method: 'POST',
                     headers: {
@@ -529,7 +555,8 @@
                         lessonMode: formData.get('lessonMode'),
                         lessonModeLabel: getSelectedOptionText(contactForm, 'lessonMode'),
                         message: formData.get('message'),
-                        portfolioInterest: document.querySelector('[data-portfolio-interest]')?.textContent?.replace('삭제', '').trim() || ''
+                        portfolioInterest: document.querySelector('[data-portfolio-interest]')?.textContent?.replace('삭제', '').trim() || '',
+                        geo
                     })
                 });
                 const data = await response.json().catch(() => ({}));

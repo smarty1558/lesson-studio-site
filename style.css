@@ -1516,6 +1516,13 @@ textarea:focus {
     color: white;
 }
 
+.location-consent-note {
+    margin: 4px 0 -4px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+}
+
 .modal {
     position: fixed;
     inset: 0;

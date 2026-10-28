@@ -3,6 +3,7 @@ import {
     sendFailure,
     sendSuccess
 } from '../_shared/portfolio-utils.js';
+import { resolveContactRegion } from '../_shared/geo-utils.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -24,24 +25,11 @@ const normalizeRecipientEmails = (value) => String(value || '')
     .map((email) => email.trim())
     .filter(Boolean);
 
-const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
-
-const isPyeongtaekRequest = (request) => /pyeong\s*-?\s*taek/i.test(String(request?.cf?.city || ''));
-
-const getRecipientEmails = (payload, env, request) => {
-    if (isPyeongtaekRequest(request) && env.CONTACT_PYEONGTAEK_TO_EMAIL) {
-        return normalizeRecipientEmails(env.CONTACT_PYEONGTAEK_TO_EMAIL);
-    }
-
-    const specialApplicantEmails = normalizeRecipientEmails(env.CONTACT_SPECIAL_FROM_EMAILS)
-        .map(normalizeEmail);
-    const isSpecialApplicant = specialApplicantEmails.includes(normalizeEmail(payload.email));
-    const recipientValue = isSpecialApplicant
-        ? (env.CONTACT_SPECIAL_TO_EMAIL || env.CONTACT_TO_EMAIL)
-        : env.CONTACT_TO_EMAIL;
-
-    return normalizeRecipientEmails(recipientValue);
-};
+const getRecipientEmails = (region, env) => normalizeRecipientEmails(
+    region.pyeongtaek && env.CONTACT_PYEONGTAEK_TO_EMAIL
+        ? env.CONTACT_PYEONGTAEK_TO_EMAIL
+        : env.CONTACT_TO_EMAIL
+);
 
 const getContactDisplayValues = (payload) => ({
     course: payload.courseLabel || payload.course,
@@ -49,7 +37,7 @@ const getContactDisplayValues = (payload) => ({
     phone: payload.phone || '-'
 });
 
-const buildContactEmailText = (payload, request) => {
+const buildContactEmailText = (payload, region) => {
     const display = getContactDisplayValues(payload);
 
     return [
@@ -60,7 +48,7 @@ const buildContactEmailText = (payload, request) => {
         `이메일: ${payload.email}`,
         `희망 수업: ${display.course}`,
         `수업 방식: ${display.lessonMode}`,
-        request?.cf?.city ? `접속 지역: ${request.cf.city}${request.cf.region ? `, ${request.cf.region}` : ''}` : '',
+        `접속 지역: ${region.pyeongtaek ? '평택시' : '평택 외'} (${region.source === 'browser' ? '브라우저 위치' : 'IP'} 기준)`,
         payload.portfolioInterest ? `이런 스타일 배우기: ${payload.portfolioInterest}` : '',
         '',
         '문의 내용:',
@@ -69,7 +57,9 @@ const buildContactEmailText = (payload, request) => {
 };
 
 export const onRequestPost = async ({ request, env }) => {
-    const payload = normalizeContactPayload(await readJson(request));
+    const body = (await readJson(request)) || {};
+    const payload = normalizeContactPayload(body);
+    const geo = body?.geo;
 
     if (!payload.name || !payload.course || !payload.lessonMode || !payload.message) {
         return sendFailure('필수 상담 정보를 모두 입력해주세요.', 400);
@@ -83,7 +73,8 @@ export const onRequestPost = async ({ request, env }) => {
         return sendFailure('상담 메일 수신 설정이 아직 완료되지 않았습니다.', 503);
     }
 
-    const toEmails = getRecipientEmails(payload, env, request);
+    const region = resolveContactRegion(geo, request?.cf?.city);
+    const toEmails = getRecipientEmails(region, env);
     if (!toEmails.length) {
         return sendFailure('상담 메일 수신 주소가 설정되지 않았습니다.', 503);
     }
@@ -101,7 +92,7 @@ export const onRequestPost = async ({ request, env }) => {
             to: toEmails,
             reply_to: payload.email,
             subject: `[오타쿠 뮤직 스튜디오 상담 문의] ${payload.name} - ${display.course}`,
-            text: buildContactEmailText(payload, request)
+            text: buildContactEmailText(payload, region)
         })
     });
 
