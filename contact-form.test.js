@@ -21,7 +21,7 @@ test('consulting form collects reply email and inquiry detail', () => {
     assert.match(indexSource, /<span>수업 방식 <b aria-hidden="true">\*<\/b><\/span>[\s\S]*<select[^>]*name="lessonMode"[^>]*required/);
     assert.match(indexSource, /<option value="">방식을 선택해주세요<\/option>/);
     assert.match(indexSource, /<option value="online">온라인<\/option>/);
-    assert.match(indexSource, /<option value="offline">오프라인<\/option>/);
+    assert.doesNotMatch(indexSource, /오프라인|offline/);
     assert.doesNotMatch(indexSource, /<span>희망 선생님<\/span>/);
     assert.doesNotMatch(indexSource, /<select name="teacher"/);
     assert.doesNotMatch(indexSource, /<option value="lee">박학민 \/ B@kamin<\/option>/);
