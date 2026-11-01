@@ -385,9 +385,9 @@ test('a Pyeongtaek visitor falls back to the default recipient when no Pyeongtae
     expectTo(await submitInquiry({ geo: PYEONGTAEK_CENTER, ipCity: 'Pyeongtaek', env }), TO_DEFAULT);
 });
 
-test('contact form asks for browser location with the agreed notice and never blocks submission', () => {
+test('contact form asks for browser location through the native prompt only and never blocks submission', () => {
     const page = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
-    assert.equal(page.match(/위치 기반 정보 확인/g).length, 1);
+    assert.doesNotMatch(page, /위치 기반 정보 확인|location-consent-note/);
     assert.match(page, /navigator\.geolocation\.getCurrentPosition/);
     assert.match(page, /setTimeout\(\(\) => resolve\(null\), 10000\)/);
     assert.match(page, /\(\) => finish\(null\)/);
