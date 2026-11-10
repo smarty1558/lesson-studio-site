@@ -37,7 +37,7 @@ const getContactDisplayValues = (payload) => ({
     phone: payload.phone || '-'
 });
 
-const buildContactEmailText = (payload, region) => {
+const buildContactEmailText = (payload) => {
     const display = getContactDisplayValues(payload);
 
     return [
@@ -48,7 +48,6 @@ const buildContactEmailText = (payload, region) => {
         `이메일: ${payload.email}`,
         `희망 수업: ${display.course}`,
         `수업 방식: ${display.lessonMode}`,
-        `접속 지역: ${region.pyeongtaek ? '평택시' : '평택 외'} (${region.source === 'browser' ? '브라우저 위치' : 'IP'} 기준)`,
         payload.portfolioInterest ? `이런 스타일 배우기: ${payload.portfolioInterest}` : '',
         '',
         '문의 내용:',
@@ -92,7 +91,7 @@ export const onRequestPost = async ({ request, env }) => {
             to: toEmails,
             reply_to: payload.email,
             subject: `[오타쿠 뮤직 스튜디오 상담 문의] ${payload.name} - ${display.course}`,
-            text: buildContactEmailText(payload, region)
+            text: buildContactEmailText(payload)
         })
     });
 

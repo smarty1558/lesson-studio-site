@@ -262,14 +262,14 @@ const expectTo = (result, address) => {
 test('browser location inside Pyeongtaek goes to the Pyeongtaek recipient even when the IP city differs', async () => {
     const result = await submitInquiry({ geo: PYEONGTAEK_CENTER, ipCity: 'Seoul' });
     expectTo(result, TO_PYEONGTAEK);
-    assert.match(result.sent.text, /접속 지역: 평택시 \(브라우저 위치 기준\)/);
+    assert.doesNotMatch(result.sent.text, /접속 지역/);
 });
 
 test('browser location outside Pyeongtaek goes to the default recipient even when the IP city is Pyeongtaek', async () => {
     for (const geo of [SEOUL, SUWON]) {
         const result = await submitInquiry({ geo, ipCity: 'Pyeongtaek' });
         expectTo(result, TO_DEFAULT);
-        assert.match(result.sent.text, /접속 지역: 평택 외 \(브라우저 위치 기준\)/);
+        assert.doesNotMatch(result.sent.text, /접속 지역/);
     }
 });
 
