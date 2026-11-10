@@ -3,9 +3,11 @@ import {
     sendFailure,
     sendSuccess
 } from '../_shared/portfolio-utils.js';
-import { resolveContactRegion } from '../_shared/geo-utils.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Every inquiry goes to the OMUS inbox, regardless of dashboard variables or client input.
+export const CONTACT_TO_EMAIL = 'omusinform@gmail.com';
 
 const normalizeContactPayload = (payload = {}) => ({
     name: String(payload.name || '').trim(),
@@ -18,18 +20,6 @@ const normalizeContactPayload = (payload = {}) => ({
     message: String(payload.message || '').trim(),
     portfolioInterest: String(payload.portfolioInterest || '').trim()
 });
-
-const normalizeRecipientEmails = (value) => String(value || '')
-    .replace(/^CONTACT_TO_EMAIL\s*=\s*/i, '')
-    .split(/[;,]/)
-    .map((email) => email.trim())
-    .filter(Boolean);
-
-const getRecipientEmails = (region, env) => normalizeRecipientEmails(
-    region.pyeongtaek && env.CONTACT_PYEONGTAEK_TO_EMAIL
-        ? env.CONTACT_PYEONGTAEK_TO_EMAIL
-        : env.CONTACT_TO_EMAIL
-);
 
 const getContactDisplayValues = (payload) => ({
     course: payload.courseLabel || payload.course,
@@ -58,7 +48,6 @@ const buildContactEmailText = (payload) => {
 export const onRequestPost = async ({ request, env }) => {
     const body = (await readJson(request)) || {};
     const payload = normalizeContactPayload(body);
-    const geo = body?.geo;
 
     if (!payload.name || !payload.course || !payload.lessonMode || !payload.message) {
         return sendFailure('필수 상담 정보를 모두 입력해주세요.', 400);
@@ -72,12 +61,7 @@ export const onRequestPost = async ({ request, env }) => {
         return sendFailure('상담 메일 수신 설정이 아직 완료되지 않았습니다.', 503);
     }
 
-    const region = resolveContactRegion(geo, request?.cf?.city);
-    const toEmails = getRecipientEmails(region, env);
-    if (!toEmails.length) {
-        return sendFailure('상담 메일 수신 주소가 설정되지 않았습니다.', 503);
-    }
-
+    const toEmails = [CONTACT_TO_EMAIL];
     const display = getContactDisplayValues(payload);
     const fromEmail = env.CONTACT_FROM_EMAIL || 'Lesson Studio <onboarding@resend.dev>';
     const response = await fetch('https://api.resend.com/emails', {

@@ -2,8 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { onRequestPost } from './functions/api/contact.js';
-import { PYEONGTAEK_BOUNDARY } from './functions/_shared/pyeongtaek-boundary.js';
-import { classifyPyeongtaekLocation } from './functions/_shared/geo-utils.js';
 
 const makeRequest = (body) => new Request('http://localhost/api/contact', {
     method: 'POST',
@@ -29,27 +27,7 @@ test('contact API requires a valid reply email and message detail', async () => 
     assert.equal(json.success, false);
 });
 
-test('contact API requires configured recipient emails', async () => {
-    const response = await onRequestPost({
-        request: makeRequest({
-            name: 'Kim',
-            phone: '010-0000-0000',
-            email: 'student@example.com',
-            course: 'jpop',
-            lessonMode: 'online',
-            message: 'I want to ask about vocal direction.'
-        }),
-        env: {
-            RESEND_API_KEY: 'test-key'
-        }
-    });
-    const json = await response.json();
-
-    assert.equal(response.status, 503);
-    assert.equal(json.success, false);
-});
-
-test('contact API sends inquiry email to configured studio recipients', async () => {
+test('contact API sends inquiry email to the OMUS inbox', async () => {
     const fetchCalls = [];
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (...args) => {
@@ -85,7 +63,7 @@ test('contact API sends inquiry email to configured studio recipients', async ()
         assert.equal(response.status, 200);
         assert.equal(json.success, true);
         assert.equal(fetchCalls[0][0], 'https://api.resend.com/emails');
-        assert.deepEqual(sentPayload.to, ['smarty1558@gmail.com', 'omusinform@gmail.com', 'smarty1558910@gmail.com']);
+        assert.deepEqual(sentPayload.to, ['omusinform@gmail.com']);
         assert.equal(sentPayload.reply_to, 'student@example.com');
         assert.match(sentPayload.text, /이름: Kim/);
         assert.match(sentPayload.text, /연락처: -/);
@@ -140,86 +118,10 @@ test('contact API keeps optional phone field optional', async () => {
     }
 });
 
-test('contact API sends inquiry email to multiple configured recipients', async () => {
-    const fetchCalls = [];
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (...args) => {
-        fetchCalls.push(args);
-        return new Response(JSON.stringify({ id: 'email-1' }), {
-            status: 200,
-            headers: { 'content-type': 'application/json' }
-        });
-    };
-
-    try {
-        const response = await onRequestPost({
-            request: makeRequest({
-                name: 'Kim',
-                phone: '010-0000-0000',
-                email: 'student@example.com',
-                course: 'jpop',
-                lessonMode: 'online',
-                message: 'Send this to both inboxes.'
-            }),
-            env: {
-                RESEND_API_KEY: 'test-key',
-                CONTACT_TO_EMAIL: 'owner@example.com, academy@example.com'
-            }
-        });
-        const sentPayload = JSON.parse(fetchCalls[0][1].body);
-
-        assert.equal(response.status, 200);
-        assert.deepEqual(sentPayload.to, ['owner@example.com', 'academy@example.com']);
-    } finally {
-        globalThis.fetch = originalFetch;
-    }
-});
-
-test('contact API tolerates env-style CONTACT_TO_EMAIL values from dashboard mistakes', async () => {
-    const fetchCalls = [];
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (...args) => {
-        fetchCalls.push(args);
-        return new Response(JSON.stringify({ id: 'email-1' }), {
-            status: 200,
-            headers: { 'content-type': 'application/json' }
-        });
-    };
-
-    try {
-        const response = await onRequestPost({
-            request: makeRequest({
-                name: 'Kim',
-                phone: '010-0000-0000',
-                email: 'student@example.com',
-                course: 'jpop',
-                lessonMode: 'online',
-                message: 'Dashboard value included the key name.'
-            }),
-            env: {
-                RESEND_API_KEY: 'test-key',
-                CONTACT_TO_EMAIL: 'CONTACT_TO_EMAIL=smarty1558@gmail.com, omusinform@gmail.com'
-            }
-        });
-        const sentPayload = JSON.parse(fetchCalls[0][1].body);
-
-        assert.equal(response.status, 200);
-        assert.deepEqual(sentPayload.to, ['smarty1558@gmail.com', 'omusinform@gmail.com']);
-    } finally {
-        globalThis.fetch = originalFetch;
-    }
-});
-
-const TO_DEFAULT = 'smarty1558@gmail.com';
-const TO_PYEONGTAEK = 'omusinform@gmail.com';
-const baseEnv = {
-    RESEND_API_KEY: 'test-key',
-    CONTACT_TO_EMAIL: TO_DEFAULT,
-    CONTACT_PYEONGTAEK_TO_EMAIL: TO_PYEONGTAEK
-};
+const OMUS_INBOX = 'omusinform@gmail.com';
 
 // Sends one inquiry with Resend replaced by a fake. Any request to another host fails the test.
-const submitInquiry = async ({ geo, ipCity, env = baseEnv, omitGeo = false }) => {
+const submitInquiry = async ({ body: extra = {}, env, ipCity } = {}) => {
     const calls = [];
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (url, init) => {
@@ -230,165 +132,56 @@ const submitInquiry = async ({ geo, ipCity, env = baseEnv, omitGeo = false }) =>
         return new Response(JSON.stringify({ id: 'fake' }), { status: 200, headers: { 'content-type': 'application/json' } });
     };
     try {
-        const body = {
-            name: 'Visitor',
-            email: 'visitor@example.com',
-            course: 'jpop',
-            lessonMode: 'online',
-            message: 'Where am I?'
-        };
-        if (!omitGeo) body.geo = geo;
-        const request = makeRequest(body);
-        if (ipCity !== undefined) Object.defineProperty(request, 'cf', { value: { city: ipCity } });
-        const response = await onRequestPost({ request, env });
-        assert.equal(response.status, 200);
-        assert.equal(calls.length, 1);
-        return { sent: JSON.parse(calls[0].init.body), raw: calls[0].init.body };
-    } finally {
-        globalThis.fetch = originalFetch;
-    }
-};
-
-const PYEONGTAEK_CENTER = { lat: 36.9921, lng: 127.1129, accuracy: 50 };
-const SEOUL = { lat: 37.5665, lng: 126.978, accuracy: 50 };
-const SUWON = { lat: 37.266, lng: 127.001, accuracy: 50 };
-
-const expectTo = (result, address) => {
-    assert.deepEqual(result.sent.to, [address]);
-    assert.equal(result.sent.cc, undefined);
-    assert.equal(result.sent.bcc, undefined);
-};
-
-test('browser location inside Pyeongtaek goes to the Pyeongtaek recipient even when the IP city differs', async () => {
-    const result = await submitInquiry({ geo: PYEONGTAEK_CENTER, ipCity: 'Seoul' });
-    expectTo(result, TO_PYEONGTAEK);
-    assert.doesNotMatch(result.sent.text, /접속 지역/);
-});
-
-test('browser location outside Pyeongtaek goes to the default recipient even when the IP city is Pyeongtaek', async () => {
-    for (const geo of [SEOUL, SUWON]) {
-        const result = await submitInquiry({ geo, ipCity: 'Pyeongtaek' });
-        expectTo(result, TO_DEFAULT);
-        assert.doesNotMatch(result.sent.text, /접속 지역/);
-    }
-});
-
-test('without a browser location the IP city decides', async () => {
-    expectTo(await submitInquiry({ omitGeo: true, ipCity: 'Pyeongtaek' }), TO_PYEONGTAEK);
-    expectTo(await submitInquiry({ geo: null, ipCity: 'Pyeongtaek' }), TO_PYEONGTAEK);
-    expectTo(await submitInquiry({ omitGeo: true, ipCity: 'Pyeongtaek-si' }), TO_PYEONGTAEK);
-    expectTo(await submitInquiry({ omitGeo: true, ipCity: 'Seoul' }), TO_DEFAULT);
-    expectTo(await submitInquiry({ omitGeo: true }), TO_DEFAULT);
-});
-
-test('invalid, low-accuracy or malformed coordinates are ignored and the IP city decides', async () => {
-    const unusable = [
-        { lat: 'x', lng: 127.1, accuracy: 10 },
-        { lat: 36.99, lng: 127.1129 },
-        { lat: 95, lng: 127.1, accuracy: 10 },
-        { lat: 36.99, lng: 200, accuracy: 10 },
-        { lat: 36.99, lng: 127.1129, accuracy: -5 },
-        { lat: 36.99, lng: 127.1129, accuracy: 0 },
-        { lat: null, lng: null, accuracy: null },
-        { ...PYEONGTAEK_CENTER, accuracy: 20000 },
-        { ...SEOUL, accuracy: 20000 },
-        'pyeongtaek',
-        42
-    ];
-    for (const geo of unusable) {
-        expectTo(await submitInquiry({ geo, ipCity: 'Pyeongtaek' }), TO_PYEONGTAEK);
-        expectTo(await submitInquiry({ geo, ipCity: 'Seoul' }), TO_DEFAULT);
-    }
-});
-
-test('a fix whose accuracy circle crosses the boundary is ambiguous and the IP city decides', async () => {
-    const [ax, ay] = PYEONGTAEK_BOUNDARY[0][0][100];
-    const [bx, by] = PYEONGTAEK_BOUNDARY[0][0][101];
-    const nearBoundary = { lng: (ax + bx) / 2, lat: (ay + by) / 2, accuracy: 2000 };
-
-    assert.equal(classifyPyeongtaekLocation(nearBoundary), 'ambiguous');
-    expectTo(await submitInquiry({ geo: nearBoundary, ipCity: 'Pyeongtaek' }), TO_PYEONGTAEK);
-    expectTo(await submitInquiry({ geo: nearBoundary, ipCity: 'Seoul' }), TO_DEFAULT);
-});
-
-test('precise fixes on either side of the boundary are decided by the browser location', async () => {
-    const ring = PYEONGTAEK_BOUNDARY[0][0];
-    let checked = 0;
-    for (let i = 0; i < ring.length - 1 && checked < 3; i += 40) {
-        const [ax, ay] = ring[i];
-        const [bx, by] = ring[i + 1];
-        const nx = -(by - ay);
-        const ny = bx - ax;
-        const norm = Math.hypot(nx, ny);
-        if (!norm) continue;
-        // about 300 m to either side of the edge midpoint, 5 m accuracy
-        const step = 0.003 / norm;
-        const mx = (ax + bx) / 2;
-        const my = (ay + by) / 2;
-        const sideA = { lng: mx + nx * step, lat: my + ny * step, accuracy: 5 };
-        const sideB = { lng: mx - nx * step, lat: my - ny * step, accuracy: 5 };
-        const a = classifyPyeongtaekLocation(sideA);
-        const b = classifyPyeongtaekLocation(sideB);
-        if (a === b || a === 'ambiguous' || b === 'ambiguous') continue;
-        const inside = a === 'inside' ? sideA : sideB;
-        const outside = a === 'inside' ? sideB : sideA;
-        expectTo(await submitInquiry({ geo: inside, ipCity: 'Seoul' }), TO_PYEONGTAEK);
-        expectTo(await submitInquiry({ geo: outside, ipCity: 'Pyeongtaek' }), TO_DEFAULT);
-        checked += 1;
-    }
-    assert.ok(checked >= 1);
-});
-
-test('legacy special-applicant variables never redirect non-Pyeongtaek inquiries', async () => {
-    const env = {
-        ...baseEnv,
-        CONTACT_SPECIAL_TO_EMAIL: TO_PYEONGTAEK,
-        CONTACT_SPECIAL_FROM_EMAILS: 'visitor@example.com'
-    };
-    expectTo(await submitInquiry({ geo: SEOUL, ipCity: 'Seoul', env }), TO_DEFAULT);
-    expectTo(await submitInquiry({ omitGeo: true, ipCity: 'Seoul', env }), TO_DEFAULT);
-});
-
-test('a client-supplied recipient or region flag is ignored', async () => {
-    const calls = [];
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = async (url, init) => {
-        calls.push(init);
-        return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
-    };
-    try {
         const request = makeRequest({
             name: 'Visitor',
             email: 'visitor@example.com',
             course: 'jpop',
             lessonMode: 'online',
-            message: 'hi',
-            to: TO_PYEONGTAEK,
-            isPyeongtaek: true,
-            geo: { ...SEOUL, pyeongtaek: true, to: TO_PYEONGTAEK }
+            message: 'hello',
+            ...extra
         });
-        await onRequestPost({ request, env: baseEnv });
-        assert.deepEqual(JSON.parse(calls[0].body).to, [TO_DEFAULT]);
+        if (ipCity !== undefined) Object.defineProperty(request, 'cf', { value: { city: ipCity } });
+        const response = await onRequestPost({ request, env: { RESEND_API_KEY: 'test-key', ...env } });
+        assert.equal(response.status, 200);
+        assert.equal(calls.length, 1);
+        return JSON.parse(calls[0].init.body);
     } finally {
         globalThis.fetch = originalFetch;
     }
+};
+
+const expectOmusOnly = (sent) => {
+    assert.deepEqual(sent.to, [OMUS_INBOX]);
+    assert.equal(sent.cc, undefined);
+    assert.equal(sent.bcc, undefined);
+};
+
+test('every inquiry goes only to the OMUS inbox, whatever the dashboard recipient variables say', async () => {
+    expectOmusOnly(await submitInquiry());
+    expectOmusOnly(await submitInquiry({ env: { CONTACT_TO_EMAIL: 'owner@example.com, academy@example.com' } }));
+    expectOmusOnly(await submitInquiry({ env: { CONTACT_TO_EMAIL: 'smarty1558@gmail.com', CONTACT_PYEONGTAEK_TO_EMAIL: 'other@example.com' } }));
+    expectOmusOnly(await submitInquiry({ env: { CONTACT_SPECIAL_TO_EMAIL: 'other@example.com', CONTACT_SPECIAL_FROM_EMAILS: 'visitor@example.com' } }));
 });
 
-test('coordinates are never written into the email', async () => {
-    const result = await submitInquiry({ geo: PYEONGTAEK_CENTER, ipCity: 'Seoul' });
-    assert.ok(!result.raw.includes('36.9921'));
-    assert.ok(!result.raw.includes('127.1129'));
+test('visitor region no longer affects the recipient', async () => {
+    expectOmusOnly(await submitInquiry({ ipCity: 'Pyeongtaek' }));
+    expectOmusOnly(await submitInquiry({ ipCity: 'Seoul' }));
+    expectOmusOnly(await submitInquiry({ body: { geo: { lat: 36.9921, lng: 127.1129, accuracy: 50 } } }));
 });
 
-test('a Pyeongtaek visitor falls back to the default recipient when no Pyeongtaek recipient is configured', async () => {
-    const env = { RESEND_API_KEY: 'test-key', CONTACT_TO_EMAIL: TO_DEFAULT };
-    expectTo(await submitInquiry({ geo: PYEONGTAEK_CENTER, ipCity: 'Pyeongtaek', env }), TO_DEFAULT);
+test('a client-supplied recipient is ignored', async () => {
+    expectOmusOnly(await submitInquiry({ body: { to: 'attacker@example.com', cc: 'attacker@example.com' } }));
 });
 
-test('contact form asks for browser location through the native prompt only and never blocks submission', () => {
+test('contact form no longer asks for the browser location', () => {
     const page = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
-    assert.doesNotMatch(page, /위치 기반 정보 확인|location-consent-note/);
-    assert.match(page, /navigator\.geolocation\.getCurrentPosition/);
-    assert.match(page, /setTimeout\(\(\) => resolve\(null\), 10000\)/);
-    assert.match(page, /\(\) => finish\(null\)/);
+    assert.doesNotMatch(page, /navigator\.geolocation/);
+    assert.doesNotMatch(page, /requestBrowserLocation/);
+});
+
+test('bottom-right KakaoTalk button links to the OMUS channel chat', () => {
+    const page = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+    const css = readFileSync(new URL('./style.css', import.meta.url), 'utf8');
+    assert.match(page, /<a class="kakao-float" href="https:\/\/pf\.kakao\.com\/_axmmPX\/chat" target="_blank" rel="noopener noreferrer"/);
+    assert.match(css, /\.kakao-float \{[^}]*position: fixed;[^}]*right: 22px;[^}]*bottom: 24px;/s);
 });
